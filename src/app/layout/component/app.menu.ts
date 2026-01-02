@@ -20,35 +20,68 @@ export class AppMenu {
 
     ngOnInit() {
         this.model = [
-            {
-                label: 'Accueil',
-                items: [{ label: 'Dashboard', icon: 'pi pi-fw pi-home', routerLink: ['/'] }]
+    {
+        label: 'Navigation',
+        items: [
+            { 
+                label: 'Tableau de bord', 
+                icon: 'pi pi-fw pi-th-large', 
+                routerLink: ['/dashboard'] 
             },
-
-            {
-                label: 'Paramettres',
-                icon: 'pi pi-fw pi-briefcase',
-                routerLink: ['/pages'],
-                items: [
-                    
-                    {
-                        label: 'Auth',
-                        icon: 'pi pi-fw pi-user',
-                        items: [
-                            {
-                                label: 'Login',
-                                icon: 'pi pi-fw pi-sign-in',
-                                routerLink: ['/auth/login']
-                            },
-                            
-                           
-                        ]
-                    },
-                                    
-                ]
+            { 
+                label: 'Événements', 
+                icon: 'pi pi-fw pi-calendar-plus', 
+                routerLink: ['/events'],
+                badge: '4',
+                badgeClass: 'p-badge-danger'
             },
-      
-        
-        ];
+            { 
+                label: 'Calendrier', 
+                icon: 'pi pi-fw pi-calendar', 
+                routerLink: ['/calendar'] 
+            },
+            { 
+                label: 'Participants', 
+                icon: 'pi pi-fw pi-users', 
+                routerLink: ['/participants'] 
+            },
+            { 
+                label: 'Documents', 
+                icon: 'pi pi-fw pi-folder', 
+                routerLink: ['/documents'] 
+            },
+            { 
+                label: 'Statistiques', 
+                icon: 'pi pi-fw pi-chart-line', 
+                routerLink: ['/statistics'] 
+            }
+        ]
+    },
+    {
+        label: 'Administration',
+        items: [
+            { 
+                label: 'Utilisateurs', 
+                icon: 'pi pi-fw pi-user-edit', 
+                routerLink: ['/admin/users'] 
+            },
+            { 
+                label: 'Paramètres', 
+                icon: 'pi pi-fw pi-cog', 
+                routerLink: ['/settings'] 
+            }
+        ]
+    },
+    {
+        label: 'Authentification',
+        items: [
+            {
+                label: 'Deconnecte',
+                icon: 'pi pi-fw pi-sign-in',
+                routerLink: ['/auth/login']
+            }
+        ]
+    }
+];
     }
 }

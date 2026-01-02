@@ -1,0 +1,866 @@
+<p-toast position="top-right"></p-toast>
+
+<div class="event-create-container">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <p-button 
+        icon="pi pi-arrow-left" 
+        [rounded]="true" 
+        [text]="true" 
+        severity="secondary"
+        (onClick)="cancel()"
+        class="back-btn">
+      </p-button>
+      <h1>
+        <i class="pi pi-plus-circle"></i>
+        Créer un événement
+      </h1>
+    </div>
+  </div>
+
+  <!-- Barre de progression -->
+  <div class="card progress-card">
+    <div class="progress-header">
+      <span>Progression</span>
+      <span>Étape {{ currentStep + 1 }} / 8</span>
+    </div>
+    <p-progressBar [value]="progressValue" [showValue]="false"></p-progressBar>
+  </div>
+
+  <!-- Contenu selon l'étape actuelle -->
+  <div class="step-wrapper">
+
+    <!-- ========================================== -->
+    <!-- ÉTAPE 0 : IDENTIFICATION -->
+    <!-- ========================================== -->
+    <div *ngIf="currentStep === 0" class="step-content">
+      
+      <!-- Intro -->
+      <div class="phase-intro">
+        <i class="pi pi-info-circle"></i>
+        <p>Commencez par définir l'événement : son titre, sa description et son type.</p>
+      </div>
+
+      <!-- Groupe : Identification -->
+      <div class="form-group">
+        <h3 class="group-title">
+          <i class="pi pi-bookmark"></i>
+          Identification
+        </h3>
+
+        <form [formGroup]="eventForm">
+          
+          <!-- Titre -->
+          <div class="form-field">
+            <label class="field-label">
+              Titre de l'événement <span class="required">*</span>
+            </label>
+            <p-iconfield iconPosition="left" class="w-full">
+              <p-inputicon styleClass="pi pi-bookmark" />
+              <input 
+                pInputText 
+                formControlName="title" 
+                placeholder="Ex: Réunion Budget 2026"
+                class="w-full p-inputtext-lg" />
+            </p-iconfield>
+            <small class="field-error" *ngIf="isFieldInvalid('title')">
+              {{ getErrorMessage('title') }}
+            </small>
+          </div>
+
+          <!-- Description -->
+          <div class="form-field">
+            <label class="field-label">Description</label>
+            <textarea 
+              pTextarea 
+              formControlName="description" 
+              rows="5"
+              placeholder="Décrivez l'événement en détail..."
+              class="w-full p-inputtext-lg">
+            </textarea>
+            <small class="field-hint">
+              <i class="pi pi-info-circle"></i>
+              Ajoutez tous les détails importants pour les participants
+            </small>
+          </div>
+
+        </form>
+      </div>
+
+      <!-- Actions -->
+      <div class="step-actions">
+        <p-button 
+          label="Annuler" 
+          [outlined]="true"
+          severity="secondary"
+          size="large"
+          (onClick)="cancel()">
+        </p-button>
+        <p-button 
+          label="Suivant" 
+          icon="pi pi-arrow-right" 
+          iconPos="right"
+          class="btn-ascelc"
+          size="large"
+          (onClick)="goToStep(1)"
+          [disabled]="!eventForm.get('title')?.valid">
+        </p-button>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ÉTAPE 1 : CATÉGORISATION -->
+    <!-- ========================================== -->
+    <div *ngIf="currentStep === 1" class="step-content">
+      
+      <!-- Intro -->
+      <div class="phase-intro">
+        <i class="pi pi-info-circle"></i>
+        <p>Choisissez le type d'événement.</p>
+      </div>
+
+      <!-- Groupe : Catégorisation -->
+      <div class="form-group">
+        <h3 class="group-title">
+          <i class="pi pi-tag"></i>
+          Catégorisation
+        </h3>
+
+        <form [formGroup]="eventForm">
+          <div class="grid-2-cols">
+            
+            <!-- Type -->
+            <div class="form-field">
+              <label class="field-label">
+                Type d'événement <span class="required">*</span>
+              </label>
+              <p-select 
+                formControlName="type" 
+                [options]="typeOptions"
+                placeholder="Sélectionnez le type"
+                optionLabel="label"
+                optionValue="value"
+                styleClass="w-full"
+                [style]="{'width': '100%'}">
+              </p-select>
+              <small class="field-error" *ngIf="isFieldInvalid('type')">
+                Le type est obligatoire
+              </small>
+            </div>
+
+            <!-- Statut -->
+            <div class="form-field">
+              <label class="field-label">Statut initial</label>
+              <input 
+                pInputText 
+                value="Planifié"
+                disabled
+                class="w-full p-inputtext-lg" />
+              <small class="field-hint">
+                <i class="pi pi-info-circle"></i>
+                L'événement sera créé avec le statut "Planifié"
+              </small>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <!-- Actions -->
+      <div class="step-actions">
+        <p-button 
+          label="Précédent" 
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          size="large"
+          (onClick)="goToStep(0)">
+        </p-button>
+        <p-button 
+          label="Suivant" 
+          icon="pi pi-arrow-right" 
+          iconPos="right"
+          class="btn-ascelc"
+          size="large"
+          (onClick)="goToStep(2)"
+          [disabled]="!eventForm.get('type')?.valid">
+        </p-button>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ÉTAPE 2 : PÉRIODE -->
+    <!-- ========================================== -->
+    <div *ngIf="currentStep === 2" class="step-content">
+      
+      <!-- Intro -->
+      <div class="phase-intro">
+        <i class="pi pi-info-circle"></i>
+        <p>Définissez la période de l'événement.</p>
+      </div>
+
+      <!-- Groupe : Période -->
+      <div class="form-group">
+        <h3 class="group-title">
+          <i class="pi pi-calendar"></i>
+          Période de l'événement
+        </h3>
+
+        <form [formGroup]="eventForm">
+          <div class="grid-2-cols">
+            
+            <!-- Date début -->
+            <div class="form-field">
+              <label class="field-label">
+                Date de début <span class="required">*</span>
+              </label>
+              <p-datepicker 
+                formControlName="startDate" 
+                dateFormat="dd/mm/yy"
+                placeholder="Sélectionnez la date"
+                [showIcon]="true"
+                styleClass="w-full"
+                [style]="{'width': '100%'}">
+              </p-datepicker>
+              <small class="field-error" *ngIf="isFieldInvalid('startDate')">
+                Date de début requise
+              </small>
+            </div>
+
+            <!-- Date fin -->
+            <div class="form-field">
+              <label class="field-label">
+                Date de fin <span class="required">*</span>
+              </label>
+              <p-datepicker 
+                formControlName="endDate" 
+                dateFormat="dd/mm/yy"
+                placeholder="Sélectionnez la date"
+                [showIcon]="true"
+                styleClass="w-full"
+                [style]="{'width': '100%'}">
+              </p-datepicker>
+              <small class="field-error" *ngIf="isFieldInvalid('endDate')">
+                Date de fin requise
+              </small>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <!-- Actions -->
+      <div class="step-actions">
+        <p-button 
+          label="Précédent" 
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          size="large"
+          (onClick)="goToStep(1)">
+        </p-button>
+        <p-button 
+          label="Suivant" 
+          icon="pi pi-arrow-right" 
+          iconPos="right"
+          class="btn-ascelc"
+          size="large"
+          (onClick)="goToStep(3)"
+          [disabled]="!(eventForm.get('startDate')?.valid && eventForm.get('endDate')?.valid)">
+        </p-button>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ÉTAPE 3 : LOCALISATION -->
+    <!-- ========================================== -->
+    <div *ngIf="currentStep === 3" class="step-content">
+      
+      <!-- Intro -->
+      <div class="phase-intro">
+        <i class="pi pi-info-circle"></i>
+        <p>Indiquez où se déroulera l'événement.</p>
+      </div>
+
+      <!-- Groupe : Localisation -->
+      <div class="form-group">
+        <h3 class="group-title">
+          <i class="pi pi-map-marker"></i>
+          Localisation
+        </h3>
+
+        <form [formGroup]="eventForm">
+          <div class="grid-2-cols">
+            
+            <!-- Pays -->
+            <div class="form-field">
+              <label class="field-label">Pays</label>
+              <p-select 
+                formControlName="pays" 
+                [options]="countries"
+                placeholder="Sélectionnez le pays"
+                optionLabel="label"
+                optionValue="value"
+                [filter]="true"
+                filterPlaceholder="Rechercher..."
+                styleClass="w-full"
+                [style]="{'width': '100%'}">
+              </p-select>
+            </div>
+
+            <!-- Ville -->
+            <div class="form-field">
+              <label class="field-label">Ville</label>
+              <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon styleClass="pi pi-building" />
+                <input 
+                  pInputText 
+                  formControlName="ville"
+                  placeholder="Ex: Ouagadougou"
+                  class="w-full p-inputtext-lg" />
+              </p-iconfield>
+            </div>
+
+          </div>
+
+          <!-- Lien visio -->
+          <div class="form-field">
+            <label class="field-label">
+              Lien de réunion en ligne <span style="color: #666; font-weight: normal;">(optionnel)</span>
+            </label>
+            <p-iconfield iconPosition="left" class="w-full">
+              <p-inputicon styleClass="pi pi-video" />
+              <input 
+                pInputText 
+                formControlName="meetingLink"
+                placeholder="https://meet.google.com/..."
+                class="w-full p-inputtext-lg" />
+            </p-iconfield>
+            <small class="field-hint">
+              <i class="pi pi-info-circle"></i>
+              Google Meet, Zoom, Teams, etc.
+            </small>
+          </div>
+        </form>
+      </div>
+
+      <!-- Actions -->
+      <div class="step-actions">
+        <p-button 
+          label="Précédent" 
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          size="large"
+          (onClick)="goToStep(2)">
+        </p-button>
+        <p-button 
+          label="Suivant" 
+          icon="pi pi-arrow-right" 
+          iconPos="right"
+          class="btn-ascelc"
+          size="large"
+          (onClick)="goToStep(4)">
+        </p-button>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ÉTAPE 4 : HORAIRES -->
+    <!-- ========================================== -->
+    <div *ngIf="currentStep === 4" class="step-content">
+      
+      <!-- Intro -->
+      <div class="phase-intro">
+        <i class="pi pi-info-circle"></i>
+        <p>Choisissez entre des horaires globaux ou personnalisés par jour.</p>
+      </div>
+
+      <!-- Groupe : Mode -->
+      <div class="form-group">
+        <h3 class="group-title">
+          <i class="pi pi-cog"></i>
+          Mode d'organisation
+        </h3>
+
+        <!-- Choix du mode -->
+        <div class="schedule-mode-cards">
+          <!-- Mode Global -->
+          <div class="mode-card" 
+               [class.active]="scheduleMode === 'global'"
+               (click)="onScheduleModeChange('global')">
+            <div class="mode-card-content">
+              <i class="pi pi-clock mode-card-icon"></i>
+              <div class="mode-card-info">
+                <h4 class="mode-card-title">Horaires globaux</h4>
+                <p class="mode-card-desc">Même horaire pour tous les jours</p>
+              </div>
+            </div>
+            <div class="mode-card-radio">
+              <p-radiobutton 
+                name="scheduleMode" 
+                value="global" 
+                [(ngModel)]="scheduleMode">
+              </p-radiobutton>
+            </div>
+          </div>
+
+          <!-- Mode Personnalisé -->
+          <div class="mode-card" 
+               [class.active]="scheduleMode === 'custom'"
+               (click)="onScheduleModeChange('custom')">
+            <div class="mode-card-content">
+              <i class="pi pi-calendar mode-card-icon"></i>
+              <div class="mode-card-info">
+                <h4 class="mode-card-title">Horaires personnalisés</h4>
+                <p class="mode-card-desc">Horaires différents par jour</p>
+              </div>
+            </div>
+            <div class="mode-card-radio">
+              <p-radiobutton 
+                name="scheduleMode" 
+                value="custom" 
+                [(ngModel)]="scheduleMode">
+              </p-radiobutton>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p-divider></p-divider>
+
+      <form [formGroup]="eventForm">
+
+        <!-- MODE GLOBAL -->
+        <div *ngIf="scheduleMode === 'global'" class="form-group">
+          <h3 class="group-title">
+            <i class="pi pi-clock"></i>
+            Horaires communs
+          </h3>
+
+          <div class="grid-2-cols">
+            <div class="form-field">
+              <label class="field-label">Heure de début <span class="required">*</span></label>
+              <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon styleClass="pi pi-clock" />
+                <input pInputText type="time" formControlName="globalStartTime" class="w-full p-inputtext-lg" />
+              </p-iconfield>
+            </div>
+
+            <div class="form-field">
+              <label class="field-label">Heure de fin <span class="required">*</span></label>
+              <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon styleClass="pi pi-clock" />
+                <input pInputText type="time" formControlName="globalEndTime" class="w-full p-inputtext-lg" />
+              </p-iconfield>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE PERSONNALISÉ -->
+        <div *ngIf="scheduleMode === 'custom'" class="form-group">
+          <div class="flex justify-between items-center mb-4">
+            <h3 class="group-title m-0">
+              <i class="pi pi-calendar"></i>
+              Horaires par jour
+            </h3>
+            <p-button 
+              label="Ajouter" 
+              icon="pi pi-plus" 
+              [outlined]="true"
+              severity="success"
+              (onClick)="addSchedule()">
+            </p-button>
+          </div>
+
+          <div formArrayName="schedules" class="schedule-list">
+            <div *ngFor="let s of schedules.controls; let i = index" 
+                 [formGroupName]="i"
+                 class="schedule-card">
+              
+              <div class="schedule-card-header">
+                <div class="schedule-badge">
+                  <i class="pi pi-calendar"></i>
+                  Jour {{ i + 1 }}
+                </div>
+                <p-button 
+                  icon="pi pi-trash" 
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="removeSchedule(i)"
+                  *ngIf="schedules.length > 1">
+                </p-button>
+              </div>
+
+              <div class="grid-4-cols">
+                <div class="form-field">
+                  <label class="field-label">Date *</label>
+                  <p-datepicker 
+                    formControlName="dateJour"
+                    dateFormat="dd/mm/yy"
+                    [showIcon]="true"
+                    styleClass="w-full"
+                    [style]="{'width': '100%'}">
+                  </p-datepicker>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Début *</label>
+                  <input pInputText type="time" formControlName="startTime" class="w-full p-inputtext-lg" />
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Fin *</label>
+                  <input pInputText type="time" formControlName="endTime" class="w-full p-inputtext-lg" />
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Adresse</label>
+                  <input pInputText formControlName="address" placeholder="Lieu précis" class="w-full p-inputtext-lg" />
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Actions -->
+      <div class="step-actions">
+        <p-button 
+          label="Précédent" 
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          size="large"
+          (onClick)="goToStep(3)">
+        </p-button>
+        <p-button 
+          label="Suivant" 
+          icon="pi pi-arrow-right" 
+          iconPos="right"
+          class="btn-ascelc"
+          size="large"
+          (onClick)="goToStep(5)">
+        </p-button>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ÉTAPE 5 : PARTICIPANTS -->
+    <!-- ========================================== -->
+    <div *ngIf="currentStep === 5" class="step-content">
+      
+      <!-- Info RGPD -->
+      <div class="info-banner">
+        <i class="pi pi-shield"></i>
+        <p><strong>Données personnelles :</strong> Cette section est optionnelle. Les données sont protégées (RGPD).</p>
+      </div>
+
+      <!-- Groupe : Participants -->
+      <div class="form-group">
+        <div class="flex justify-between items-center mb-4">
+          <h3 class="group-title m-0">
+            <i class="pi pi-users"></i>
+            Participants ({{ participants.length }})
+          </h3>
+          <p-button 
+            label="Ajouter" 
+            icon="pi pi-user-plus" 
+            severity="success"
+            (onClick)="addParticipant()">
+          </p-button>
+        </div>
+
+        <form [formGroup]="eventForm">
+          <div formArrayName="participants" class="participant-list">
+            
+            <div *ngFor="let p of participants.controls; let i = index"
+                 [formGroupName]="i"
+                 class="participant-card">
+              
+              <div class="participant-card-header">
+                <div class="participant-badge">
+                  <i class="pi pi-user"></i>
+                  Participant {{ i + 1 }}
+                </div>
+                <p-button 
+                  icon="pi pi-trash" 
+                  severity="danger"
+                  [text]="true"
+                  [rounded]="true"
+                  (onClick)="removeParticipant(i)">
+                </p-button>
+              </div>
+
+              <div class="grid-2-cols">
+                <div class="form-field">
+                  <label class="field-label">Prénom *</label>
+                  <input pInputText formControlName="firstName" placeholder="Prénom" class="w-full p-inputtext-lg" />
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Nom *</label>
+                  <input pInputText formControlName="lastName" placeholder="Nom" class="w-full p-inputtext-lg" />
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Email *</label>
+                  <p-iconfield iconPosition="left" class="w-full">
+                    <p-inputicon styleClass="pi pi-envelope" />
+                    <input pInputText type="email" formControlName="email" placeholder="email@example.com" class="w-full p-inputtext-lg" />
+                  </p-iconfield>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Téléphone</label>
+                  <p-iconfield iconPosition="left" class="w-full">
+                    <p-inputicon styleClass="pi pi-phone" />
+                    <input pInputText formControlName="phoneNumber" placeholder="+226 XX XX XX XX" class="w-full p-inputtext-lg" />
+                  </p-iconfield>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Organisation</label>
+                  <p-iconfield iconPosition="left" class="w-full">
+                    <p-inputicon styleClass="pi pi-building" />
+                    <input pInputText formControlName="organization" placeholder="Organisation" class="w-full p-inputtext-lg" />
+                  </p-iconfield>
+                </div>
+
+                <div class="form-field">
+                  <label class="field-label">Fonction</label>
+                  <p-iconfield iconPosition="left" class="w-full">
+                    <p-inputicon styleClass="pi pi-briefcase" />
+                    <input pInputText formControlName="jobTitle" placeholder="Fonction" class="w-full p-inputtext-lg" />
+                  </p-iconfield>
+                </div>
+
+                <div class="form-field" style="grid-column: span 2;">
+                  <label class="field-label">Type *</label>
+                  <p-select 
+                    formControlName="participantType"
+                    [options]="participantTypeOptions"
+                    placeholder="Sélectionnez le type"
+                    optionLabel="label"
+                    optionValue="value"
+                    styleClass="w-full"
+                    [style]="{'width': '100%'}">
+                  </p-select>
+                </div>
+              </div>
+
+            </div>
+
+            <div *ngIf="participants.length === 0" class="empty-state">
+              <i class="pi pi-users empty-state-icon"></i>
+              <h4 class="empty-state-title">Aucun participant</h4>
+              <p class="empty-state-desc">Ajoutez-en ou passez à l'étape suivante</p>
+            </div>
+
+          </div>
+        </form>
+      </div>
+
+      <!-- Actions -->
+      <div class="step-actions">
+        <p-button 
+          label="Précédent" 
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          size="large"
+          (onClick)="goToStep(4)">
+        </p-button>
+        <p-button 
+          label="Suivant" 
+          icon="pi pi-arrow-right" 
+          iconPos="right"
+          class="btn-ascelc"
+          size="large"
+          (onClick)="goToStep(6)">
+        </p-button>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ÉTAPE 6 : DOCUMENTS -->
+    <!-- ========================================== -->
+    <div *ngIf="currentStep === 6" class="step-content">
+      
+      <!-- Intro -->
+      <div class="phase-intro">
+        <i class="pi pi-info-circle"></i>
+        <p>Ajoutez des fichiers si nécessaire (Max 10 MB par fichier).</p>
+      </div>
+
+      <!-- Groupe : Documents -->
+      <div class="form-group">
+        <h3 class="group-title">
+          <i class="pi pi-paperclip"></i>
+          Documents ({{ uploadedFiles.length }})
+        </h3>
+
+        <!-- Upload Area -->
+        <div class="upload-area" 
+             (click)="fileInput.click()"
+             (dragover)="onDragOver($event)"
+             (drop)="onDrop($event)">
+          <input #fileInput type="file" multiple (change)="onFileSelect($event)" style="display: none" />
+          
+          <i class="pi pi-cloud-upload upload-icon"></i>
+          <h3 class="upload-title">Glissez vos fichiers ici</h3>
+          <p class="upload-subtitle">ou</p>
+          <p-button 
+            label="Choisir" 
+            icon="pi pi-upload" 
+            [outlined]="true"
+            severity="success">
+          </p-button>
+        </div>
+
+        <!-- Files Grid -->
+        <div class="files-grid" *ngIf="uploadedFiles.length > 0">
+          <div *ngFor="let f of uploadedFiles; let i = index" class="file-card">
+            <i class="file-icon" [ngClass]="getFileIcon(f.file)"></i>
+            
+            <div class="file-info">
+              <div class="file-name">{{ f.file.name }}</div>
+              <div class="file-size">{{ formatFileSize(f.file.size) }}</div>
+            </div>
+
+            <img *ngIf="f.preview" [src]="f.preview" class="file-preview" [alt]="f.file.name" />
+
+            <p-button 
+              icon="pi pi-times" 
+              [rounded]="true"
+              [text]="true"
+              severity="danger"
+              (onClick)="removeFile(i)">
+            </p-button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Actions -->
+      <div class="step-actions">
+        <p-button 
+          label="Précédent" 
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          size="large"
+          (onClick)="goToStep(5)">
+        </p-button>
+        <p-button 
+          label="Suivant" 
+          icon="pi pi-arrow-right" 
+          iconPos="right"
+          class="btn-ascelc"
+          size="large"
+          (onClick)="goToStep(7)">
+        </p-button>
+      </div>
+
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ÉTAPE 7 : RÉCAPITULATIF -->
+    <!-- ========================================== -->
+    <div *ngIf="currentStep === 7" class="step-content">
+      
+      <!-- Intro -->
+      <div class="phase-intro">
+        <i class="pi pi-info-circle"></i>
+        <p>Vérifiez toutes les informations avant de créer l'événement.</p>
+      </div>
+
+      <!-- Groupe : Récapitulatif -->
+      <div class="form-group">
+        <h3 class="group-title">
+          <i class="pi pi-list"></i>
+          Résumé de l'événement
+        </h3>
+
+        <div class="grid-3-cols">
+          <!-- Événement -->
+          <div class="card bg-blue-50 p-4 border-l-4 border-blue-500">
+            <div class="flex items-center gap-3 mb-2">
+              <i class="pi pi-bookmark text-blue-600 text-2xl"></i>
+              <h5 class="m-0 font-bold text-blue-900">Événement</h5>
+            </div>
+            <p class="text-sm text-blue-800 m-0">
+              {{ eventForm.get('title')?.value || 'Titre non défini' }}
+            </p>
+            <p class="text-xs text-blue-600 mt-2 m-0">
+              Type : {{ getTypeLabel(eventForm.get('type')?.value) }}
+            </p>
+          </div>
+
+          <!-- Dates -->
+          <div class="card bg-green-50 p-4 border-l-4 border-green-500">
+            <div class="flex items-center gap-3 mb-2">
+              <i class="pi pi-calendar text-green-600 text-2xl"></i>
+              <h5 class="m-0 font-bold text-green-900">Dates</h5>
+            </div>
+            <p class="text-sm text-green-800 m-0" *ngIf="eventForm.get('startDate')?.value">
+              Du {{ formatDateDisplay(eventForm.get('startDate')?.value) }}
+            </p>
+            <p class="text-sm text-green-800 m-0" *ngIf="eventForm.get('endDate')?.value">
+              Au {{ formatDateDisplay(eventForm.get('endDate')?.value) }}
+            </p>
+          </div>
+
+          <!-- Participants -->
+          <div class="card bg-purple-50 p-4 border-l-4 border-purple-500">
+            <div class="flex items-center gap-3 mb-2">
+              <i class="pi pi-users text-purple-600 text-2xl"></i>
+              <h5 class="m-0 font-bold text-purple-900">Participants</h5>
+            </div>
+            <p class="text-2xl font-bold text-purple-800 m-0">
+              {{ participants.length }}
+            </p>
+            <p class="text-xs text-purple-600 mt-2 m-0">
+              {{ participants.length === 0 ? 'Aucun' : participants.length === 1 ? 'participant' : 'participants' }}
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions FINALES -->
+      <div class="step-actions">
+        <p-button 
+          label="Précédent" 
+          icon="pi pi-arrow-left"
+          [outlined]="true"
+          severity="secondary"
+          size="large"
+          (onClick)="goToStep(6)">
+        </p-button>
+        <p-button 
+          label="Créer l'événement" 
+          icon="pi pi-check" 
+          iconPos="right"
+          class="btn-ascelc"
+          [loading]="loading"
+          size="large"
+          (onClick)="onSubmit()">
+        </p-button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
