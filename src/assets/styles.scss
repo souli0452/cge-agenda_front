@@ -3,3 +3,58 @@
 @use './layout/layout.scss';
 @use 'primeicons/primeicons.css';
 @use './demo/demo.scss';
+
+
+.layout-topbar {
+    height: 64px !important;
+    padding: 0 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Logo container */
+.layout-topbar-logo {
+    display: flex !important;
+    align-items: center !important;
+    gap: 0.5rem;
+}
+
+/* FIX PRINCIPAL : LOGO */
+.layout-topbar-logo img {
+    height: 36px !important;
+    max-height: 36px !important;
+    width: auto !important;
+    object-fit: contain !important;
+}
+
+/* Titre */
+.layout-topbar-logo span {
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* Actions */
+.layout-topbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Boutons */
+.layout-topbar-action {
+    width: 40px;
+    height: 40px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .layout-topbar-logo span {
+        display: none;
+    }
+
+    .layout-topbar-logo img {
+        height: 32px !important;
+    }
+}

@@ -19,4 +19,7 @@ export class StatsService {
     getMonthlyReport(year: number, month: number): Observable<MonthlyReport> {
         return this.http.get<MonthlyReport>(`${this.apiUrl}/monthly/${year}/${month}`);
     }
+    getEventsByStatusAndMonth(year: number): Observable<any> {
+    return this.http.get(`${this.apiUrl}/events-by-status-and-month/${year}`);
+}
 }

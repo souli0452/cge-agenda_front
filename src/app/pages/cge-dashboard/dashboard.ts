@@ -144,16 +144,17 @@ import {
                 </div>
             </div>
 
+            <!-- Histogramme par Statut et Mois -->
             <div class="col-span-12 xl:col-span-6">
                 <div class="card">
                     <div class="flex justify-between items-center mb-4">
-                        <h5 class="m-0">Événements par Statut</h5>
-                        <span class="text-sm text-muted-color">État d'avancement</span>
+                        <h5 class="m-0">Événements par Statut et Mois</h5>
+                        <span class="text-sm text-muted-color">Évolution mensuelle {{ currentYear }}</span>
                     </div>
                     <p-chart 
                         type="bar" 
-                        [data]="chartDataByStatus" 
-                        [options]="barOptions" 
+                        [data]="chartDataByStatusMonth" 
+                        [options]="barOptionsMonth" 
                         height="320px">
                     </p-chart>
                 </div>
@@ -395,9 +396,12 @@ export class CgeDashboardComponent implements OnInit {
     stats?: DashboardStats;
     recentEvents: Event[] = [];
     chartDataByType: any;
-    chartDataByStatus: any;
+    chartDataByStatusMonth: any; 
     doughnutOptions: any;
-    barOptions: any;
+    barOptionsMonth: any;
+    
+    // Année courante dynamique
+    currentYear: number = new Date().getFullYear();
 
     constructor(
         private statsService: StatsService,
@@ -408,6 +412,7 @@ export class CgeDashboardComponent implements OnInit {
     ngOnInit(): void {
         this.initChartOptions();
         this.loadData();
+        this.loadEventsByStatusMonth(); 
     }
 
     loadData(): void {
@@ -418,17 +423,16 @@ export class CgeDashboardComponent implements OnInit {
             next: (data: DashboardStats) => {
                 this.stats = data;
                 this.prepareCharts();
-                console.log('Stats chargées:', this.stats);
+                console.log(' Stats chargées:', this.stats);
             },
             error: (err: any) => {
-                console.error(' Erreur stats:', err);
+                console.error('Erreur stats:', err);
             }
         });
 
-        // Charger les événements récents (triés par date de création)
+        // Charger les événements récents
         this.eventService.getAllEvents().subscribe({
             next: (events: Event[]) => {
-                // Tri par date de création (les plus récents en premier)
                 this.recentEvents = events
                     .sort((a, b) => {
                         const dateA = new Date(a.createdAt || a.startDate).getTime();
@@ -447,6 +451,19 @@ export class CgeDashboardComponent implements OnInit {
         });
     }
 
+    loadEventsByStatusMonth(): void {
+        // Utilise l'année courante dynamiquement
+        this.statsService.getEventsByStatusAndMonth(this.currentYear).subscribe({
+            next: (data: any) => {
+                console.log(' Données par statut/mois:', data);
+                this.prepareStatusMonthChart(data);
+            },
+            error: (err: any) => {
+                console.error(' Erreur stats par mois:', err);
+            }
+        });
+    }
+
     prepareCharts(): void {
         if (!this.stats) return;
 
@@ -459,13 +476,13 @@ export class CgeDashboardComponent implements OnInit {
             datasets: [{
                 data: typeData,
                 backgroundColor: [
-                    'rgb(66, 165, 245)',   // Bleu
-                    'rgb(102, 187, 106)',  // Vert
-                    'rgb(255, 167, 38)',   // Orange
-                    'rgb(171, 71, 188)',   // Violet
-                    'rgb(38, 198, 218)',   // Cyan
-                    'rgb(120, 144, 156)',  // Gris
-                    'rgb(141, 110, 99)'    // Marron
+                    'rgb(66, 165, 245)',
+                    'rgb(102, 187, 106)',
+                    'rgb(255, 167, 38)',
+                    'rgb(171, 71, 188)',
+                    'rgb(38, 198, 218)',
+                    'rgb(120, 144, 156)',
+                    'rgb(141, 110, 99)'
                 ],
                 hoverBackgroundColor: [
                     'rgba(66, 165, 245, 0.8)',
@@ -478,24 +495,48 @@ export class CgeDashboardComponent implements OnInit {
                 ]
             }]
         };
+    }
 
-        // Chart par statut (Bar)
-        const statusLabels = Object.keys(this.stats.eventsByStatus);
-        const statusData = Object.values(this.stats.eventsByStatus);
+    prepareStatusMonthChart(data: any): void {
+        const months = Object.keys(data[Object.keys(data)[0]]);
+        
+        const datasets = Object.keys(data).map(status => ({
+            label: this.getStatusLabel(status),
+            data: Object.values(data[status]),
+            backgroundColor: this.getStatusChartColor(status),
+            borderColor: this.getStatusChartBorderColor(status),
+            borderWidth: 2,
+            borderRadius: 6
+        }));
 
-        this.chartDataByStatus = {
-            labels: statusLabels.map((s: string) => this.getStatusLabel(s)),
-            datasets: [{
-                label: 'Nombre d\'événements',
-                data: statusData,
-                backgroundColor: 'rgba(66, 165, 245, 0.8)',
-                borderColor: 'rgb(66, 165, 245)',
-                borderWidth: 2,
-                borderRadius: 4
-            }]
+        this.chartDataByStatusMonth = {
+            labels: months,
+            datasets: datasets
         };
 
-        console.log('Charts préparés - Types:', typeLabels, 'Status:', statusLabels);
+        console.log(' Chart par statut/mois préparé');
+    }
+
+    getStatusChartColor(status: string): string {
+        const colors: any = {
+            'PLANIFIE': 'rgba(66, 165, 245, 0.8)',
+            'EN_COURS': 'rgba(255, 167, 38, 0.8)',
+            'TERMINE': 'rgba(102, 187, 106, 0.8)',
+            'ANNULER': 'rgba(239, 83, 80, 0.8)',
+            'REPORTER': 'rgba(171, 71, 188, 0.8)'
+        };
+        return colors[status] || 'rgba(120, 144, 156, 0.8)';
+    }
+
+    getStatusChartBorderColor(status: string): string {
+        const colors: any = {
+            'PLANIFIE': 'rgb(66, 165, 245)',
+            'EN_COURS': 'rgb(255, 167, 38)',
+            'TERMINE': 'rgb(102, 187, 106)',
+            'ANNULER': 'rgb(239, 83, 80)',
+            'REPORTER': 'rgb(171, 71, 188)'
+        };
+        return colors[status] || 'rgb(120, 144, 156)';
     }
 
     initChartOptions(): void {
@@ -504,7 +545,7 @@ export class CgeDashboardComponent implements OnInit {
         const gridColor = getComputedStyle(document.documentElement)
             .getPropertyValue('--surface-border') || 'rgba(160, 167, 181, 0.3)';
 
-        // Options pour Doughnut Chart
+        // Doughnut Chart
         this.doughnutOptions = {
             responsive: true,
             maintainAspectRatio: false,
@@ -535,19 +576,27 @@ export class CgeDashboardComponent implements OnInit {
             }
         };
 
-        // Options pour Bar Chart
-        this.barOptions = {
+        // HISTOGRAMME
+        this.barOptionsMonth = {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
                 legend: {
-                    display: false
+                    position: 'top',
+                    labels: {
+                        usePointStyle: true,
+                        padding: 15,
+                        color: textColor,
+                        font: {
+                            size: 11
+                        }
+                    }
                 },
                 tooltip: {
                     callbacks: {
                         label: (context: any) => {
                             const value = context.parsed.y;
-                            return `${value} événement${value > 1 ? 's' : ''}`;
+                            return `${context.dataset.label}: ${value} événement${value > 1 ? 's' : ''}`;
                         }
                     }
                 }
@@ -557,12 +606,11 @@ export class CgeDashboardComponent implements OnInit {
                     ticks: {
                         color: textColor,
                         font: {
-                            size: 11
+                            size: 10
                         }
                     },
                     grid: {
-                        display: false,
-                        color: gridColor
+                        display: false
                     }
                 },
                 y: {
@@ -628,7 +676,7 @@ export class CgeDashboardComponent implements OnInit {
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
                 
-                console.log('Liste d\'émargement téléchargée');
+                console.log(' Liste d\'émargement téléchargée');
             },
             error: (err: any) => {
                 console.error(' Erreur téléchargement:', err);
