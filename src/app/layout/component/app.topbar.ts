@@ -1,15 +1,19 @@
-import { Component } from '@angular/core';
+import { Component, OnInit} from '@angular/core';
 import { MenuItem } from 'primeng/api';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '../service/layout.service';
+import { MenuModule } from 'primeng/menu'; // Pour p-menu
+import { AvatarModule } from 'primeng/avatar'; // Pour p-avatar
+import { KeycloakService } from 'keycloak-angular';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator],
+    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator,MenuModule, 
+        AvatarModule,],
     styles: [`
         // Styles pour le logo dans la topbar
         .layout-topbar-logo {
@@ -125,26 +129,76 @@ import { LayoutService } from '../service/layout.service';
                     </div>
                 </div>
 
-                <button class="layout-topbar-menu-button layout-topbar-action" pStyleClass="@next" enterFromClass="hidden" enterActiveClass="animate-scalein" leaveToClass="hidden" leaveActiveClass="animate-fadeout" [hideOnOutsideClick]="true">
-                    <i class="pi pi-ellipsis-v"></i>
-                </button>
+        
+<p-menu #menu [popup]="true" [model]="items" appendTo="body"></p-menu>
 
-                <div class="layout-topbar-menu hidden lg:block">
-                    <div class="layout-topbar-menu-content">
-                        <button type="button" class="layout-topbar-action" [routerLink]="['/auth/login']">
-                            <i class="pi pi-user"></i>
-                            <span>Profile</span>
-                        </button>
-                    </div>
-                </div>
+<button type="button" class="layout-topbar-action" (click)="menu.toggle($event)">
+    <p-avatar 
+        *ngIf="user?.firstName"
+        [label]="user.firstName.charAt(0).toUpperCase()" 
+        styleClass="mr-2"              
+        shape="circle">{{ user.firstName.charAt(0).toLocaleUpperCase() }}
+    </p-avatar>
+    <p-avatar 
+        *ngIf="!user?.firstName"
+        icon="pi pi-user" 
+        styleClass="mr-2" 
+     shape="circle">{{ user.firstName.charAt(0).toLocaleUpperCase() }}
+    </p-avatar>
+</button>
+
             </div>
         </div>
     `
 })
-export class AppTopbar {
-    items!: MenuItem[];
+export class AppTopbar implements OnInit{
 
-    constructor(public layoutService: LayoutService) {}
+    // Déclarez la propriété user
+    public user: any = {
+        firstName: '',
+        lastName: ''
+    };
+
+    items: MenuItem[] | undefined;
+    router: any;
+    authService: any;
+
+    constructor(public layoutService: LayoutService, private keycloakService: KeycloakService) {}
+
+async ngOnInit() {
+        // 1. Chargement du profil utilisateur
+        if (await this.keycloakService.isLoggedIn()) {
+            const profile = await this.keycloakService.loadUserProfile();
+            this.user = {
+                firstName: profile.firstName || '',
+                lastName: profile.lastName || '',
+                username: profile.username
+            };
+        }
+
+        // 2. Initialisation du menu avec les icônes PrimeIcons
+        this.items = [
+            { 
+                label: 'Profil', 
+                icon: 'pi pi-user', 
+                command: () => this.goToProfile() 
+            },
+            { 
+                label: 'Déconnexion', 
+                icon: 'pi pi-sign-out', 
+                command: () => this.keycloakService.logout() // Utilisez votre méthode logout locale
+            }
+        ];
+    }
+
+    goToProfile() {
+        this.router.navigate(['/pages/profile']); // Vérifiez le chemin exact
+    }
+
+    logout() {
+        this.keycloakService.logout(window.location.origin);
+    }
+
 
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
