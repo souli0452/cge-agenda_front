@@ -36,11 +36,6 @@ export const appRoutes: Routes = [
                     import('./app/pages/cge-participants/participants.routes').then(m => m.PARTICIPANTS_ROUTES)
             },
             {
-                path: 'documents',
-                loadComponent: () => 
-                    import('./app/pages/cge-documents/documents').then(m => m.CgeDocumentsComponent)
-            },
-            {
                 path: 'statistics',
                 loadComponent: () => 
                     import('./app/pages/cge-statistics/statistics').then(m => m.CgeStatisticsComponent)

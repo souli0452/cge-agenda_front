@@ -452,7 +452,7 @@ export class CgeDashboardComponent implements OnInit {
     }
 
     loadEventsByStatusMonth(): void {
-        // Utilise l'année courante dynamiquement
+        //courante dynamiquement
         this.statsService.getEventsByStatusAndMonth(this.currentYear).subscribe({
             next: (data: any) => {
                 console.log(' Données par statut/mois:', data);

@@ -45,11 +45,7 @@ export class AppMenu {
                 icon: 'pi pi-fw pi-users', 
                 routerLink: ['/participants'] 
             },
-            { 
-                label: 'Documents', 
-                icon: 'pi pi-fw pi-folder', 
-                routerLink: ['/documents'] 
-            },
+        
             { 
                 label: 'Statistiques', 
                 icon: 'pi pi-fw pi-chart-line', 

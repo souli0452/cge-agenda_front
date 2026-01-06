@@ -53,9 +53,7 @@ export const ParticipantTypeLabels: { [key: string]: string } = {
     'EXTERNE': 'Externe'
 };
 
-// ==========================================
-// PRIMENG TAG SEVERITIES
-// ==========================================
+
 export type TagSeverity = 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast';
 
 export function getEventTypeSeverity(type: EventType | string): TagSeverity {

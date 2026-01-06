@@ -1,0 +1,228 @@
+<p-toast></p-toast>
+
+<div class="calendar-container">
+    
+    <!-- Header -->
+    <div class="calendar-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1>
+                    <i class="pi pi-calendar"></i>
+                    Calendrier des Événements
+                </h1>
+                <p class="subtitle">{{ events.length }} événement(s) au total</p>
+            </div>
+            <div class="header-actions">
+    <p-button 
+        label="Exporter PDF" 
+        icon="pi pi-file-pdf"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="exportToPDF()">
+    </p-button>
+    <p-button 
+        label="Liste" 
+        icon="pi pi-list"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="goToListView()">
+    </p-button>
+    <p-button 
+        label="Nouvel événement" 
+        icon="pi pi-plus"
+        styleClass="btn-primary"
+        (onClick)="createEvent()">
+    </p-button>
+</div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters-section">
+        <p-iconfield iconPosition="left" class="search-field">
+            <p-inputicon>
+                <i class="pi pi-search"></i>
+            </p-inputicon>
+            <input 
+                pInputText 
+                type="text" 
+                [(ngModel)]="searchKeyword"
+                (input)="applyFilters()"
+                placeholder="Rechercher un événement..."
+                class="w-full" />
+        </p-iconfield>
+
+        <p-select 
+            [options]="typeOptions" 
+            [(ngModel)]="selectedType"
+            (onChange)="applyFilters()"
+            placeholder="Type"
+            [showClear]="true"
+            styleClass="filter-select">
+        </p-select>
+
+        <p-select 
+            [options]="statusOptions" 
+            [(ngModel)]="selectedStatus"
+            (onChange)="applyFilters()"
+            placeholder="Statut"
+            [showClear]="true"
+            styleClass="filter-select">
+        </p-select>
+
+        <p-button 
+            icon="pi pi-refresh" 
+            [rounded]="true"
+            [outlined]="true"
+            severity="secondary"
+            pTooltip="Réinitialiser les filtres"
+            (onClick)="resetFilters()">
+        </p-button>
+    </div>
+
+    <!-- Legend -->
+    <div class="legend-section">
+        <div class="legend-title">
+            <i class="pi pi-bookmark"></i>
+            Légende
+        </div>
+        <div class="legend-items">
+            <div *ngFor="let item of legendItems" class="legend-item">
+                <span class="legend-color" [style.background-color]="item.color"></span>
+                <span class="legend-label">{{ item.label }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="calendar-wrapper">
+        <div #calendarEl></div>
+    </div>
+
+</div>
+
+<!-- Event Detail Dialog -->
+<p-dialog 
+    [(visible)]="eventDetailDialogVisible" 
+    [modal]="true"
+    [style]="{width: '700px'}"
+    [draggable]="false"
+    [resizable]="false"
+    header="Détails de l'événement">
+    
+    <div *ngIf="selectedEvent" class="event-detail-content">
+        
+        <!-- Titre et badges -->
+        <div class="detail-header">
+            <h2 class="event-title">{{ selectedEvent.title }}</h2>
+            <div class="badges">
+                <p-tag 
+                    [value]="getTypeLabel(selectedEvent.type)" 
+                    [style]="{backgroundColor: getEventColor(selectedEvent.type)}">
+                </p-tag>
+                <p-tag 
+                    [value]="getStatusLabel(selectedEvent.status)"
+                    [style]="{backgroundColor: getStatusColor(selectedEvent.status)}">
+                </p-tag>
+            </div>
+        </div>
+
+        <p-divider></p-divider>
+
+        <!-- Description -->
+        <div class="detail-section" *ngIf="selectedEvent.description">
+            <div class="section-label">
+                <i class="pi pi-align-left"></i>
+                Description
+            </div>
+            <p class="section-value">{{ selectedEvent.description }}</p>
+        </div>
+
+        <!-- Dates -->
+        <div class="detail-section">
+            <div class="section-label">
+                <i class="pi pi-calendar"></i>
+                Période
+            </div>
+            <div class="date-range">
+                <span class="date-item">
+                    <i class="pi pi-calendar-plus text-primary"></i>
+                    <strong>Début :</strong> {{ selectedEvent.startDate | date:'dd/MM/yyyy' }}
+                </span>
+                <span class="date-item">
+                    <i class="pi pi-calendar-minus text-orange-500"></i>
+                    <strong>Fin :</strong> {{ selectedEvent.endDate | date:'dd/MM/yyyy' }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Lieu -->
+        <div class="detail-section" *ngIf="selectedEvent.ville || selectedEvent.pays">
+            <div class="section-label">
+                <i class="pi pi-map-marker"></i>
+                Lieu
+            </div>
+            <p class="section-value">
+                {{ selectedEvent.ville }}{{ selectedEvent.ville && selectedEvent.pays ? ', ' : '' }}{{ selectedEvent.pays }}
+            </p>
+        </div>
+
+        <!-- Lien visio -->
+        <div class="detail-section" *ngIf="selectedEvent.meetingLink">
+            <div class="section-label">
+                <i class="pi pi-video"></i>
+                Visioconférence
+            </div>
+            <a [href]="selectedEvent.meetingLink" target="_blank" class="meeting-link">
+                <i class="pi pi-external-link"></i>
+                Rejoindre la réunion
+            </a>
+        </div>
+
+        <!-- Participants -->
+        <div class="detail-section">
+            <div class="section-label">
+                <i class="pi pi-users"></i>
+                Participants
+            </div>
+            <div class="count-badge">
+                <i class="pi pi-user"></i>
+                {{ selectedEvent.participants?.length || 0 }} participant(s)
+            </div>
+        </div>
+
+        <!-- Fichiers -->
+        <div class="detail-section">
+            <div class="section-label">
+                <i class="pi pi-paperclip"></i>
+                Fichiers joints
+            </div>
+            <div class="count-badge">
+                <i class="pi pi-file"></i>
+                {{ selectedEvent.files?.length || 0 }} fichier(s)
+            </div>
+        </div>
+
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button 
+            label="Fermer" 
+            icon="pi pi-times" 
+            [text]="true"
+            severity="secondary"
+            (onClick)="eventDetailDialogVisible = false">
+        </p-button>
+        <p-button 
+            label="Modifier" 
+            icon="pi pi-pencil"
+            severity="secondary"
+            (onClick)="editEvent()">
+        </p-button>
+        <p-button 
+            label="Voir détails complets" 
+            icon="pi pi-eye"
+            (onClick)="viewEventDetails()">
+        </p-button>
+    </ng-template>
+</p-dialog>
