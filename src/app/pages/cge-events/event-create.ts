@@ -157,7 +157,7 @@ export class EventCreateComponent implements OnInit {
         if (country) {
             this.selectedCountryCode = country.code;
             this.loadCities(country.code);
-            this.eventForm.get('ville')?.setValue(''); // Reset ville
+            this.eventForm.get('ville')?.setValue(''); 
         } else {
             this.cities = [];
             this.eventForm.get('ville')?.setValue('');
@@ -183,10 +183,10 @@ export class EventCreateComponent implements OnInit {
     }
 
     isStepClickable(index: number): boolean {
-        // On peut revenir en arrière librement
+        
         if (index < this.currentStep) return true;
         
-        // Pour aller en avant, il faut valider l'étape actuelle
+        // Pour aller en avant
         if (index === this.currentStep + 1) {
             return this.canProceedFromStep(this.currentStep);
         }

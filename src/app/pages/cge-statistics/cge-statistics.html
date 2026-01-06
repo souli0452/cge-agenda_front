@@ -1,0 +1,133 @@
+<p-toast position="top-right"></p-toast>
+
+<div class="statistics-container">
+
+    <!-- Header -->
+    <div class="stats-header">
+        <div class="header-content">
+            <div class="header-left">
+                <h1>
+                    <i class="pi pi-chart-bar"></i>
+                    Statistiques
+                </h1>
+                <p class="subtitle">Analyse des événements et participants</p>
+            </div>
+            <div class="header-actions">
+                <p-select 
+                    [(ngModel)]="selectedYear"
+                    [options]="yearOptions"
+                    (onChange)="onYearChange()"
+                    styleClass="year-select">
+                </p-select>
+                <p-button 
+                    label="Exporter PDF" 
+                    icon="pi pi-file-pdf"
+                    severity="success"
+                    (onClick)="exportStatisticsToPDF()">
+                </p-button>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid" *ngIf="stats">
+        <div class="kpi-card kpi-primary">
+            <div class="kpi-icon">
+                <i class="pi pi-calendar"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">{{ stats.totalEvents }}</div>
+                <div class="kpi-label">Événements</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-success">
+            <div class="kpi-icon">
+                <i class="pi pi-users"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">{{ stats.totalParticipants }}</div>
+                <div class="kpi-label">Participants</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-warning">
+            <div class="kpi-icon">
+                <i class="pi pi-clock"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">{{ stats.upcomingEventsCount }}</div>
+                <div class="kpi-label">À venir</div>
+            </div>
+        </div>
+
+        <div class="kpi-card kpi-info">
+            <div class="kpi-icon">
+                <i class="pi pi-check-circle"></i>
+            </div>
+            <div class="kpi-content">
+                <div class="kpi-value">{{ events.length }}</div>
+                <div class="kpi-label">Total global</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts-grid" *ngIf="stats">
+        
+        <!-- Chart par type -->
+        <p-card header="Répartition par type" styleClass="chart-card">
+            <p-chart 
+                type="pie" 
+                [data]="typeChartData" 
+                [options]="chartOptions"
+                [style]="{'height': '300px'}">
+            </p-chart>
+        </p-card>
+
+        <!-- Chart par statut -->
+        <p-card header="Répartition par statut" styleClass="chart-card">
+            <p-chart 
+                type="doughnut" 
+                [data]="statusChartData" 
+                [options]="chartOptions"
+                [style]="{'height': '300px'}">
+            </p-chart>
+        </p-card>
+
+        <!-- Chart mensuel -->
+        <p-card header="Événements par mois" styleClass="chart-card chart-card-full">
+            <p-chart 
+                type="line" 
+                [data]="monthlyChartData" 
+                [options]="chartOptions"
+                [style]="{'height': '300px'}">
+            </p-chart>
+        </p-card>
+    </div>
+
+    <!-- Top Participants -->
+    <p-card header="🏆 Top 10 Participants" styleClass="participants-card">
+        <div class="participants-list">
+            <div *ngFor="let participant of topParticipants; let i = index" 
+                 class="participant-item">
+                <div class="participant-rank" [class]="'rank-' + (i + 1)">
+                    {{ i + 1 }}
+                </div>
+                <div class="participant-info">
+                    <div class="participant-name">{{ participant.name }}</div>
+                    <div class="participant-count">{{ participant.count }} événement(s)</div>
+                </div>
+                <div class="participant-badge">
+                    <i class="pi pi-star-fill" *ngIf="i === 0" style="color: #FFD700; font-size: 24px;"></i>
+                    <i class="pi pi-star" *ngIf="i > 0" style="color: #FFD700; font-size: 20px;"></i>
+                </div>
+            </div>
+            <div *ngIf="topParticipants.length === 0" class="empty-state">
+                <i class="pi pi-users" style="font-size: 48px; color: #999;"></i>
+                <p>Aucun participant pour cette période</p>
+            </div>
+        </div>
+    </p-card>
+
+</div>
