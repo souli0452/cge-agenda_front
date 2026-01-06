@@ -543,97 +543,103 @@ export class EventCreateComponent implements OnInit {
     // ==========================================
 
     async onSubmit(): Promise<void> {
-        if (!this.canProceedFromStep(0) || !this.canProceedFromStep(1) || !this.canProceedFromStep(2)) {
-            this.messageService.add({
-                severity: 'error',
-                summary: 'Formulaire incomplet',
-                detail: 'Veuillez remplir tous les champs obligatoires',
-                life: 5000
-            });
-            return;
-        }
-
-        this.loading = true;
-
-        try {
-            const formValue = this.eventForm.value;
-
-            let eventData: any = {
-                title: formValue.title,
-                description: formValue.description || null,
-                type: formValue.type,
-                status: 'PLANIFIE',
-                startDate: this.formatDate(formValue.startDate),
-                endDate: this.formatDate(formValue.endDate),
-                pays: formValue.pays || null,
-                ville: formValue.ville || null,
-                meetingLink: formValue.meetingLink || null,
-                schedules: []
-            };
-
-            if (this.scheduleMode === 'global') {
-                eventData.schedules = [{
-                    dateJour: this.formatDate(formValue.startDate),
-                    startTime: formValue.globalStartTime + ':00',
-                    endTime: formValue.globalEndTime + ':00',
-                    address: formValue.ville || null
-                }];
-            } else {
-                eventData.schedules = formValue.schedules
-                    .filter((schedule: any) => schedule.dateJour)
-                    .map((schedule: any) => ({
-                        dateJour: this.formatDate(schedule.dateJour),
-                        startTime: schedule.startTime + ':00',
-                        endTime: schedule.endTime + ':00',
-                        address: schedule.address || formValue.ville || null
-                    }));
-            }
-
-            if (formValue.participants && formValue.participants.length > 0) {
-                eventData.participants = formValue.participants.map((p: any) => ({
-                    firstName: p.firstName,
-                    lastName: p.lastName,
-                    email: p.email,
-                    phoneNumber: p.phoneNumber || null,
-                    organization: p.organization || null,
-                    jobTitle: p.jobTitle || null,
-                    participantType: p.participantType
-                }));
-            }
-
-            console.log('Données envoyées:', eventData);
-
-            const createdEvent = await this.eventService.createEvent(eventData).toPromise();
-
-            // UPLOAD DES FICHIERS SI PRÉSENTS
-            if (createdEvent && createdEvent.id && this.uploadedFiles.length > 0) {
-                await this.uploadFiles(createdEvent.id);
-            }
-
-            this.messageService.add({
-                severity: 'success',
-                summary: '🎉 Événement créé avec succès !',
-                detail: 'Les emails ont été envoyés aux participants. Redirection en cours...',
-                life: 4000
-            });
-
-            setTimeout(() => {
-                this.router.navigate(['/events', createdEvent?.id]);
-            }, 2000);
-
-        } catch (error: any) {
-            console.error('Erreur:', error);
-            this.loading = false;
-            
-            const errorMessage = error.error?.message || error.message || 'Erreur inconnue';
-            this.messageService.add({
-                severity: 'error',
-                summary: ' Erreur de création',
-                detail: errorMessage,
-                life: 6000
-            });
-        }
+    if (!this.canProceedFromStep(0) || !this.canProceedFromStep(1) || !this.canProceedFromStep(2)) {
+        this.messageService.add({
+            severity: 'warn',
+            summary: 'Formulaire incomplet',
+            detail: 'Veuillez remplir tous les champs obligatoires',
+            life: 5000
+        });
+        return;
     }
+
+    this.loading = true;
+
+    try {
+        const formValue = this.eventForm.value;
+
+        let eventData: any = {
+            title: formValue.title,
+            description: formValue.description || null,
+            type: formValue.type,
+            status: 'PLANIFIE',
+            startDate: this.formatDate(formValue.startDate),
+            endDate: this.formatDate(formValue.endDate),
+            pays: formValue.pays || null,
+            ville: formValue.ville || null,
+            meetingLink: formValue.meetingLink || null,
+            schedules: []
+        };
+
+        if (this.scheduleMode === 'global') {
+            eventData.schedules = [{
+                dateJour: this.formatDate(formValue.startDate),
+                startTime: formValue.globalStartTime + ':00',
+                endTime: formValue.globalEndTime + ':00',
+                address: formValue.ville || null
+            }];
+        } else {
+            eventData.schedules = formValue.schedules
+                .filter((schedule: any) => schedule.dateJour)
+                .map((schedule: any) => ({
+                    dateJour: this.formatDate(schedule.dateJour),
+                    startTime: schedule.startTime + ':00',
+                    endTime: schedule.endTime + ':00',
+                    address: schedule.address || formValue.ville || null
+                }));
+        }
+
+        if (formValue.participants && formValue.participants.length > 0) {
+            eventData.participants = formValue.participants.map((p: any) => ({
+                firstName: p.firstName,
+                lastName: p.lastName,
+                email: p.email,
+                phoneNumber: p.phoneNumber || null,
+                organization: p.organization || null,
+                jobTitle: p.jobTitle || null,
+                participantType: p.participantType
+            }));
+        }
+
+        console.log('Données envoyées:', eventData);
+
+        const createdEvent = await this.eventService.createEvent(eventData).toPromise();
+
+        // UPLOAD DES FICHIERS SI PRÉSENTS
+        if (createdEvent && createdEvent.id && this.uploadedFiles.length > 0) {
+            await this.uploadFiles(createdEvent.id);
+        }
+
+        this.messageService.add({
+            severity: 'success',
+            summary: '🎉 Événement créé avec succès !',
+            detail: 'Redirection vers la liste...',
+            life: 3000
+        });
+
+        // ✅ REDIRECTION VERS LA LISTE AVEC PARAMÈTRE
+        setTimeout(() => {
+            this.router.navigate(['/events'], { 
+                queryParams: { 
+                    created: createdEvent?.id,
+                    timestamp: Date.now() 
+                } 
+            });
+        }, 1500);
+
+    } catch (error: any) {
+        console.error('Erreur:', error);
+        this.loading = false;
+        
+        const errorMessage = error.error?.message || error.message || 'Erreur inconnue';
+        this.messageService.add({
+            severity: 'error',
+            summary: '❌ Erreur de création',
+            detail: errorMessage,
+            life: 6000
+        });
+    }
+}
 
     // UPLOAD DES FICHIERS
     async uploadFiles(eventId: string): Promise<void> {

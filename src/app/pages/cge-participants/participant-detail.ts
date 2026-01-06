@@ -45,7 +45,7 @@ import { ParticipantService } from '../../service/participant.service';
     }
 
     .card-header {
-      background: linear-gradient(135deg, #228B22 0%, #1a6b1a 100%);
+      background: var(--primary-color);
       color: white;
       padding: 24px;
       border-radius: 12px 12px 0 0;
@@ -64,7 +64,7 @@ import { ParticipantService } from '../../service/participant.service';
       justify-content: center;
       font-size: 32px;
       font-weight: 700;
-      color: #228B22;
+      color: var(--primary-color);
       margin-right: 20px;
     }
 
@@ -109,13 +109,13 @@ import { ParticipantService } from '../../service/participant.service';
       font-size: 12px;
       font-weight: 600;
       text-transform: uppercase;
-      color: #666;
+      color: var(--text-color-secondary);
       letter-spacing: 0.5px;
     }
 
     .info-value {
       font-size: 16px;
-      color: #333;
+      color: var(--text-color);
       font-weight: 500;
       display: flex;
       align-items: center;
@@ -123,17 +123,26 @@ import { ParticipantService } from '../../service/participant.service';
     }
 
     .info-value i {
-      color: #228B22;
+      color: var(--primary-color);
       font-size: 18px;
+    }
+
+    .info-value a {
+      color: var(--primary-color);
+      text-decoration: none;
+    }
+
+    .info-value a:hover {
+      text-decoration: underline;
     }
 
     .section-title {
       font-size: 20px;
       font-weight: 700;
-      color: #228B22;
+      color: var(--primary-color);
       margin: 0 0 20px 0;
       padding-bottom: 12px;
-      border-bottom: 3px solid #228B22;
+      border-bottom: 3px solid var(--primary-color);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -151,35 +160,42 @@ import { ParticipantService } from '../../service/participant.service';
     }
 
     .stat-card {
-      background: #f8f9fa;
+      background: var(--surface-50);
       padding: 20px;
       border-radius: 12px;
-      border-left: 4px solid #228B22;
+      border-left: 4px solid var(--primary-color);
       text-align: center;
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
 
     .stat-value {
       font-size: 32px;
       font-weight: 700;
-      color: #228B22;
+      color: var(--primary-color);
       margin-bottom: 8px;
     }
 
     .stat-label {
       font-size: 14px;
-      color: #666;
+      color: var(--text-color-secondary);
     }
 
     .empty-state {
       text-align: center;
       padding: 40px 20px;
-      color: #999;
+      color: var(--text-color-secondary);
     }
 
     .empty-state i {
       font-size: 48px;
       margin-bottom: 16px;
       display: block;
+      color: var(--surface-300);
     }
 
     .action-buttons {
@@ -187,28 +203,35 @@ import { ParticipantService } from '../../service/participant.service';
       gap: 12px;
     }
 
-    .btn-ascelc {
-      background: #228B22 !important;
-      color: white !important;
-      font-weight: 700 !important;
-      padding: 10px 20px !important;
-      border-radius: 8px !important;
-      border: none !important;
-    }
-
-    .btn-ascelc:hover {
-      background: #1a6b1a !important;
-    }
-
     :host ::ng-deep {
       .p-datatable .p-datatable-thead > tr > th {
-        background: #228B22;
+        background: var(--primary-color);
         color: white;
         font-weight: 600;
       }
 
       .p-datatable .p-datatable-tbody > tr:hover {
-        background: #f8f9fa;
+        background: var(--surface-hover);
+      }
+
+      .p-button-secondary.p-button-outlined {
+        border-color: var(--surface-300);
+        color: var(--text-color);
+      }
+
+      .p-button-secondary.p-button-outlined:hover {
+        background: var(--surface-50);
+        border-color: var(--surface-400);
+      }
+
+      .p-button-info.p-button-outlined {
+        border-color: var(--primary-color);
+        color: var(--primary-color);
+      }
+
+      .p-button-info.p-button-outlined:hover {
+        background: var(--primary-color);
+        color: white;
       }
     }
 
