@@ -26,4 +26,6 @@ export interface Event {
     schedules?: Schedule[];
     files?: FileUpload[];
     participants?: Participant[];
+
+    
 }
