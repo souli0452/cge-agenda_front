@@ -199,6 +199,16 @@ async ngOnInit() {
         this.keycloakService.logout(window.location.origin);
     }
 
+      async handleLogin() {
+    await this.keycloakService.login({
+      redirectUri: window.location.origin
+    });
+  }
+
+    handleLogout(){
+    this.keycloakService.logout(window.location.origin);
+  }
+
 
     toggleDarkMode() {
         this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));

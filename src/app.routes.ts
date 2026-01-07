@@ -16,13 +16,12 @@ export const appRoutes: Routes = [
             // ==========================================
             // CGE AGENDA ROUTES
             // ==========================================
-            {
-                path: 'dashboard',
-                loadComponent: () => 
-                    import('./app/pages/cge-dashboard/dashboard').then(m => m.CgeDashboardComponent),
-                canActivate : [AuthGuard],
-                data : { roles : ['USER', 'ADMIN']}
-            },
+                 {
+                    path: 'dashboard',
+                    loadComponent: () => import('./app/pages/cge-dashboard/dashboard').then(m => m.CgeDashboardComponent),
+                    // canActivate: [AuthGuard], // Ajoutez ceci
+                    // data: { roles: ['USER', 'ADMIN'] }
+                },
             {
                 path: 'events',
                 loadChildren: () => 
@@ -88,8 +87,6 @@ export const appRoutes: Routes = [
     { 
         path: 'auth', 
         loadChildren: () => import('./app/pages/auth/auth.routes'),
-        canActivate : [AuthGuard],
-        data : { roles : ['USER', 'ADMIN']}
     },
     { 
         path: '**', 
