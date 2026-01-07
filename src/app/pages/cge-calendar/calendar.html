@@ -30,7 +30,7 @@
     <p-button 
         label="Nouvel événement" 
         icon="pi pi-plus"
-        styleClass="btn-primary"
+        severity="success"
         (onClick)="createEvent()">
     </p-button>
 </div>
@@ -206,23 +206,25 @@
     </div>
 
     <ng-template pTemplate="footer">
-        <p-button 
-            label="Fermer" 
-            icon="pi pi-times" 
-            [text]="true"
-            severity="secondary"
-            (onClick)="eventDetailDialogVisible = false">
-        </p-button>
-        <p-button 
-            label="Modifier" 
-            icon="pi pi-pencil"
-            severity="secondary"
-            (onClick)="editEvent()">
-        </p-button>
-        <p-button 
-            label="Voir détails complets" 
-            icon="pi pi-eye"
-            (onClick)="viewEventDetails()">
-        </p-button>
-    </ng-template>
+    <p-button 
+        label="Fermer" 
+        icon="pi pi-times" 
+        [text]="true"
+        severity="secondary"
+        (onClick)="eventDetailDialogVisible = false">
+    </p-button>
+    <p-button 
+        label="Modifier" 
+        icon="pi pi-pencil"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="editEvent()">
+    </p-button>
+    <p-button 
+        label="Voir détails complets" 
+        icon="pi pi-eye"
+        severity="success"
+        (onClick)="viewEventDetails()">
+    </p-button>
+</ng-template>
 </p-dialog>

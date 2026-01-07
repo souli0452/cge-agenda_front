@@ -105,3 +105,11 @@ export const PARTICIPANT_TYPE_OPTIONS = [
     { label: 'Interne', value: ParticipantType.INTERNE },
     { label: 'Externe', value: ParticipantType.EXTERNE }
 ];
+
+export function getParticipantTypeSeverity(type: ParticipantType | string): TagSeverity {
+    const map: { [key: string]: TagSeverity } = {
+        'INTERNE': 'success',  // Vert pour interne
+        'EXTERNE': 'warn'      // Orange pour externe
+    };
+    return map[type] || 'info';
+}

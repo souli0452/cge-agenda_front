@@ -716,17 +716,47 @@ export class EventListComponent implements OnInit {
     ngOnInit(): void {
     this.loadEvents();
     
-
+    // ✅ GESTION DES ÉVÉNEMENTS CRÉÉS ET MODIFIÉS
     this.route.queryParams.subscribe(params => {
+        const createdEventId = params['created'];
         const updatedEventId = params['updated'];
-        if (updatedEventId) {
-            
+        
+        if (createdEventId) {
+            // Événement nouvellement créé
+            setTimeout(() => {
+                const index = this.filteredEvents.findIndex(e => e.id === createdEventId);
+                if (index !== -1) {
+                    const event = this.filteredEvents.splice(index, 1)[0];
+                    this.filteredEvents.unshift(event); // Mettre en première position
+                    
+                    this.messageService.add({
+                        severity: 'success',
+                        summary: '✅ Événement créé',
+                        detail: `"${event.title}" a été créé avec succès`,
+                        life: 4000
+                    });
+                }
+                
+                // Nettoyer l'URL
+                this.router.navigate([], {
+                    queryParams: {},
+                    replaceUrl: true
+                });
+            }, 500);
+        } else if (updatedEventId) {
+            // Événement modifié
             setTimeout(() => {
                 const index = this.filteredEvents.findIndex(e => e.id === updatedEventId);
                 if (index > 0) {
                     const event = this.filteredEvents.splice(index, 1)[0];
                     this.filteredEvents.unshift(event);
                 }
+                
+                // Nettoyer l'URL
+                this.router.navigate([], {
+                    queryParams: {},
+                    replaceUrl: true
+                });
             }, 500);
         }
     });

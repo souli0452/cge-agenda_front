@@ -26,8 +26,10 @@ import { SkeletonModule } from 'primeng/skeleton';
 // Services & Models
 import { EventService } from '../../service/event.service';
 import { FileService } from '../../service/file.service';
+import { ParticipantService } from '../../service/participant.service';
 import {
     Event,
+    Participant,
     EVENT_TYPE_OPTIONS,
     EVENT_STATUS_OPTIONS,
     PARTICIPANT_TYPE_OPTIONS
@@ -75,10 +77,19 @@ export class EventCreateComponent implements OnInit {
     statusOptions = EVENT_STATUS_OPTIONS;
     participantTypeOptions = PARTICIPANT_TYPE_OPTIONS;
 
+    // ✅ CONTRAINTES DE DATES
+    today: Date = new Date();
+    minEndDate: Date = new Date();
+
     // PAYS ET VILLES
     countries: any[] = [];
     cities: any[] = [];
-    selectedCountryCode: string = 'BF'; 
+    selectedCountryCode: string = 'BF';
+
+    // ✅ GESTION DES PARTICIPANTS EXISTANTS
+    availableParticipants: any[] = [];
+    selectedExistingParticipant: any = null;
+    showCreateParticipantForm = false;
 
     // ÉTAPES POUR LA PROGRESSION HORIZONTALE
     steps = [
@@ -94,6 +105,7 @@ export class EventCreateComponent implements OnInit {
         private fb: FormBuilder,
         private eventService: EventService,
         private fileService: FileService,
+        private participantService: ParticipantService,
         private router: Router,
         private messageService: MessageService
     ) {}
@@ -101,13 +113,31 @@ export class EventCreateComponent implements OnInit {
     ngOnInit(): void {
         this.initForm();
         this.loadCountries();
-        this.loadCities('BF'); 
+        this.loadCities('BF');
+        this.loadAvailableParticipants();
+    }
+
+    // ==========================================
+    // ✅ CHARGEMENT DES PARTICIPANTS EXISTANTS
+    // ==========================================
+    loadAvailableParticipants(): void {
+        this.participantService.getAllParticipants().subscribe({
+            next: (participants: Participant[]) => {
+                this.availableParticipants = participants.map(p => ({
+                    ...p,
+                    displayName: `${p.firstName} ${p.lastName} (${p.email})`
+                }));
+                console.log('✅ Participants chargés:', this.availableParticipants.length);
+            },
+            error: (error) => {
+                console.error('❌ Erreur chargement participants:', error);
+            }
+        });
     }
 
     // ==========================================
     // CHARGEMENT DES PAYS
     // ==========================================
-
     loadCountries(): void {
         try {
             const allCountries = Country.getAllCountries();
@@ -117,16 +147,15 @@ export class EventCreateComponent implements OnInit {
                 code: country.isoCode
             })).sort((a, b) => a.label.localeCompare(b.label));
             
-            console.log(' Pays chargés:', this.countries.length);
+            console.log('✅ Pays chargés:', this.countries.length);
         } catch (error) {
-            console.error(' Erreur chargement pays:', error);
+            console.error('❌ Erreur chargement pays:', error);
         }
     }
 
     // ==========================================
-    //  CHARGEMENT DES VILLES
+    // CHARGEMENT DES VILLES
     // ==========================================
-
     loadCities(countryCode: string): void {
         try {
             const citiesData = City.getCitiesOfCountry(countryCode);
@@ -140,24 +169,21 @@ export class EventCreateComponent implements OnInit {
                 this.cities = [];
             }
             
-            console.log(` Villes chargées pour ${countryCode}:`, this.cities.length);
+            console.log(`✅ Villes chargées pour ${countryCode}:`, this.cities.length);
         } catch (error) {
-            console.error('Erreur chargement villes:', error);
+            console.error('❌ Erreur chargement villes:', error);
             this.cities = [];
         }
     }
 
     onCountryChange(event: any): void {
         const selectedCountryName = event.value;
-        console.log('Pays sélectionné:', selectedCountryName);
-        
-        // Trouver le code du pays
         const country = this.countries.find(c => c.value === selectedCountryName);
         
         if (country) {
             this.selectedCountryCode = country.code;
             this.loadCities(country.code);
-            this.eventForm.get('ville')?.setValue(''); 
+            this.eventForm.get('ville')?.setValue('');
         } else {
             this.cities = [];
             this.eventForm.get('ville')?.setValue('');
@@ -169,9 +195,38 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
+    // ✅ GESTION DES DATES
+    // ==========================================
+    onStartDateChange(): void {
+        const startDate = this.eventForm.get('startDate')?.value;
+        if (startDate) {
+            this.minEndDate = new Date(startDate);
+            
+            const endDate = this.eventForm.get('endDate')?.value;
+            if (endDate && new Date(endDate) < new Date(startDate)) {
+                this.eventForm.get('endDate')?.setValue(startDate);
+                this.messageService.add({
+                    severity: 'info',
+                    summary: '📅 Date ajustée',
+                    detail: 'La date de fin a été ajustée automatiquement',
+                    life: 3000
+                });
+            }
+        }
+    }
+
+    endDateBeforeStartDate(): boolean {
+        const startDate = this.eventForm.get('startDate')?.value;
+        const endDate = this.eventForm.get('endDate')?.value;
+        
+        if (!startDate || !endDate) return false;
+        
+        return new Date(endDate) < new Date(startDate);
+    }
+
+    // ==========================================
     // PROGRESSION HORIZONTALE
     // ==========================================
-
     get progressValue(): number {
         return ((this.currentStep + 1) / 6) * 100;
     }
@@ -183,14 +238,10 @@ export class EventCreateComponent implements OnInit {
     }
 
     isStepClickable(index: number): boolean {
-        
         if (index < this.currentStep) return true;
-        
-        // Pour aller en avant
         if (index === this.currentStep + 1) {
             return this.canProceedFromStep(this.currentStep);
         }
-        
         return false;
     }
 
@@ -217,21 +268,32 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
-    // VALIDATION DES ÉTAPES
+    // ✅ VALIDATION DES ÉTAPES
     // ==========================================
-
     canProceedFromStep(stepIndex: number): boolean {
         switch (stepIndex) {
-            case 0: // Informations générales
+            case 0:
                 return !!(this.eventForm.get('title')?.valid && 
                           this.eventForm.get('type')?.valid);
             
-            case 1: // Dates et Lieu
+            case 1:
                 const startDate = this.eventForm.get('startDate');
                 const endDate = this.eventForm.get('endDate');
-                return !!(startDate?.valid && endDate?.valid);
+                
+                if (!startDate?.value || !endDate?.value) {
+                    return false;
+                }
+
+                const start = new Date(startDate.value);
+                const end = new Date(endDate.value);
+                
+                if (end < start) {
+                    return false;
+                }
+
+                return true;
             
-            case 2: // Horaires
+            case 2:
                 if (this.scheduleMode === 'global') {
                     return !!(this.eventForm.get('globalStartTime')?.valid && 
                               this.eventForm.get('globalEndTime')?.valid);
@@ -239,8 +301,8 @@ export class EventCreateComponent implements OnInit {
                     return this.schedules.length > 0 && this.schedules.valid;
                 }
             
-            case 3: // Participants - optionnel
-            case 4: // Documents - optionnel
+            case 3:
+            case 4:
                 return true;
             
             default:
@@ -276,7 +338,6 @@ export class EventCreateComponent implements OnInit {
     // ==========================================
     // FORM INITIALIZATION
     // ==========================================
-
     initForm(): void {
         this.eventForm = this.fb.group({
             title: ['', [Validators.required, Validators.minLength(3)]],
@@ -311,7 +372,6 @@ export class EventCreateComponent implements OnInit {
     // ==========================================
     // SCHEDULE MANAGEMENT
     // ==========================================
-
     onScheduleModeChange(mode: string): void {
         this.scheduleMode = mode as 'global' | 'custom';
         if (this.scheduleMode === 'custom' && this.schedules.length === 0) {
@@ -330,7 +390,7 @@ export class EventCreateComponent implements OnInit {
         
         this.messageService.add({
             severity: 'success',
-            summary: ' Ajouté',
+            summary: '✅ Ajouté',
             detail: 'Horaire ajouté avec succès',
             life: 2000
         });
@@ -349,25 +409,46 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
-    // PARTICIPANT MANAGEMENT
+    // ✅ GESTION DES PARTICIPANTS MIXTE (CORRIGÉ)
     // ==========================================
+    
+    // Ajouter un participant existant
+    addExistingParticipant(): void {
+        if (!this.selectedExistingParticipant) return;
 
-    addParticipant(): void {
+        const alreadyExists = this.participants.controls.some(control => 
+            control.get('email')?.value === this.selectedExistingParticipant.email
+        );
+
+        if (alreadyExists) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: '⚠ Déjà ajouté',
+                detail: 'Ce participant est déjà dans la liste',
+                life: 3000
+            });
+            return;
+        }
+
         const participantGroup = this.fb.group({
-            firstName: ['', Validators.required],
-            lastName: ['', Validators.required],
-            email: ['', [Validators.required, Validators.email]],
-            phoneNumber: [''],
-            organization: [''],
-            jobTitle: [''],
-            participantType: ['INTERNE', Validators.required]
+            id: [this.selectedExistingParticipant.id],
+            firstName: [this.selectedExistingParticipant.firstName, Validators.required],
+            lastName: [this.selectedExistingParticipant.lastName, Validators.required],
+            email: [this.selectedExistingParticipant.email, [Validators.required, Validators.email]],
+            phoneNumber: [this.selectedExistingParticipant.phoneNumber || ''],
+            organization: [this.selectedExistingParticipant.organization || ''],
+            jobTitle: [this.selectedExistingParticipant.jobTitle || ''],
+            participantType: [this.selectedExistingParticipant.participantType, Validators.required],
+            isExisting: [true]
         });
+
         this.participants.push(participantGroup);
+        this.selectedExistingParticipant = null;
 
         this.messageService.add({
             severity: 'success',
-            summary: ' Ajouté',
-            detail: 'Participant ajouté avec succès',
+            summary: '✅ Participant ajouté',
+            detail: 'Participant existant ajouté à la liste',
             life: 2000
         });
 
@@ -379,20 +460,105 @@ export class EventCreateComponent implements OnInit {
         }, 100);
     }
 
+    // ✅ Créer un nouveau participant (SANS VALIDATION AUTOMATIQUE)
+    addNewParticipant(): void {
+        const participantGroup = this.fb.group({
+            id: [null],
+            firstName: ['', Validators.required],
+            lastName: ['', Validators.required],
+            email: ['', [Validators.required, Validators.email]],
+            phoneNumber: [''],
+            organization: [''],
+            jobTitle: [''],
+            participantType: ['INTERNE', Validators.required],
+            isExisting: [false]
+        });
+
+        this.participants.push(participantGroup);
+
+        this.messageService.add({
+            severity: 'success',
+            summary: '✅ Formulaire ajouté',
+            detail: 'Remplissez les champs obligatoires (*) puis cliquez sur "Suivant" quand vous avez terminé',
+            life: 4000
+        });
+
+        setTimeout(() => {
+            const cards = document.querySelectorAll('.participant-card');
+            if (cards.length > 0) {
+                cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    }
+
     removeParticipant(index: number): void {
+        const participantName = this.participants.at(index).get('firstName')?.value || 'Participant';
         this.participants.removeAt(index);
         this.messageService.add({
             severity: 'error',
             summary: '🗑 Supprimé',
-            detail: 'Participant supprimé avec succès',
+            detail: `${participantName} supprimé de la liste`,
             life: 2000
         });
+    }
+
+    // ✅ VALIDER LES PARTICIPANTS (appelé UNIQUEMENT au clic sur "Suivant")
+    validateParticipants(): boolean {
+        let allValid = true;
+        let invalidCount = 0;
+        
+        this.participants.controls.forEach(control => {
+            // Marquer tous les champs comme touchés
+            Object.keys(control.value).forEach(key => {
+                control.get(key)?.markAsTouched();
+            });
+            
+            if (control.invalid) {
+                allValid = false;
+                invalidCount++;
+            }
+        });
+        
+        if (!allValid) {
+            this.messageService.add({
+                severity: 'warn',
+                summary: '⚠ Formulaires incomplets',
+                detail: `${invalidCount} participant(s) ont des champs obligatoires manquants. Veuillez les remplir ou les supprimer avant de continuer.`,
+                life: 6000
+            });
+        }
+        
+        return allValid;
+    }
+
+    // ✅ MÉTHODE POUR PASSER À L'ÉTAPE SUIVANTE DEPUIS PARTICIPANTS
+    onNextFromParticipants(): void {
+        // Si aucun participant, on peut passer directement
+        if (this.participants.length === 0) {
+            this.goToStep(4);
+            return;
+        }
+
+        // Si des participants ont été ajoutés, on valide
+        if (this.validateParticipants()) {
+            this.messageService.add({
+                severity: 'success',
+                summary: '✅ Participants validés',
+                detail: `${this.participants.length} participant(s) ajouté(s) avec succès`,
+                life: 3000
+            });
+            this.goToStep(4);
+        }
+    }
+
+    isExistingParticipant(index: number): boolean {
+        const control = this.participants.at(index);
+        return control?.get('isExisting')?.value === true;
     }
 
     // ==========================================
     // FILE UPLOAD
     // ==========================================
-
     onFileSelect(event: any): void {
         const files: FileList = event.target.files;
         this.handleFiles(files);
@@ -441,8 +607,8 @@ export class EventCreateComponent implements OnInit {
         if (files.length > 0) {
             this.messageService.add({
                 severity: 'success',
-                summary: ' Ajouté',
-                detail: `${files.length} fichier(s) ajouté(s) avec succès`,
+                summary: '✅ Ajouté',
+                detail: `${files.length} fichier(s) ajouté(s)`,
                 life: 3000
             });
         }
@@ -454,7 +620,7 @@ export class EventCreateComponent implements OnInit {
         this.messageService.add({
             severity: 'error',
             summary: '🗑 Supprimé',
-            detail: `${fileName} retiré avec succès`,
+            detail: `${fileName} retiré`,
             life: 2000
         });
     }
@@ -484,7 +650,6 @@ export class EventCreateComponent implements OnInit {
     // ==========================================
     // VALIDATION
     // ==========================================
-
     isFieldInvalid(fieldName: string): boolean {
         const field = this.eventForm.get(fieldName);
         return !!(field && field.invalid && field.touched);
@@ -501,7 +666,6 @@ export class EventCreateComponent implements OnInit {
     // ==========================================
     // DISPLAY HELPERS
     // ==========================================
-
     getTypeLabel(typeValue: string): string {
         const option = this.typeOptions.find(opt => opt.value === typeValue);
         return option ? option.label : 'Non défini';
@@ -521,19 +685,17 @@ export class EventCreateComponent implements OnInit {
         return `${day}/${month}/${year}`;
     }
 
-    // CALCUL DE DURÉE 
     calculateDuration(start: Date, end: Date): string {
         if (!start || !end) return 'Non calculable';
         
         const startDate = new Date(start);
         const endDate = new Date(end);
         
-        // Mettre les heures à 0 pour comparer uniquement les jours
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(0, 0, 0, 0);
         
         const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; // +1 pour inclure le dernier jour
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
         
         return diffDays === 1 ? '1 jour' : `${diffDays} jours`;
     }
@@ -541,11 +703,10 @@ export class EventCreateComponent implements OnInit {
     // ==========================================
     // SUBMIT
     // ==========================================
-
     async onSubmit(): Promise<void> {
         if (!this.canProceedFromStep(0) || !this.canProceedFromStep(1) || !this.canProceedFromStep(2)) {
             this.messageService.add({
-                severity: 'error',
+                severity: 'warn',
                 summary: 'Formulaire incomplet',
                 detail: 'Veuillez remplir tous les champs obligatoires',
                 life: 5000
@@ -605,21 +766,25 @@ export class EventCreateComponent implements OnInit {
 
             const createdEvent = await this.eventService.createEvent(eventData).toPromise();
 
-            // UPLOAD DES FICHIERS SI PRÉSENTS
             if (createdEvent && createdEvent.id && this.uploadedFiles.length > 0) {
                 await this.uploadFiles(createdEvent.id);
             }
 
             this.messageService.add({
                 severity: 'success',
-                summary: '🎉 Événement créé avec succès !',
-                detail: 'Les emails ont été envoyés aux participants. Redirection en cours...',
-                life: 4000
+                summary: '🎉 Événement créé !',
+                detail: 'Redirection...',
+                life: 3000
             });
 
             setTimeout(() => {
-                this.router.navigate(['/events', createdEvent?.id]);
-            }, 2000);
+                this.router.navigate(['/events'], { 
+                    queryParams: { 
+                        created: createdEvent?.id,
+                        timestamp: Date.now() 
+                    } 
+                });
+            }, 1500);
 
         } catch (error: any) {
             console.error('Erreur:', error);
@@ -628,17 +793,15 @@ export class EventCreateComponent implements OnInit {
             const errorMessage = error.error?.message || error.message || 'Erreur inconnue';
             this.messageService.add({
                 severity: 'error',
-                summary: ' Erreur de création',
+                summary: '❌ Erreur',
                 detail: errorMessage,
                 life: 6000
             });
         }
     }
 
-    // UPLOAD DES FICHIERS
     async uploadFiles(eventId: string): Promise<void> {
         const uploadPromises = this.uploadedFiles.map(item => {
-            // Créer un FormData pour chaque fichier
             const formData = new FormData();
             formData.append('file', item.file);
             formData.append('eventId', eventId);
@@ -647,7 +810,6 @@ export class EventCreateComponent implements OnInit {
         });
         
         await Promise.all(uploadPromises);
-        console.log(` ${this.uploadedFiles.length} fichier(s) uploadé(s) avec succès`);
     }
 
     formatDate(date: Date): string {

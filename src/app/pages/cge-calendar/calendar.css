@@ -3,17 +3,17 @@
     max-width: 1400px;
     margin: 0 auto;
     padding: 24px;
-    background: #f8f9fa;
+    background: var(--surface-ground);
     min-height: 100vh;
 }
 
-
+/* Header */
 .calendar-header {
-    background: linear-gradient(135deg, #228B22 0%, #1a6b1a 100%);
+    background: var(--primary-color);
     border-radius: 16px;
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 20px rgba(34, 139, 34, 0.3);
+    box-shadow: 0 4px 20px rgba(var(--primary-color-rgb), 0.3);
 }
 
 .header-content {
@@ -68,7 +68,7 @@
 
 /* Legend */
 .legend-section {
-    background: white;
+    background: var(--surface-card);
     border-radius: 12px;
     padding: 16px 20px;
     margin-bottom: 24px;
@@ -81,7 +81,7 @@
     gap: 8px;
     font-weight: 700;
     font-size: 14px;
-    color: #333;
+    color: var(--text-color);
     margin-bottom: 12px;
 }
 
@@ -106,13 +106,13 @@
 
 .legend-label {
     font-size: 13px;
-    color: #666;
+    color: var(--text-color-secondary);
     font-weight: 500;
 }
 
 /* Calendar */
 .calendar-wrapper {
-    background: white;
+    background: var(--surface-card);
     border-radius: 12px;
     padding: 24px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -130,7 +130,7 @@
 .event-title {
     font-size: 24px;
     font-weight: 700;
-    color: #333;
+    color: var(--text-color);
     margin: 0 0 12px 0;
 }
 
@@ -150,12 +150,18 @@
     gap: 8px;
     font-weight: 600;
     font-size: 14px;
-    color: #555;
+    color: var(--text-color-secondary);
     margin-bottom: 8px;
 }
 
 .section-label i {
-    color: #228B22;
+    color: var(--primary-color);
+}
+
+.section-value {
+    margin: 0;
+    color: var(--text-color);
+    line-height: 1.6;
 }
 
 .date-range {
@@ -169,7 +175,7 @@
     align-items: center;
     gap: 8px;
     padding: 8px 12px;
-    background: #f8f9fa;
+    background: var(--surface-50);
     border-radius: 6px;
     font-size: 14px;
 }
@@ -179,7 +185,7 @@
     align-items: center;
     gap: 8px;
     padding: 10px 16px;
-    background: linear-gradient(135deg, #228B22 0%, #1a6b1a 100%);
+    background: var(--primary-color);
     color: white;
     text-decoration: none;
     border-radius: 8px;
@@ -188,8 +194,9 @@
 }
 
 .meeting-link:hover {
+    background: var(--primary-dark-color);
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(34, 139, 34, 0.3);
+    box-shadow: 0 4px 12px rgba(var(--primary-color-rgb), 0.3);
 }
 
 .count-badge {
@@ -197,8 +204,8 @@
     align-items: center;
     gap: 8px;
     padding: 8px 16px;
-    background: #E8F5E9;
-    color: #228B22;
+    background: var(--green-50);
+    color: var(--green-600);
     border-radius: 20px;
     font-weight: 600;
     font-size: 14px;
@@ -242,35 +249,41 @@
     }
 }
 
-
+/* FullCalendar Custom Styles */
 :host ::ng-deep {
     .fc {
-        font-family: inherit;
+        font-family: var(--font-family);
     }
 
     .fc-toolbar-title {
         font-size: 24px !important;
         font-weight: 700 !important;
-        color: #333 !important;
+        color: var(--text-color) !important;
     }
 
     .fc-button {
-        background: #228B22 !important;
-        border-color: #228B22 !important;
+        background: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
         font-weight: 600 !important;
         border-radius: 8px !important;
         padding: 8px 16px !important;
         transition: all 0.3s !important;
     }
 
-    .fc-button:hover {
-        background: #1a6b1a !important;
+    .fc-button:hover:not(:disabled) {
+        background: var(--primary-dark-color) !important;
+        border-color: var(--primary-dark-color) !important;
         transform: translateY(-2px) !important;
     }
 
     .fc-button-active {
-        background: #145214 !important;
-        border-color: #145214 !important;
+        background: var(--primary-dark-color) !important;
+        border-color: var(--primary-dark-color) !important;
+    }
+
+    .fc-button:disabled {
+        opacity: 0.5 !important;
+        cursor: not-allowed !important;
     }
 
     .fc-event {
@@ -288,28 +301,79 @@
     }
 
     .fc-daygrid-day-number {
-        color: #333 !important;
+        color: var(--text-color) !important;
         font-weight: 600 !important;
     }
 
     .fc-col-header-cell {
-        background: #f8f9fa !important;
+        background: var(--surface-100) !important;
         font-weight: 700 !important;
         padding: 12px !important;
+        color: var(--text-color) !important;
     }
 
     .fc-day-today {
-        background: rgba(34, 139, 34, 0.1) !important;
+        background: var(--primary-50) !important;
     }
 
-    .btn-primary {
-        background: #228B22 !important;
-        border-color: #228B22 !important;
+    .fc-daygrid-day-frame {
+        background: var(--surface-card) !important;
     }
 
-    .btn-primary:hover {
-        background: #1a6b1a !important;
+    /* Boutons Header Actions */
+    .header-actions .p-button.p-button-outlined {
+        background: transparent !important;
+        border: 2px solid white !important;
+        color: white !important;
+        font-weight: 600 !important;
     }
 
-    
+    .header-actions .p-button.p-button-outlined:hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        border-color: white !important;
+        color: white !important;
+    }
+
+    .header-actions .p-button:not(.p-button-outlined) {
+        background: rgba(255, 255, 255, 0.2) !important;
+        border: 2px solid white !important;
+        color: white !important;
+        font-weight: 700 !important;
+    }
+
+    .header-actions .p-button:not(.p-button-outlined):hover {
+        background: white !important;
+        color: var(--primary-color) !important;
+    }
+
+    /* Dialog Footer Buttons */
+    .p-dialog-footer .p-button-text {
+        color: var(--text-color-secondary) !important;
+    }
+
+    .p-dialog-footer .p-button-text:hover {
+        background: var(--surface-hover) !important;
+    }
+
+    .p-dialog-footer .p-button:not(.p-button-text) {
+        background: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+    }
+
+    .p-dialog-footer .p-button:not(.p-button-text):hover {
+        background: var(--primary-dark-color) !important;
+        border-color: var(--primary-dark-color) !important;
+    }
+
+    /* Input Focus */
+    .p-inputtext:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.2rem var(--primary-color-light) !important;
+    }
+
+    /* Select Focus */
+    .p-select:not(.p-disabled).p-focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.2rem var(--primary-color-light) !important;
+    }
 }

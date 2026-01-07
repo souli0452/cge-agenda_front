@@ -25,7 +25,7 @@ import { Participant } from '../../models';
   imports: [
     CommonModule,
     ReactiveFormsModule,
-      FormsModule, 
+    FormsModule, 
     Button,
     InputText,
     TableModule,
@@ -40,12 +40,12 @@ import { Participant } from '../../models';
   styles: [`
     .participant-list-container {
       padding: 24px;
-      background: #f8f9fa;
+      background: var(--surface-ground);
       min-height: 100vh;
     }
 
     .page-header {
-      background: white;
+      background: var(--surface-card);
       padding: 24px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -62,7 +62,7 @@ import { Participant } from '../../models';
       margin: 0;
       font-size: 28px;
       font-weight: 700;
-      color: #228B22;
+      color: var(--primary-color);
     }
 
     .header-left h1 i {
@@ -70,7 +70,7 @@ import { Participant } from '../../models';
     }
 
     .filters-section {
-      background: white;
+      background: var(--surface-card);
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -85,27 +85,61 @@ import { Participant } from '../../models';
     }
 
     .table-container {
-      background: white;
+      background: var(--surface-card);
       padding: 24px;
       border-radius: 12px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     }
 
-    .btn-ascelc {
-      background: #228B22 !important;
-      color: white !important;
-      font-weight: 700 !important;
-      padding: 12px 24px !important;
-      border-radius: 8px !important;
-      border: none !important;
-      box-shadow: 0 4px 12px rgba(34, 139, 34, 0.3) !important;
-      transition: all 0.3s !important;
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
     }
 
-    .btn-ascelc:hover:not(:disabled) {
-      background: #1a6b1a !important;
-      transform: translateY(-2px) !important;
-      box-shadow: 0 6px 16px rgba(34, 139, 34, 0.4) !important;
+    .stat-card {
+      background: var(--surface-card);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      border-left: 4px solid var(--primary-color);
+      transition: all 0.3s;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+    }
+
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-color-secondary);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state-icon {
+      font-size: 64px;
+      color: var(--surface-300);
+      margin-bottom: 16px;
+    }
+
+    .empty-state-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-color-secondary);
+      margin-bottom: 8px;
     }
 
     .participant-badge {
@@ -119,126 +153,92 @@ import { Participant } from '../../models';
     }
 
     .badge-interne {
-      background: #E8F5E9;
-      color: #228B22;
+      background: var(--green-50);
+      color: var(--green-600);
     }
 
     .badge-externe {
-      background: #FFF3E0;
-      color: #F57C00;
+      background: var(--orange-50);
+      color: var(--orange-600);
     }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
+    /* Dialog Styles */
+    .dialog-content {
+      padding: 8px 0;
     }
 
-    .stat-card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      border-left: 4px solid #228B22;
+    .form-section {
+      margin-bottom: 28px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--surface-border);
     }
 
-    .stat-label {
-      font-size: 14px;
-      color: #666;
-      margin-bottom: 8px;
+    .form-section:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
     }
 
-    .stat-value {
-      font-size: 28px;
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
       font-weight: 700;
-      color: #228B22;
+      color: var(--primary-color);
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--primary-color);
     }
 
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
+    .section-header i {
+      font-size: 18px;
     }
 
-    .empty-state-icon {
-      font-size: 64px;
-      color: #d0d0d0;
+    /* Form Layout - 2 COLONNES */
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
       margin-bottom: 16px;
     }
 
-    .empty-state-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #666;
-      margin-bottom: 8px;
+    .form-row:last-child {
+      margin-bottom: 0;
     }
 
-    .form-field {
-      margin-bottom: 20px;
+    .form-col {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .form-col-full {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
     }
 
     .field-label {
       display: block;
       font-size: 14px;
       font-weight: 600;
-      color: #333;
+      color: var(--text-color);
       margin-bottom: 8px;
     }
 
     .required {
-      color: #dc3545;
+      color: var(--red-500);
       font-weight: 700;
       margin-left: 2px;
     }
 
-    .field-error {
-      display: block;
-      color: #dc3545;
-      font-size: 12px;
-      font-weight: 500;
-      margin-top: 4px;
+    .dialog-footer {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
     }
 
-    :host ::ng-deep {
-      .p-datatable .p-datatable-thead > tr > th {
-        background: #228B22;
-        color: white;
-        font-weight: 600;
-        padding: 12px;
-      }
-
-      .p-datatable .p-datatable-tbody > tr > td {
-        padding: 12px;
-      }
-
-      .p-datatable .p-datatable-tbody > tr:hover {
-        background: #f8f9fa;
-      }
-
-      .p-inputtext {
-        font-size: 14px;
-        padding: 12px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        transition: all 0.3s;
-      }
-
-      .p-inputtext:focus {
-        border-color: #228B22;
-        box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
-      }
-
-      .p-select {
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-      }
-
-      .p-select:focus {
-        border-color: #228B22;
-        box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
-      }
-    }
-
+    /* Responsive */
     @media (max-width: 768px) {
       .filters-grid {
         grid-template-columns: 1fr;
@@ -252,6 +252,124 @@ import { Participant } from '../../models';
         flex-direction: column;
         gap: 16px;
         align-items: stretch;
+      }
+
+      .form-row {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .form-col-full {
+        grid-column: 1;
+      }
+    }
+
+    :host ::ng-deep {
+      .p-datatable .p-datatable-thead > tr > th {
+        background: var(--primary-color);
+        color: white;
+        font-weight: 600;
+        padding: 12px;
+      }
+
+      .p-datatable .p-datatable-tbody > tr > td {
+        padding: 12px;
+      }
+
+      .p-datatable .p-datatable-tbody > tr:hover {
+        background: var(--surface-hover);
+      }
+
+      /* Dialog Styles */
+      .p-dialog-header {
+        background: var(--surface-0);
+        border-bottom: 2px solid var(--primary-color);
+        padding: 1.5rem;
+      }
+
+      .p-dialog-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--primary-color);
+      }
+
+      .p-dialog-content {
+        padding: 1.5rem;
+        background: var(--surface-0);
+      }
+
+      .p-dialog-footer {
+        padding: 1rem 1.5rem;
+        background: var(--surface-50);
+        border-top: 1px solid var(--surface-border);
+      }
+
+      /* Input Styles */
+      .p-inputtext {
+        width: 100%;
+        padding: 12px;
+        border-radius: 8px;
+        border: 2px solid var(--surface-border);
+        font-size: 14px;
+        transition: all 0.3s;
+      }
+
+      .p-inputtext:enabled:hover {
+        border-color: var(--surface-400);
+      }
+
+      .p-inputtext:enabled:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--primary-color-light);
+      }
+
+      .p-inputtext.ng-invalid.ng-touched {
+        border-color: var(--red-500);
+      }
+
+      /* Select Styles */
+      .p-select {
+        width: 100%;
+        border-radius: 8px;
+        border: 2px solid var(--surface-border);
+      }
+
+      .p-select:not(.p-disabled):hover {
+        border-color: var(--surface-400);
+      }
+
+      .p-select:not(.p-disabled).p-focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem var(--primary-color-light);
+      }
+
+      /* Error Messages */
+      .p-error {
+        color: var(--red-500);
+        font-size: 12px;
+        font-weight: 500;
+        margin-top: 4px;
+        display: block;
+      }
+
+      /* Button Styles */
+      .p-button-success {
+        background: var(--primary-color);
+        border-color: var(--primary-color);
+      }
+
+      .p-button-success:hover:enabled {
+        background: var(--primary-dark-color);
+        border-color: var(--primary-dark-color);
+      }
+
+      .p-dialog .p-button-text {
+        color: var(--text-color-secondary);
+      }
+
+      .p-dialog .p-button-text:hover:enabled {
+        background: var(--surface-hover);
+        color: var(--text-color);
       }
     }
   `],
@@ -271,7 +389,7 @@ import { Participant } from '../../models';
         <p-button
           icon="pi pi-plus"
           label="Nouveau Participant"
-          styleClass="btn-ascelc"
+          severity="success"
           (onClick)="showCreateDialog()"
         />
       </div>
@@ -330,13 +448,13 @@ import { Participant } from '../../models';
       <div class="table-container">
         @if (loading) {
           <div class="text-center py-5">
-            <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: #228B22;"></i>
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
           </div>
         } @else if (filteredParticipants.length === 0) {
           <div class="empty-state">
             <i class="pi pi-users empty-state-icon"></i>
             <div class="empty-state-title">Aucun participant trouvé</div>
-            <p style="color: #999; font-size: 14px;">
+            <p style="color: var(--text-color-secondary); font-size: 14px;">
               Cliquez sur "Nouveau Participant" pour en ajouter un
             </p>
           </div>
@@ -368,11 +486,11 @@ import { Participant } from '../../models';
                   <strong>{{ participant.firstName }} {{ participant.lastName }}</strong>
                 </td>
                 <td>
-                  <i class="pi pi-envelope mr-2" style="color: #666;"></i>
+                  <i class="pi pi-envelope mr-2" style="color: var(--text-color-secondary);"></i>
                   {{ participant.email }}
                 </td>
                 <td>
-                  <i class="pi pi-phone mr-2" style="color: #666;"></i>
+                  <i class="pi pi-phone mr-2" style="color: var(--text-color-secondary);"></i>
                   {{ participant.phoneNumber || '-' }}
                 </td>
                 <td>{{ participant.organization || '-' }}</td>
@@ -423,135 +541,158 @@ import { Participant } from '../../models';
       <p-dialog
         [(visible)]="displayDialog"
         [modal]="true"
-        [style]="{ width: '600px' }"
+        [style]="{ width: '700px' }"
         [header]="editMode ? 'Modifier le participant' : 'Nouveau participant'"
+        [draggable]="false"
+        [resizable]="false"
       >
-        <form [formGroup]="participantForm">
-          <div class="grid">
-            <div class="col-6">
-              <div class="form-field">
-                <label for="lastName" class="field-label">
-                  Nom <span class="required">*</span>
-                </label>
-                <input
-                  pInputText
-                  id="lastName"
-                  formControlName="lastName"
-                  placeholder="Nom de famille"
-                  class="w-full"
-                />
-                @if (participantForm.get('lastName')?.invalid && participantForm.get('lastName')?.touched) {
-                  <small class="field-error">Le nom est obligatoire</small>
-                }
+        <div class="dialog-content">
+          <form [formGroup]="participantForm">
+            
+            <!-- Section Identité -->
+            <div class="form-section">
+              <div class="section-header">
+                <i class="pi pi-user"></i>
+                <span>Identité</span>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-col">
+                  <label for="lastName" class="field-label">
+                    Nom <span class="required">*</span>
+                  </label>
+                  <input
+                    pInputText
+                    id="lastName"
+                    formControlName="lastName"
+                    placeholder="Nom de famille"
+                  />
+                  @if (participantForm.get('lastName')?.invalid && participantForm.get('lastName')?.touched) {
+                    <small class="p-error">Le nom est obligatoire</small>
+                  }
+                </div>
+
+                <div class="form-col">
+                  <label for="firstName" class="field-label">
+                    Prénom <span class="required">*</span>
+                  </label>
+                  <input
+                    pInputText
+                    id="firstName"
+                    formControlName="firstName"
+                    placeholder="Prénom"
+                  />
+                  @if (participantForm.get('firstName')?.invalid && participantForm.get('firstName')?.touched) {
+                    <small class="p-error">Le prénom est obligatoire</small>
+                  }
+                </div>
               </div>
             </div>
 
-            <div class="col-6">
-              <div class="form-field">
-                <label for="firstName" class="field-label">
-                  Prénom <span class="required">*</span>
-                </label>
-                <input
-                  pInputText
-                  id="firstName"
-                  formControlName="firstName"
-                  placeholder="Prénom"
-                  class="w-full"
-                />
-                @if (participantForm.get('firstName')?.invalid && participantForm.get('firstName')?.touched) {
-                  <small class="field-error">Le prénom est obligatoire</small>
-                }
+            <!-- Section Contact -->
+            <div class="form-section">
+              <div class="section-header">
+                <i class="pi pi-envelope"></i>
+                <span>Contact</span>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-col">
+                  <label for="email" class="field-label">
+                    Email <span class="required">*</span>
+                  </label>
+                  <input
+                    pInputText
+                    id="email"
+                    formControlName="email"
+                    type="email"
+                    placeholder="email@exemple.com"
+                  />
+                  @if (participantForm.get('email')?.invalid && participantForm.get('email')?.touched) {
+                    <small class="p-error">Email valide requis</small>
+                  }
+                </div>
+
+                <div class="form-col">
+                  <label for="phoneNumber" class="field-label">Téléphone</label>
+                  <input
+                    pInputText
+                    id="phoneNumber"
+                    formControlName="phoneNumber"
+                    placeholder="+226 XX XX XX XX"
+                  />
+                </div>
               </div>
             </div>
 
-            <div class="col-12">
-              <div class="form-field">
-                <label for="email" class="field-label">
-                  Email <span class="required">*</span>
-                </label>
-                <input
-                  pInputText
-                  id="email"
-                  formControlName="email"
-                  type="email"
-                  placeholder="email@exemple.com"
-                  class="w-full"
-                />
-                @if (participantForm.get('email')?.invalid && participantForm.get('email')?.touched) {
-                  <small class="field-error">Email valide requis</small>
-                }
+            <!-- Section Professionnelle -->
+            <div class="form-section">
+              <div class="section-header">
+                <i class="pi pi-briefcase"></i>
+                <span>Informations professionnelles</span>
+              </div>
+              
+              <div class="form-row">
+                <div class="form-col">
+                  <label for="participantType" class="field-label">
+                    Type <span class="required">*</span>
+                  </label>
+                  <p-select
+                    id="participantType"
+                    [options]="typeOptions"
+                    formControlName="participantType"
+                    placeholder="Sélectionnez un type"
+                  />
+                  @if (participantForm.get('participantType')?.invalid && participantForm.get('participantType')?.touched) {
+                    <small class="p-error">Le type est obligatoire</small>
+                  }
+                </div>
+
+                <div class="form-col">
+                  <label for="organization" class="field-label">Organisation</label>
+                  <input
+                    pInputText
+                    id="organization"
+                    formControlName="organization"
+                    placeholder="Nom de l'organisation"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-col-full">
+                  <label for="jobTitle" class="field-label">Fonction</label>
+                  <input
+                    pInputText
+                    id="jobTitle"
+                    formControlName="jobTitle"
+                    placeholder="Poste occupé"
+                  />
+                </div>
               </div>
             </div>
 
-            <div class="col-6">
-              <div class="form-field">
-                <label for="phoneNumber" class="field-label">Téléphone</label>
-                <input
-                  pInputText
-                  id="phoneNumber"
-                  formControlName="phoneNumber"
-                  placeholder="+226 XX XX XX XX"
-                  class="w-full"
-                />
-              </div>
-            </div>
-
-            <div class="col-6">
-              <div class="form-field">
-                <label for="participantType" class="field-label">
-                  Type <span class="required">*</span>
-                </label>
-                <p-select
-                  [options]="typeOptions"
-                  formControlName="participantType"
-                  placeholder="Sélectionnez"
-                  styleClass="w-full"
-                />
-              </div>
-            </div>
-
-            <div class="col-12">
-              <div class="form-field">
-                <label for="organization" class="field-label">Organisation</label>
-                <input
-                  pInputText
-                  id="organization"
-                  formControlName="organization"
-                  placeholder="Nom de l'organisation"
-                  class="w-full"
-                />
-              </div>
-            </div>
-
-            <div class="col-12">
-              <div class="form-field">
-                <label for="jobTitle" class="field-label">Fonction</label>
-                <input
-                  pInputText
-                  id="jobTitle"
-                  formControlName="jobTitle"
-                  placeholder="Poste occupé"
-                  class="w-full"
-                />
-              </div>
-            </div>
-          </div>
-        </form>
+          </form>
+        </div>
 
         <ng-template pTemplate="footer">
-          <p-button
-            label="Annuler"
-            severity="secondary"
-            [text]="true"
-            (onClick)="displayDialog = false"
-          />
-          <p-button
-            [label]="editMode ? 'Modifier' : 'Créer'"
-            styleClass="btn-ascelc"
-            (onClick)="saveParticipant()"
-            [disabled]="participantForm.invalid || saving"
-            [loading]="saving"
-          />
+          <div class="dialog-footer">
+            <p-button
+              label="Annuler"
+              icon="pi pi-times"
+              severity="secondary"
+              [text]="true"
+              (onClick)="displayDialog = false"
+            />
+            <p-button
+              [label]="editMode ? 'Enregistrer' : 'Créer'"
+              [icon]="editMode ? 'pi pi-check' : 'pi pi-plus'"
+              severity="success"
+              (onClick)="saveParticipant()"
+              [disabled]="participantForm.invalid || saving"
+              [loading]="saving"
+            />
+          </div>
         </ng-template>
       </p-dialog>
     </div>
@@ -633,59 +774,51 @@ export class ParticipantListComponent implements OnInit {
     this.displayDialog = true;
   }
 
- saveParticipant(): void {
-  if (this.participantForm.invalid) {
-    this.participantForm.markAllAsTouched();
-    return;
+  saveParticipant(): void {
+    if (this.participantForm.invalid) {
+      this.participantForm.markAllAsTouched();
+      return;
+    }
+
+    this.saving = true;
+    const participant = this.participantForm.value;
+
+    const request = this.editMode
+      ? this.participantService.updateParticipant(participant.id, participant)
+      : this.participantService.createParticipant(participant);
+
+    request.subscribe({
+      next: (savedParticipant) => { 
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Succès',
+          detail: `Participant ${this.editMode ? 'modifié' : 'créé'} avec succès`
+        });
+
+        if (this.editMode) {
+          const index = this.participants.findIndex(p => p.id === savedParticipant.id);
+          if (index !== -1) {
+            this.participants[index] = savedParticipant;
+          }
+        } else {
+          this.participants = [savedParticipant, ...this.participants];
+        }
+
+        this.applyFilters();
+        this.displayDialog = false;
+        this.saving = false;
+      },
+      error: (err) => {
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: err.error?.message || 'Une erreur est survenue'
+        });
+        this.saving = false;
+      }
+    });
   }
 
-  this.saving = true;
-  const participant = this.participantForm.value;
-
-  const request = this.editMode
-    ? this.participantService.updateParticipant(participant.id, participant)
-    : this.participantService.createParticipant(participant);
-
-  request.subscribe({
-    next: (savedParticipant) => { 
-      this.messageService.add({
-        severity: 'success',
-        summary: 'Succès',
-        detail: `Participant ${this.editMode ? 'modifié' : 'créé'} avec succès`
-      });
-
-      if (this.editMode) {
-    
-        const index = this.participants.findIndex(p => p.id === savedParticipant.id);
-        if (index !== -1) {
-          this.participants[index] = savedParticipant;
-        }
-        
-        this.participants = [
-          savedParticipant,
-          ...this.participants.filter(p => p.id !== savedParticipant.id)
-        ];
-      } else {
-        
-        this.participants = [savedParticipant, ...this.participants];
-      }
-
-    
-      this.applyFilters();
-
-      this.displayDialog = false;
-      this.saving = false;
-    },
-    error: (err) => {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Erreur',
-        detail: err.error?.message || 'Une erreur est survenue'
-      });
-      this.saving = false;
-    }
-  });
-}
   confirmDelete(participant: any): void {
     this.confirmationService.confirm({
       message: `Êtes-vous sûr de vouloir supprimer ${participant.firstName} ${participant.lastName} ?`,
