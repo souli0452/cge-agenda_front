@@ -173,7 +173,7 @@
               pInputText 
               id="meetingLink"
               formControlName="meetingLink"
-              placeholder="https://meet.google.com/..."
+              placeholder="https://meet.google.com/...  "
               class="w-full"
             />
             <small class="field-hint">
@@ -218,15 +218,15 @@
                     </div>
                     <div>
                       <strong>📞 Téléphone</strong>
-                      <p class="field-value">{{ participant.phoneNumber }}</p>
+                      <p class="field-value">{{ participant.phoneNumber || '—' }}</p>
                     </div>
                     <div>
-                      <strong>🏢 Organisation</strong>
-                      <p class="field-value">{{ participant.organization }}</p>
+                      <strong>🏢 Structure</strong> 
+                      <p class="field-value">{{ participant.structure || 'Non renseignée' }}</p> 
                     </div>
                     <div>
                       <strong>💼 Fonction</strong>
-                      <p class="field-value">{{ participant.jobTitle }}</p>
+                      <p class="field-value">{{ participant.jobTitle || '—' }}</p>
                     </div>
                   </div>
                 </div>

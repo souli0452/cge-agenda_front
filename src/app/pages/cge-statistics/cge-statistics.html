@@ -29,14 +29,14 @@
         </div>
     </div>
 
-    <!-- KPIs -->
-    <div class="kpi-grid" *ngIf="stats">
+   
+    <div class="kpi-grid">
         <div class="kpi-card kpi-primary">
             <div class="kpi-icon">
                 <i class="pi pi-calendar"></i>
             </div>
             <div class="kpi-content">
-                <div class="kpi-value">{{ stats.totalEvents }}</div>
+                <div class="kpi-value">{{ yearStats.totalEvents }}</div>
                 <div class="kpi-label">Événements</div>
             </div>
         </div>
@@ -46,7 +46,7 @@
                 <i class="pi pi-users"></i>
             </div>
             <div class="kpi-content">
-                <div class="kpi-value">{{ stats.totalParticipants }}</div>
+                <div class="kpi-value">{{ yearStats.totalParticipants }}</div>
                 <div class="kpi-label">Participants</div>
             </div>
         </div>
@@ -56,7 +56,7 @@
                 <i class="pi pi-clock"></i>
             </div>
             <div class="kpi-content">
-                <div class="kpi-value">{{ stats.upcomingEventsCount }}</div>
+                <div class="kpi-value">{{ yearStats.upcomingEvents }}</div>
                 <div class="kpi-label">À venir</div>
             </div>
         </div>
@@ -66,48 +66,63 @@
                 <i class="pi pi-check-circle"></i>
             </div>
             <div class="kpi-content">
-                <div class="kpi-value">{{ events.length }}</div>
+                <div class="kpi-value">{{ yearStats.totalGlobal }}</div>
                 <div class="kpi-label">Total global</div>
             </div>
         </div>
     </div>
 
-    <!-- Charts -->
-    <div class="charts-grid" *ngIf="stats">
+   
+    <div class="charts-grid">
         
         <!-- Chart par type -->
         <p-card header="Répartition par type" styleClass="chart-card">
             <p-chart 
+                *ngIf="typeChartData"
                 type="pie" 
                 [data]="typeChartData" 
                 [options]="chartOptions"
                 [style]="{'height': '300px'}">
             </p-chart>
+            <div *ngIf="!typeChartData" class="empty-chart">
+                <i class="pi pi-chart-pie" style="font-size: 48px; color: #999;"></i>
+                <p>Aucune donnée pour {{ selectedYear }}</p>
+            </div>
         </p-card>
 
         <!-- Chart par statut -->
         <p-card header="Répartition par statut" styleClass="chart-card">
             <p-chart 
+                *ngIf="statusChartData"
                 type="doughnut" 
                 [data]="statusChartData" 
                 [options]="chartOptions"
                 [style]="{'height': '300px'}">
             </p-chart>
+            <div *ngIf="!statusChartData" class="empty-chart">
+                <i class="pi pi-chart-pie" style="font-size: 48px; color: #999;"></i>
+                <p>Aucune donnée pour {{ selectedYear }}</p>
+            </div>
         </p-card>
 
         <!-- Chart mensuel -->
-        <p-card header="Événements par mois" styleClass="chart-card chart-card-full">
+        <p-card header="Événements par mois ({{ selectedYear }})" styleClass="chart-card chart-card-full">
             <p-chart 
+                *ngIf="monthlyChartData"
                 type="line" 
                 [data]="monthlyChartData" 
                 [options]="chartOptions"
                 [style]="{'height': '300px'}">
             </p-chart>
+            <div *ngIf="!monthlyChartData" class="empty-chart">
+                <i class="pi pi-chart-line" style="font-size: 48px; color: #999;"></i>
+                <p>Aucune donnée pour {{ selectedYear }}</p>
+            </div>
         </p-card>
     </div>
 
-    <!-- Top Participants -->
-    <p-card header="🏆 Top 10 Participants" styleClass="participants-card">
+
+    <p-card header="🏆 Top 10 Participants ({{ selectedYear }})" styleClass="participants-card">
         <div class="participants-list">
             <div *ngFor="let participant of topParticipants; let i = index" 
                  class="participant-item">
@@ -125,7 +140,7 @@
             </div>
             <div *ngIf="topParticipants.length === 0" class="empty-state">
                 <i class="pi pi-users" style="font-size: 48px; color: #999;"></i>
-                <p>Aucun participant pour cette période</p>
+                <p>Aucun participant pour {{ selectedYear }}</p>
             </div>
         </div>
     </p-card>

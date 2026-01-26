@@ -4,7 +4,6 @@
 @use 'primeicons/primeicons.css';
 @use './demo/demo.scss';
 
-
 .layout-topbar {
     height: 64px !important;
     padding: 0 1rem;
@@ -48,6 +47,30 @@
     height: 40px;
 }
 
+
+.p-dialog-footer {
+    position: relative;
+    z-index: 1001;
+}
+
+.p-dialog-footer .p-button {
+    position: relative;
+    z-index: 1002;
+}
+
+.p-dialog-footer .p-button.p-button-loading {
+    opacity: 1 !important;
+    visibility: visible !important;
+    background: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color) !important;
+}
+
+.p-dialog-footer .p-button.p-button-loading .p-button-label {
+    opacity: 1 !important;
+    color: white !important;
+}
+
 /* Mobile */
 @media (max-width: 768px) {
     .layout-topbar-logo span {
@@ -57,4 +80,29 @@
     .layout-topbar-logo img {
         height: 32px !important;
     }
+}
+
+.layout-menu {
+    font-size: 1.125rem !important; 
+}
+
+.layout-menu .layout-menuitem-text {
+    font-size: 1.125rem !important;
+    font-weight: 500 !important;
+}
+
+.layout-menu .pi {
+    font-size: 1.5rem !important; 
+}
+
+.layout-menu .layout-menuitem {
+    padding: 0.875rem 1rem !important; 
+}
+
+/* Section "Navigation" */
+.layout-menu .layout-menu-category {
+    font-size: 0.875rem !important;
+    font-weight: 600 !important;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }

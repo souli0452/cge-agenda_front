@@ -12,6 +12,6 @@ export interface Participant {
     email: string;
     phoneNumber?: string;
     jobTitle?: string;
-    organization?: string;
+    structure?: string;
     participantType: ParticipantType;
 }

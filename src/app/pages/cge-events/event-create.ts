@@ -77,7 +77,7 @@ export class EventCreateComponent implements OnInit {
     statusOptions = EVENT_STATUS_OPTIONS;
     participantTypeOptions = PARTICIPANT_TYPE_OPTIONS;
 
-    // ✅ CONTRAINTES DE DATES
+    
     today: Date = new Date();
     minEndDate: Date = new Date();
 
@@ -86,7 +86,7 @@ export class EventCreateComponent implements OnInit {
     cities: any[] = [];
     selectedCountryCode: string = 'BF';
 
-    // ✅ GESTION DES PARTICIPANTS EXISTANTS
+    //GESTION DES PARTICIPANTS EXISTANTS
     availableParticipants: any[] = [];
     selectedExistingParticipant: any = null;
     showCreateParticipantForm = false;
@@ -118,7 +118,7 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
-    // ✅ CHARGEMENT DES PARTICIPANTS EXISTANTS
+    // CHARGEMENT DES PARTICIPANTS EXISTANTS
     // ==========================================
     loadAvailableParticipants(): void {
         this.participantService.getAllParticipants().subscribe({
@@ -195,7 +195,7 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
-    // ✅ GESTION DES DATES
+    // GESTION DES DATES
     // ==========================================
     onStartDateChange(): void {
         const startDate = this.eventForm.get('startDate')?.value;
@@ -268,7 +268,7 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
-    // ✅ VALIDATION DES ÉTAPES
+    // VALIDATION DES ÉTAPES
     // ==========================================
     canProceedFromStep(stepIndex: number): boolean {
         switch (stepIndex) {
@@ -409,7 +409,7 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
-    // ✅ GESTION DES PARTICIPANTS MIXTE (CORRIGÉ)
+    // GESTION DES PARTICIPANTS MIXTE
     // ==========================================
     
     // Ajouter un participant existant
@@ -436,7 +436,7 @@ export class EventCreateComponent implements OnInit {
             lastName: [this.selectedExistingParticipant.lastName, Validators.required],
             email: [this.selectedExistingParticipant.email, [Validators.required, Validators.email]],
             phoneNumber: [this.selectedExistingParticipant.phoneNumber || ''],
-            organization: [this.selectedExistingParticipant.organization || ''],
+           structure : [this.selectedExistingParticipant.structure || ''],
             jobTitle: [this.selectedExistingParticipant.jobTitle || ''],
             participantType: [this.selectedExistingParticipant.participantType, Validators.required],
             isExisting: [true]
@@ -460,7 +460,7 @@ export class EventCreateComponent implements OnInit {
         }, 100);
     }
 
-    // ✅ Créer un nouveau participant (SANS VALIDATION AUTOMATIQUE)
+    // Créer un nouveau participant 
     addNewParticipant(): void {
         const participantGroup = this.fb.group({
             id: [null],
@@ -468,7 +468,7 @@ export class EventCreateComponent implements OnInit {
             lastName: ['', Validators.required],
             email: ['', [Validators.required, Validators.email]],
             phoneNumber: [''],
-            organization: [''],
+            structure: [''],
             jobTitle: [''],
             participantType: ['INTERNE', Validators.required],
             isExisting: [false]
@@ -502,13 +502,13 @@ export class EventCreateComponent implements OnInit {
         });
     }
 
-    // ✅ VALIDER LES PARTICIPANTS (appelé UNIQUEMENT au clic sur "Suivant")
+    // VALIDER LES PARTICIPANTS 
     validateParticipants(): boolean {
         let allValid = true;
         let invalidCount = 0;
         
         this.participants.controls.forEach(control => {
-            // Marquer tous les champs comme touchés
+        
             Object.keys(control.value).forEach(key => {
                 control.get(key)?.markAsTouched();
             });
@@ -531,15 +531,15 @@ export class EventCreateComponent implements OnInit {
         return allValid;
     }
 
-    // ✅ MÉTHODE POUR PASSER À L'ÉTAPE SUIVANTE DEPUIS PARTICIPANTS
+
     onNextFromParticipants(): void {
-        // Si aucun participant, on peut passer directement
+        
         if (this.participants.length === 0) {
             this.goToStep(4);
             return;
         }
 
-        // Si des participants ont été ajoutés, on valide
+    
         if (this.validateParticipants()) {
             this.messageService.add({
                 severity: 'success',
@@ -756,7 +756,7 @@ export class EventCreateComponent implements OnInit {
                     lastName: p.lastName,
                     email: p.email,
                     phoneNumber: p.phoneNumber || null,
-                    organization: p.organization || null,
+                    structure: p.structure || null,
                     jobTitle: p.jobTitle || null,
                     participantType: p.participantType
                 }));

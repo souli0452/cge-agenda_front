@@ -23,5 +23,11 @@ export function initializeKeycloak(keycloak: KeycloakService) {
       },
       enableBearerInterceptor: true,
       bearerPrefix: 'Bearer',
+
+      //Exclure les fichiers statiques de l'intercepteur
+      bearerExcludedUrls: [
+        '/assets',
+        '/api/auth/login'
+      ]
     });
 }

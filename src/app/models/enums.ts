@@ -8,6 +8,7 @@ export enum EventType {
     SEMINAIRE = 'SEMINAIRE',
     FORMATION = 'FORMATION',
     MISSION = 'MISSION',
+    AUDIANCE = 'AUDIANCE',
     AUTRE = 'AUTRE'
 }
 
@@ -18,6 +19,7 @@ export const EventTypeLabels: { [key: string]: string } = {
     'SEMINAIRE': 'Séminaire',
     'FORMATION': 'Formation',
     'MISSION': 'Mission',
+     'AUDIANCE': 'Audiance',
     'AUTRE': 'Autre'
 };
 
@@ -64,6 +66,7 @@ export function getEventTypeSeverity(type: EventType | string): TagSeverity {
         'SEMINAIRE': 'warn',
         'FORMATION': 'success',
         'MISSION': 'contrast',
+        'AUDIANCE': 'contrast',
         'AUTRE': 'secondary'
     };
     return map[type] || 'info';
@@ -90,6 +93,7 @@ export const EVENT_TYPE_OPTIONS = [
     { label: 'Séminaire', value: EventType.SEMINAIRE },
     { label: 'Formation', value: EventType.FORMATION },
     { label: 'Mission', value: EventType.MISSION },
+    { label: 'Audiance', value: EventType.AUDIANCE},
     { label: 'Autre', value: EventType.AUTRE }
 ];
 

@@ -535,7 +535,7 @@
             <span>OU</span>
           </div>
 
-          <!-- ✅ CRÉER UN NOUVEAU PARTICIPANT -->
+          <!-- CRÉER UN NOUVEAU PARTICIPANT -->
           <div class="selection-header">
             <i class="pi pi-user-plus"></i>
             <span>Créer un nouveau participant</span>
@@ -554,7 +554,7 @@
 
       <p-divider></p-divider>
 
-      <!-- ✅ LISTE DES PARTICIPANTS AJOUTÉS (MIXTE) -->
+      <!-- LISTE DES PARTICIPANTS AJOUTÉS (MIXTE) -->
       <div class="form-group">
         <h3 class="group-title">
           <i class="pi pi-check-circle"></i>
@@ -655,13 +655,13 @@
                 </div>
 
                 <div class="form-field">
-                  <label class="field-label">Organisation</label>
+                  <label class="field-label">Structure</label>
                   <p-iconfield iconPosition="left" class="w-full">
                     <p-inputicon styleClass="pi pi-building" />
                     <input 
                       pInputText 
-                      formControlName="organization" 
-                      placeholder="Organisation" 
+                      formControlName="structure" 
+                      placeholder="Structure" 
                       class="w-full p-inputtext-lg"
                       [readonly]="isExistingParticipant(i)" />
                   </p-iconfield>
@@ -967,7 +967,7 @@
                 📧 {{ participant.get('email')?.value }}
                 <span *ngIf="participant.get('phoneNumber')?.value"> | 📞 {{ participant.get('phoneNumber')?.value }}</span>
                 <br>
-                <span *ngIf="participant.get('organization')?.value">🏢 {{ participant.get('organization')?.value }}</span>
+                <span *ngIf="participant.get('structure')?.value">🏢 {{ participant.get('structure')?.value }}</span>
                 <span *ngIf="participant.get('jobTitle')?.value"> - {{ participant.get('jobTitle')?.value }}</span>
                 <br>
                 <span style="color: var(--primary-color); font-weight: 600;">

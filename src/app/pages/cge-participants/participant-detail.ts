@@ -334,10 +334,10 @@ import { ParticipantService } from '../../service/participant.service';
               </div>
 
               <div class="info-item">
-                <span class="info-label">Organisation</span>
+                <span class="info-label">Structure</span>
                 <div class="info-value">
                   <i class="pi pi-building"></i>
-                  {{ participant.organization || 'Non renseignée' }}
+                  {{ participant.structure || 'Non renseignée' }}
                 </div>
               </div>
 

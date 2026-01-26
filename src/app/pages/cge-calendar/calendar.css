@@ -211,6 +211,59 @@
     font-size: 14px;
 }
 
+/* Export Dialog */
+.export-dialog-content {
+    padding: 12px 0;
+}
+
+.form-field {
+    margin-bottom: 20px;
+}
+
+.field-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--text-color);
+    margin-bottom: 10px;
+}
+
+.field-label i {
+    color: var(--primary-color);
+}
+
+.field-hint {
+    display: block;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-color-secondary);
+    font-style: italic;
+}
+
+.period-options {
+    margin-top: 20px;
+}
+
+.filters-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: var(--blue-50);
+    border-left: 4px solid var(--primary-color);
+    border-radius: 6px;
+    margin-top: 20px;
+    font-size: 13px;
+    color: var(--text-color-secondary);
+}
+
+.filters-info i {
+    color: var(--primary-color);
+    font-size: 18px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .calendar-container {
@@ -335,15 +388,16 @@
     }
 
     .header-actions .p-button:not(.p-button-outlined) {
-        background: rgba(255, 255, 255, 0.2) !important;
+        background: white !important;
         border: 2px solid white !important;
-        color: white !important;
+        color: var(--primary-color) !important;
         font-weight: 700 !important;
     }
 
     .header-actions .p-button:not(.p-button-outlined):hover {
-        background: white !important;
-        color: var(--primary-color) !important;
+        background: rgba(255, 255, 255, 0.9) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
 
     /* Dialog Footer Buttons */
@@ -355,23 +409,24 @@
         background: var(--surface-hover) !important;
     }
 
-    .p-dialog-footer .p-button:not(.p-button-text) {
-        background: var(--primary-color) !important;
-        border-color: var(--primary-color) !important;
+    .p-dialog-footer .p-button-success {
+        background: #22C55E !important;
+        border-color: #22C55E !important;
+        color: white !important;
     }
 
-    .p-dialog-footer .p-button:not(.p-button-text):hover {
-        background: var(--primary-dark-color) !important;
-        border-color: var(--primary-dark-color) !important;
+    .p-dialog-footer .p-button-success:hover {
+        background: #16A34A !important;
+        border-color: #16A34A !important;
     }
 
-    /* Input Focus */
-    .p-inputtext:focus {
+    /* Input & Select Focus */
+    .p-inputtext:focus,
+    .p-datepicker:focus {
         border-color: var(--primary-color) !important;
         box-shadow: 0 0 0 0.2rem var(--primary-color-light) !important;
     }
 
-    /* Select Focus */
     .p-select:not(.p-disabled).p-focus {
         border-color: var(--primary-color) !important;
         box-shadow: 0 0 0 0.2rem var(--primary-color-light) !important;

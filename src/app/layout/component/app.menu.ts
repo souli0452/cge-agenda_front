@@ -52,32 +52,8 @@ export class AppMenu {
                 routerLink: ['/statistics'] 
             }
         ]
-    },
-    {
-        label: 'Administration',
-        items: [
-            { 
-                label: 'Utilisateurs', 
-                icon: 'pi pi-fw pi-user-edit', 
-                routerLink: ['/admin/users'] 
-            },
-            { 
-                label: 'Paramètres', 
-                icon: 'pi pi-fw pi-cog', 
-                routerLink: ['/settings'] 
-            }
-        ]
-    },
-    {
-        label: 'Authentification',
-        items: [
-            {
-                label: 'Deconnecte',
-                icon: 'pi pi-fw pi-sign-in',
-                routerLink: ['/auth/login']
-            }
-        ]
     }
+    
 ];
     }
 }

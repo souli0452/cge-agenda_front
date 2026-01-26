@@ -6,7 +6,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 // PrimeNG
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
-import { Table, TableModule } from 'primeng/table';
+import { TableModule } from 'primeng/table';
 import { Toast } from 'primeng/toast';
 import { ConfirmDialog } from 'primeng/confirmdialog';
 import { Dialog } from 'primeng/dialog';
@@ -168,8 +168,8 @@ import { Participant } from '../../models';
     }
 
     .form-section {
-      margin-bottom: 28px;
-      padding-bottom: 24px;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
       border-bottom: 1px solid var(--surface-border);
     }
 
@@ -186,8 +186,8 @@ import { Participant } from '../../models';
       font-size: 16px;
       font-weight: 700;
       color: var(--primary-color);
-      margin-bottom: 20px;
-      padding-bottom: 10px;
+      margin-bottom: 16px;
+      padding-bottom: 8px;
       border-bottom: 2px solid var(--primary-color);
     }
 
@@ -200,7 +200,7 @@ import { Participant } from '../../models';
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
 
     .form-row:last-child {
@@ -282,19 +282,20 @@ import { Participant } from '../../models';
 
       /* Dialog Styles */
       .p-dialog-header {
-        background: var(--surface-0);
-        border-bottom: 2px solid var(--primary-color);
-        padding: 1.5rem;
+        background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+        color: white;
       }
 
       .p-dialog-title {
         font-size: 20px;
         font-weight: 700;
-        color: var(--primary-color);
+        color: white;
       }
 
       .p-dialog-content {
-        padding: 1.5rem;
+        padding: 1.25rem 1.5rem;
         background: var(--surface-0);
       }
 
@@ -307,24 +308,28 @@ import { Participant } from '../../models';
       /* Input Styles */
       .p-inputtext {
         width: 100%;
-        padding: 12px;
+        padding: 12px 14px;
         border-radius: 8px;
         border: 2px solid var(--surface-border);
         font-size: 14px;
         transition: all 0.3s;
+        background: var(--surface-0);
       }
 
       .p-inputtext:enabled:hover {
-        border-color: var(--surface-400);
+        border-color: var(--primary-300);
+        background: var(--surface-50);
       }
 
       .p-inputtext:enabled:focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem var(--primary-color-light);
+        box-shadow: 0 0 0 0.2rem var(--primary-100);
+        background: white;
       }
 
       .p-inputtext.ng-invalid.ng-touched {
         border-color: var(--red-500);
+        background: var(--red-50);
       }
 
       /* Select Styles */
@@ -332,15 +337,23 @@ import { Participant } from '../../models';
         width: 100%;
         border-radius: 8px;
         border: 2px solid var(--surface-border);
+        min-height: 46px;
+      }
+
+      .p-select .p-select-label {
+        padding: 12px 14px;
+        font-size: 14px;
       }
 
       .p-select:not(.p-disabled):hover {
-        border-color: var(--surface-400);
+        border-color: var(--primary-300);
+        background: var(--surface-50);
       }
 
       .p-select:not(.p-disabled).p-focus {
         border-color: var(--primary-color);
-        box-shadow: 0 0 0 0.2rem var(--primary-color-light);
+        box-shadow: 0 0 0 0.2rem var(--primary-100);
+        background: white;
       }
 
       /* Error Messages */
@@ -352,24 +365,85 @@ import { Participant } from '../../models';
         display: block;
       }
 
-      /* Button Styles */
+      /* ✅ BUTTON STYLES FIXES - Empêche le bouton de disparaître au hover */
+      .p-button {
+        transition: all 0.2s ease-in-out;
+      }
+
       .p-button-success {
-        background: var(--primary-color);
-        border-color: var(--primary-color);
+        background: #22C55E !important;
+        border-color: #22C55E !important;
+        color: white !important;
       }
 
-      .p-button-success:hover:enabled {
-        background: var(--primary-dark-color);
-        border-color: var(--primary-dark-color);
+      .p-button-success:enabled:hover {
+        background: #16A34A !important;
+        border-color: #16A34A !important;
+        color: white !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(34, 197, 94, 0.4) !important;
       }
 
+      .p-button-success:enabled:active {
+        background: #15803D !important;
+        border-color: #15803D !important;
+        transform: translateY(0);
+      }
+
+      .p-button-success:focus {
+        box-shadow: 0 0 0 0.2rem rgba(34, 197, 94, 0.5) !important;
+      }
+
+      /* Boutons secondaires */
+      .p-button-secondary {
+        color: var(--text-color) !important;
+        background: transparent !important;
+        border-color: var(--surface-border) !important;
+      }
+
+      .p-button-secondary:enabled:hover {
+        background: var(--surface-100) !important;
+        border-color: var(--surface-300) !important;
+        color: var(--text-color) !important;
+      }
+
+      /* Boutons texte dans dialog */
       .p-dialog .p-button-text {
-        color: var(--text-color-secondary);
+        color: var(--text-color-secondary) !important;
+        background: transparent !important;
       }
 
-      .p-dialog .p-button-text:hover:enabled {
-        background: var(--surface-hover);
-        color: var(--text-color);
+      .p-dialog .p-button-text:enabled:hover {
+        background: var(--surface-hover) !important;
+        color: var(--text-color) !important;
+      }
+
+      /* Boutons dans table (icônes) */
+      .p-button-info.p-button-text {
+        color: var(--blue-500) !important;
+      }
+
+      .p-button-info.p-button-text:enabled:hover {
+        background: var(--blue-50) !important;
+        color: var(--blue-600) !important;
+      }
+
+      .p-button-danger.p-button-text {
+        color: var(--red-500) !important;
+      }
+
+      .p-button-danger.p-button-text:enabled:hover {
+        background: var(--red-50) !important;
+        color: var(--red-600) !important;
+      }
+
+      .p-button-secondary.p-button-text {
+        color: var(--text-color-secondary) !important;
+      }
+
+      .p-button-secondary.p-button-text:enabled:hover {
+        background: var(--surface-100) !important;
+        color: var(--text-color) !important;
       }
     }
   `],
@@ -466,14 +540,14 @@ import { Participant } from '../../models';
             [rowsPerPageOptions]="[10, 25, 50]"
             [showCurrentPageReport]="true"
             currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords} participants"
-            [globalFilterFields]="['firstName', 'lastName', 'email', 'organization']"
+            [globalFilterFields]="['firstName', 'lastName', 'email', 'structure']"
           >
             <ng-template pTemplate="header">
               <tr>
                 <th>Nom Complet</th>
                 <th>Email</th>
                 <th>Téléphone</th>
-                <th>Organisation</th>
+                <th>Structure</th>
                 <th>Fonction</th>
                 <th>Type</th>
                 <th style="width: 150px;">Actions</th>
@@ -493,7 +567,7 @@ import { Participant } from '../../models';
                   <i class="pi pi-phone mr-2" style="color: var(--text-color-secondary);"></i>
                   {{ participant.phoneNumber || '-' }}
                 </td>
-                <td>{{ participant.organization || '-' }}</td>
+                <td>{{ participant.structure || '-' }}</td>
                 <td>{{ participant.jobTitle || '-' }}</td>
                 <td>
                   <span
@@ -541,7 +615,7 @@ import { Participant } from '../../models';
       <p-dialog
         [(visible)]="displayDialog"
         [modal]="true"
-        [style]="{ width: '700px' }"
+        [style]="{ width: '950px' }"
         [header]="editMode ? 'Modifier le participant' : 'Nouveau participant'"
         [draggable]="false"
         [resizable]="false"
@@ -558,21 +632,6 @@ import { Participant } from '../../models';
               
               <div class="form-row">
                 <div class="form-col">
-                  <label for="lastName" class="field-label">
-                    Nom <span class="required">*</span>
-                  </label>
-                  <input
-                    pInputText
-                    id="lastName"
-                    formControlName="lastName"
-                    placeholder="Nom de famille"
-                  />
-                  @if (participantForm.get('lastName')?.invalid && participantForm.get('lastName')?.touched) {
-                    <small class="p-error">Le nom est obligatoire</small>
-                  }
-                </div>
-
-                <div class="form-col">
                   <label for="firstName" class="field-label">
                     Prénom <span class="required">*</span>
                   </label>
@@ -584,6 +643,21 @@ import { Participant } from '../../models';
                   />
                   @if (participantForm.get('firstName')?.invalid && participantForm.get('firstName')?.touched) {
                     <small class="p-error">Le prénom est obligatoire</small>
+                  }
+                </div>
+
+                <div class="form-col">
+                  <label for="lastName" class="field-label">
+                    Nom <span class="required">*</span>
+                  </label>
+                  <input
+                    pInputText
+                    id="lastName"
+                    formControlName="lastName"
+                    placeholder="Nom de famille"
+                  />
+                  @if (participantForm.get('lastName')?.invalid && participantForm.get('lastName')?.touched) {
+                    <small class="p-error">Le nom est obligatoire</small>
                   }
                 </div>
               </div>
@@ -634,8 +708,35 @@ import { Participant } from '../../models';
               
               <div class="form-row">
                 <div class="form-col">
+                  <label for="structure" class="field-label">
+                    Structure <span class="required">*</span>
+                  </label>
+                  <input
+                    pInputText
+                    id="structure"
+                    formControlName="structure"
+                    placeholder="Nom de la structure"
+                  />
+                  @if (participantForm.get('structure')?.invalid && participantForm.get('structure')?.touched) {
+                    <small class="p-error">La structure est obligatoire</small>
+                  }
+                </div>
+
+                <div class="form-col">
+                  <label for="jobTitle" class="field-label">Fonction</label>
+                  <input
+                    pInputText
+                    id="jobTitle"
+                    formControlName="jobTitle"
+                    placeholder="Poste occupé"
+                  />
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-col">
                   <label for="participantType" class="field-label">
-                    Type <span class="required">*</span>
+                    Type de participant <span class="required">*</span>
                   </label>
                   <p-select
                     id="participantType"
@@ -647,27 +748,8 @@ import { Participant } from '../../models';
                     <small class="p-error">Le type est obligatoire</small>
                   }
                 </div>
-
                 <div class="form-col">
-                  <label for="organization" class="field-label">Organisation</label>
-                  <input
-                    pInputText
-                    id="organization"
-                    formControlName="organization"
-                    placeholder="Nom de l'organisation"
-                  />
-                </div>
-              </div>
-
-              <div class="form-row">
-                <div class="form-col-full">
-                  <label for="jobTitle" class="field-label">Fonction</label>
-                  <input
-                    pInputText
-                    id="jobTitle"
-                    formControlName="jobTitle"
-                    placeholder="Poste occupé"
-                  />
+                  <!-- Colonne vide pour alignement -->
                 </div>
               </div>
             </div>
@@ -737,7 +819,7 @@ export class ParticipantListComponent implements OnInit {
       lastName: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: [''],
-      organization: [''],
+      structure: ['',Validators.required],
       jobTitle: [''],
       participantType: ['', Validators.required]
     });

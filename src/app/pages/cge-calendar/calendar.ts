@@ -78,6 +78,10 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
     eventDetailDialogVisible = false;
     selectedEvent: Event | null = null;
 
+    // Tracking de la vue actuelle
+    currentView: 'day' | 'week' | 'month' | 'list' = 'month';
+    currentDate: Date = new Date();
+
     // Legend
     legendItems = [
         { type: 'REUNION', label: 'Réunion', color: '#3B82F6' },
@@ -100,10 +104,23 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
     }
 
     ngAfterViewInit(): void {
-        this.initCalendar();
+        if (this.calendarEl && this.calendarEl.nativeElement) {
+            this.initCalendar();
+        } else {
+            setTimeout(() => {
+                if (this.calendarEl && this.calendarEl.nativeElement) {
+                    this.initCalendar();
+                }
+            }, 0);
+        }
     }
 
     initCalendar(): void {
+        if (!this.calendarEl?.nativeElement) {
+            console.error('❌ Calendar element not found');
+            return;
+        }
+
         this.calendar = new Calendar(this.calendarEl.nativeElement, {
             plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin, listPlugin],
             initialView: 'dayGridMonth',
@@ -137,10 +154,41 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
                 hour: '2-digit',
                 minute: '2-digit',
                 hour12: false
+            },
+            datesSet: (dateInfo) => {
+                this.updateCurrentViewInfo(dateInfo);
             }
         });
 
         this.calendar.render();
+    }
+
+    
+    updateCurrentViewInfo(dateInfo: any): void {
+        const viewType = dateInfo.view.type;
+        
+        if (viewType === 'dayGridMonth') {
+            this.currentView = 'month';
+        } else if (viewType === 'timeGridWeek' || viewType === 'dayGridWeek') {
+            this.currentView = 'week';
+        } else if (viewType === 'timeGridDay' || viewType === 'dayGridDay') {
+            this.currentView = 'day';
+        } else if (viewType === 'listWeek') {
+            this.currentView = 'list';
+        }
+
+    
+        if (this.currentView === 'month') {
+            const start = new Date(dateInfo.start);
+            const end = new Date(dateInfo.end);
+            
+            const middle = new Date((start.getTime() + end.getTime()) / 2);
+            this.currentDate = middle;
+        } else {
+            this.currentDate = new Date(dateInfo.start);
+        }
+        
+        console.log(`📅 Vue: ${this.currentView}, Date capturée: ${this.currentDate.toLocaleDateString('fr-FR')}, Mois: ${this.currentDate.getMonth() + 1}, Année: ${this.currentDate.getFullYear()}`);
     }
 
     loadEvents(): void {
@@ -148,6 +196,7 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
         this.eventService.getAllEvents().subscribe({
             next: (events: Event[]) => {
                 this.events = events;
+                console.log(`📊 ${events.length} événements chargés`);
                 this.applyFilters();
                 this.loading = false;
             },
@@ -165,7 +214,6 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
     applyFilters(): void {
         let filteredEvents = this.events;
 
-        // Filtre par mot-clé
         if (this.searchKeyword) {
             filteredEvents = filteredEvents.filter(event =>
                 event.title.toLowerCase().includes(this.searchKeyword.toLowerCase()) ||
@@ -173,20 +221,16 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
             );
         }
 
-        // Filtre par type
         if (this.selectedType) {
             filteredEvents = filteredEvents.filter(event => event.type === this.selectedType);
         }
 
-        // Filtre par statut
         if (this.selectedStatus) {
             filteredEvents = filteredEvents.filter(event => event.status === this.selectedStatus);
         }
 
-        // Convertir en events FullCalendar
         const calendarEvents = filteredEvents.map(event => this.convertToCalendarEvent(event));
         
-        // Mettre à jour le calendrier
         if (this.calendar) {
             this.calendar.removeAllEvents();
             this.calendar.addEventSource(calendarEvents);
@@ -278,35 +322,226 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
         this.router.navigate(['/events']);
     }
 
+    // ==========================================
+    // EXPORT PDF INTELLIGENT
+    // ==========================================
     exportToPDF(): void {
-    const doc = new jsPDF('l', 'mm', 'a4'); // Landscape A4
+        
+        const exportDate = this.calendar ? this.calendar.getDate() : this.currentDate;
+        
+        console.log(`🎯 Export PDF - Vue: ${this.currentView}`);
+        console.log(`📅 Date d'export: ${exportDate.toLocaleDateString('fr-FR')}, Mois: ${exportDate.getMonth() + 1}, Année: ${exportDate.getFullYear()}`);
+        
+        let filteredEvents = this.events.filter(event => {
+            const matchesKeyword = !this.searchKeyword ||
+                event.title.toLowerCase().includes(this.searchKeyword.toLowerCase()) ||
+                event.description?.toLowerCase().includes(this.searchKeyword.toLowerCase());
+            const matchesType = !this.selectedType || event.type === this.selectedType;
+            const matchesStatus = !this.selectedStatus || event.status === this.selectedStatus;
+            return matchesKeyword && matchesType && matchesStatus;
+        });
+
+        console.log(`📋 Après filtres: ${filteredEvents.length} événements`);
+
+        const eventsToExport = this.filterEventsByCurrentView(filteredEvents, exportDate);
+        
+        console.log(`✅ À exporter: ${eventsToExport.length} événements`);
+
+        const title = this.getExportTitle(exportDate);
+        this.generatePDF(eventsToExport, title);
+    }
+
+    filterEventsByCurrentView(events: Event[], exportDate: Date): Event[] {
+        console.log(`🔍 Filtrage par ${this.currentView}, Date: ${exportDate.toLocaleDateString('fr-FR')}`);
+
+        switch (this.currentView) {
+            case 'day':
+                return this.filterEventsByDay(events, exportDate);
+            
+            case 'week':
+                return this.filterEventsByWeek(events, exportDate);
+            
+            case 'month':
+                return this.filterEventsByMonth(events, exportDate);
+            
+            case 'list':
+                return this.filterEventsByWeek(events, exportDate);
+            
+            default:
+                return events;
+        }
+    }
+
+    filterEventsByDay(events: Event[], date: Date): Event[] {
+        const targetDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        
+        console.log(`📅 Filtrage JOUR: ${targetDate.toLocaleDateString('fr-FR')}`);
+        
+        return events.filter(event => {
+            const eventStart = new Date(event.startDate);
+            const eventEnd = new Date(event.endDate);
+            
+            const startDay = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+            const endDay = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+            
+            return startDay <= targetDate && endDay >= targetDate;
+        });
+    }
+
+    filterEventsByWeek(events: Event[], date: Date): Event[] {
+        const targetDate = new Date(date);
+        
+        const dayOfWeek = targetDate.getDay();
+        const monday = new Date(targetDate);
+        monday.setDate(targetDate.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+        monday.setHours(0, 0, 0, 0);
+        
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        sunday.setHours(23, 59, 59, 999);
+        
+        console.log(`📅 Filtrage SEMAINE: ${monday.toLocaleDateString('fr-FR')} - ${sunday.toLocaleDateString('fr-FR')}`);
+        
+        return events.filter(event => {
+            const eventStart = new Date(event.startDate);
+            const eventEnd = new Date(event.endDate);
+            
+            return eventStart <= sunday && eventEnd >= monday;
+        });
+    }
+
+    filterEventsByMonth(events: Event[], date: Date): Event[] {
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        
+        const monthStart = new Date(year, month, 1, 0, 0, 0, 0);
+        const monthEnd = new Date(year, month + 1, 0, 23, 59, 59, 999);
+        
+        console.log(`📅 Filtrage MOIS: ${year}/${month + 1} → ${monthStart.toLocaleDateString('fr-FR')} - ${monthEnd.toLocaleDateString('fr-FR')}`);
+        
+        const filtered = events.filter(event => {
+            const eventStart = new Date(event.startDate);
+            const eventEnd = new Date(event.endDate);
+            
+            const isInMonth = 
+                (eventStart >= monthStart && eventStart <= monthEnd) ||
+                (eventEnd >= monthStart && eventEnd <= monthEnd) ||
+                (eventStart < monthStart && eventEnd > monthEnd);
+            
+            if (isInMonth) {
+                console.log(`  ✅ ${event.title}: ${eventStart.toLocaleDateString('fr-FR')} - ${eventEnd.toLocaleDateString('fr-FR')}`);
+            }
+            
+            return isInMonth;
+        });
+
+        console.log(`✅ ${filtered.length} événements trouvés`);
+        
+        return filtered;
+    }
+
+    getExportTitle(exportDate: Date): string {
+        const options: Intl.DateTimeFormatOptions = { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+        };
+
+        console.log(`📝 Titre pour: ${exportDate.toLocaleDateString('fr-FR')}, Mois: ${exportDate.getMonth() + 1}, Année: ${exportDate.getFullYear()}`);
+
+        switch (this.currentView) {
+            case 'day':
+                return `Événements du ${exportDate.toLocaleDateString('fr-FR', options)}`;
+            
+            case 'week':
+                const monday = this.getMonday(exportDate);
+                const sunday = this.getSunday(exportDate);
+                return `Événements de la semaine du ${monday.toLocaleDateString('fr-FR')} au ${sunday.toLocaleDateString('fr-FR')}`;
+            
+            case 'month':
+                const monthOptions: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long' };
+                const title = `Événements de ${exportDate.toLocaleDateString('fr-FR', monthOptions)}`;
+                console.log(`📝 Titre généré: ${title}`);
+                return title;
+            
+            case 'list':
+                const mondayList = this.getMonday(exportDate);
+                const sundayList = this.getSunday(exportDate);
+                return `Liste des événements (${mondayList.toLocaleDateString('fr-FR')} - ${sundayList.toLocaleDateString('fr-FR')})`;
+            
+            default:
+                return 'Calendrier des Événements';
+        }
+    }
+
+    getMonday(date: Date): Date {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = day === 0 ? -6 : 1 - day;
+        d.setDate(d.getDate() + diff);
+        return d;
+    }
+
+    getSunday(date: Date): Date {
+        const monday = this.getMonday(date);
+        const sunday = new Date(monday);
+        sunday.setDate(monday.getDate() + 6);
+        return sunday;
+    }
+
+generatePDF(events: Event[], title: string): void {
+    const doc = new jsPDF('l', 'mm', 'a4');
     
-    // En-tête
     doc.setFillColor(34, 139, 34);
     doc.rect(0, 0, 297, 30, 'F');
     
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(22);
     doc.setFont('helvetica', 'bold');
-    doc.text('Calendrier des Événements', 148.5, 15, { align: 'center' });
+    doc.text(title, 148.5, 15, { align: 'center' });
     
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
-    doc.text(`Total: ${this.events.length} événement(s)`, 148.5, 22, { align: 'center' });
+    doc.text(`Total: ${events.length} événement(s)`, 148.5, 22, { align: 'center' });
     
-    // Tableau des événements
-    const tableData = this.events.map(event => [
+    
+    const formatDateWithTime = (dateString: string, schedules: any[] = []): string => {
+        const date = new Date(dateString);
+        
+        
+        if (!schedules || schedules.length === 0) {
+            return date.toLocaleDateString('fr-FR');
+        }
+        
+        
+        const scheduleForDate = schedules.find(s => 
+            new Date(s.dateJour).toDateString() === date.toDateString()
+        );
+        
+        
+        if (scheduleForDate) {
+            const startTime = scheduleForDate.startTime;
+            const endTime = scheduleForDate.endTime;
+            
+            return `${date.toLocaleDateString('fr-FR')} ${startTime} - ${endTime}`;
+        }
+        
+        return date.toLocaleDateString('fr-FR');
+    };
+
+    const tableData = events.map(event => [
         event.title,
         this.getTypeLabel(event.type),
-        new Date(event.startDate).toLocaleDateString('fr-FR'),
-        new Date(event.endDate).toLocaleDateString('fr-FR'),
+        formatDateWithTime(event.startDate, event.schedules), 
+        formatDateWithTime(event.endDate, event.schedules),   
         this.getStatusLabel(event.status),
         `${event.ville || '-'}, ${event.pays || '-'}`,
-        (event.participants?.length || 0).toString()
+        (event.participants?.length || 0).toString(),
+        event.structures?.join(', ') || 'Aucune'
     ]);
     
     autoTable(doc, {
-        head: [['Titre', 'Type', 'Date début', 'Date fin', 'Statut', 'Lieu', 'Participants']],
+        head: [['Titre', 'Type', 'Date début', 'Date fin', 'Statut', 'Lieu', 'Part.', 'Structures']],
         body: tableData,
         startY: 35,
         styles: {
@@ -322,17 +557,17 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
             fillColor: [245, 245, 245]
         },
         columnStyles: {
-            0: { cellWidth: 50 },
-            1: { cellWidth: 30 },
-            2: { cellWidth: 25 },
-            3: { cellWidth: 25 },
-            4: { cellWidth: 30 },
-            5: { cellWidth: 40 },
-            6: { cellWidth: 20, halign: 'center' }
+            0: { cellWidth: 45 },
+            1: { cellWidth: 25 },
+            2: { cellWidth: 30 }, 
+            3: { cellWidth: 30 }, 
+            4: { cellWidth: 25 },
+            5: { cellWidth: 35 },
+            6: { cellWidth: 15, halign: 'center' },
+            7: { cellWidth: 35 }
         }
     });
     
-    // Pied de page
     const pageCount = (doc as any).internal.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
@@ -346,14 +581,17 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
         );
     }
     
-    // Téléchargement
-    const filename = `calendrier_evenements_${new Date().toISOString().split('T')[0]}.pdf`;
+    const viewLabel = this.currentView === 'day' ? 'jour' : 
+                      this.currentView === 'week' ? 'semaine' : 
+                      this.currentView === 'month' ? 'mois' : 'liste';
+    const filename = `calendrier_${viewLabel}_${new Date().toISOString().split('T')[0]}.pdf`;
     doc.save(filename);
     
     this.messageService.add({
         severity: 'success',
         summary: 'Succès',
-        detail: 'Calendrier exporté en PDF'
+        detail: `Export ${viewLabel} réussi (${events.length} événement(s))`
     });
 }
+    
 }

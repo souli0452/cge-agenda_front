@@ -259,10 +259,10 @@ import {
                                             <i class="pi pi-phone"></i>
                                             <span>{{ participant.phoneNumber }}</span>
                                         </div>
-                                        <div class="participant-detail" *ngIf="participant.organization">
-                                            <i class="pi pi-building"></i>
-                                            <span>{{ participant.organization }}</span>
-                                        </div>
+                                        <div class="participant-detail" *ngIf="participant?.structure">
+                                     <i class="pi pi-building"></i>
+                                            <span>{{ participant.structure }}</span>
+                                            </div>
                                     </div>
                                 </div>
                             </div>
@@ -316,14 +316,7 @@ import {
                                     <h3>Fichiers</h3>
                                     <span class="badge-count">{{ files.length }}</span>
                                 </div>
-                                <p-button 
-                                    icon="pi pi-upload" 
-                                    [rounded]="true"
-                                    severity="success"
-                                    size="small"
-                                    pTooltip="Ajouter"
-                                    (onClick)="fileUpload.choose()">
-                                </p-button>
+                                
                             </div>
 
                             <p-fileupload 
