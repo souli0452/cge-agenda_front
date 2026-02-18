@@ -877,7 +877,7 @@ disabled: !canManageFiles
 },
 { separator: true },
 {
-label: 'Télécharger liste émargement',
+label: 'Télécharger liste participant',
 icon: 'pi pi-download',
 command: () => this.downloadAttendance(eventData.id)
 },
@@ -1459,7 +1459,7 @@ next: (blob: Blob) => {
 const url = window.URL.createObjectURL(blob);
 const a = document.createElement('a');
 a.href = url;
-a.download = `liste_emargement_${id}.pdf`;
+a.download = `liste_participant_${id}.pdf`;
 a.click();
 window.URL.revokeObjectURL(url);
 this.messageService.add({
