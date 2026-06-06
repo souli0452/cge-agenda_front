@@ -127,19 +127,21 @@ import {
                         (onClick)="goBack()">
                     </p-button>
                     <div class="header-actions">
-                        <p-button 
-                            label="Modifier" 
-                            icon="pi pi-pencil" 
-                            [outlined]="true"
-                            (onClick)="editEvent()">
-                        </p-button>
-                        <p-button 
-                            label="Liste émargement" 
-                            icon="pi pi-download" 
-                            severity="help"
-                            (onClick)="downloadAttendance()">
-                        </p-button>
-                    </div>
+    <p-button
+        *ngIf="event?.status !== 'ANNULER' && event?.status !== 'TERMINE'"
+        label="Modifier"
+        icon="pi pi-pencil"
+        [outlined]="true"
+        (onClick)="editEvent()">
+    </p-button>
+
+    <p-button
+        label="Liste émargement"
+        icon="pi pi-download"
+        severity="help"
+        (onClick)="downloadAttendance()">
+    </p-button>
+</div>
                 </div>
 
                 <div class="detail-content">
@@ -160,6 +162,24 @@ import {
                                     [severity]="getStatusSeverity(event.status)"
                                     [rounded]="true">
                                 </p-tag>
+
+                                <span
+        *ngIf="event?.status === 'ANNULER' || event?.status === 'TERMINE'"
+        style="
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(255,255,255,0.2);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.4);
+        ">
+        <i class="pi pi-lock"></i>
+        Lecture seule
+    </span>
                             </div>
                         </div>
 

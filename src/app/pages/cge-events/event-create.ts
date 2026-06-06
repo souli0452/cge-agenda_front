@@ -1,35 +1,34 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+    FormBuilder, FormGroup, FormArray,
+    Validators, ReactiveFormsModule, FormsModule
+} from '@angular/forms';
 
-// PACKAGE POUR PAYS ET VILLES
 import { Country, City } from 'country-state-city';
 
-// PrimeNG Imports
-import { ButtonModule } from 'primeng/button';
-import { InputTextModule } from 'primeng/inputtext';
-import { TextareaModule } from 'primeng/textarea';
-import { DatePickerModule } from 'primeng/datepicker';
-import { SelectModule } from 'primeng/select';
-import { RadioButtonModule } from 'primeng/radiobutton';
-import { CardModule } from 'primeng/card';
-import { DividerModule } from 'primeng/divider';
-import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
-import { TooltipModule } from 'primeng/tooltip';
+import { ButtonModule }          from 'primeng/button';
+import { InputTextModule }       from 'primeng/inputtext';
+import { TextareaModule }        from 'primeng/textarea';
+import { DatePickerModule }      from 'primeng/datepicker';
+import { SelectModule }          from 'primeng/select';
+import { RadioButtonModule }     from 'primeng/radiobutton';
+import { CardModule }            from 'primeng/card';
+import { DividerModule }         from 'primeng/divider';
+import { ToastModule }           from 'primeng/toast';
+import { MessageService }        from 'primeng/api';
+import { IconFieldModule }       from 'primeng/iconfield';
+import { InputIconModule }       from 'primeng/inputicon';
+import { TooltipModule }         from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
-import { SkeletonModule } from 'primeng/skeleton';
+import { SkeletonModule }        from 'primeng/skeleton';
 
-// Services & Models
-import { EventService } from '../../service/event.service';
-import { FileService } from '../../service/file.service';
+import { EventService }       from '../../service/event.service';
+import { FileService }        from '../../service/file.service';
 import { ParticipantService } from '../../service/participant.service';
 import {
-    Event,
-    Participant,
+    Event, Participant,
     EVENT_TYPE_OPTIONS,
     EVENT_STATUS_OPTIONS,
     PARTICIPANT_TYPE_OPTIONS
@@ -44,70 +43,56 @@ interface UploadedFile {
     selector: 'app-event-create',
     standalone: true,
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        FormsModule,
-        ButtonModule,
-        InputTextModule,
-        TextareaModule,
-        DatePickerModule,
-        SelectModule,
-        RadioButtonModule,
-        CardModule,
-        DividerModule,
-        ToastModule,
-        IconFieldModule,
-        InputIconModule,
-        TooltipModule,
-        ProgressSpinnerModule,
-        SkeletonModule
+        CommonModule, ReactiveFormsModule, FormsModule,
+        ButtonModule, InputTextModule, TextareaModule,
+        DatePickerModule, SelectModule, RadioButtonModule,
+        CardModule, DividerModule, ToastModule,
+        IconFieldModule, InputIconModule, TooltipModule,
+        ProgressSpinnerModule, SkeletonModule
     ],
     providers: [MessageService],
     templateUrl: './event-create.html',
     styleUrl: './event-create.css'
 })
 export class EventCreateComponent implements OnInit {
-    loading = false;
+
+    loading    = false;
     eventForm!: FormGroup;
     scheduleMode: 'global' | 'custom' = 'global';
     uploadedFiles: UploadedFile[] = [];
     currentStep = 0;
 
-    typeOptions = EVENT_TYPE_OPTIONS;
-    statusOptions = EVENT_STATUS_OPTIONS;
+    typeOptions        = EVENT_TYPE_OPTIONS;
+    statusOptions      = EVENT_STATUS_OPTIONS;
     participantTypeOptions = PARTICIPANT_TYPE_OPTIONS;
 
-    
-    today: Date = new Date();
+    today:      Date = new Date();
     minEndDate: Date = new Date();
 
-    // PAYS ET VILLES
     countries: any[] = [];
-    cities: any[] = [];
-    selectedCountryCode: string = 'BF';
+    cities:    any[] = [];
+    selectedCountryCode = 'BF';
 
-    //GESTION DES PARTICIPANTS EXISTANTS
-    availableParticipants: any[] = [];
-    selectedExistingParticipant: any = null;
+    availableParticipants:      any[] = [];
+    selectedExistingParticipant: any  = null;
     showCreateParticipantForm = false;
 
-    // ÉTAPES POUR LA PROGRESSION HORIZONTALE
     steps = [
         { number: 1, label: 'Informations générales', icon: 'pi-info-circle' },
-        { number: 2, label: 'Dates et Lieu', icon: 'pi-calendar' },
-        { number: 3, label: 'Horaires', icon: 'pi-clock' },
-        { number: 4, label: 'Participants', icon: 'pi-users', optional: true },
-        { number: 5, label: 'Documents', icon: 'pi-paperclip', optional: true },
-        { number: 6, label: 'Récapitulatif', icon: 'pi-check-circle' }
+        { number: 2, label: 'Dates et Lieu',           icon: 'pi-calendar' },
+        { number: 3, label: 'Horaires',                icon: 'pi-clock' },
+        { number: 4, label: 'Participants',            icon: 'pi-users',       optional: true },
+        { number: 5, label: 'Documents',               icon: 'pi-paperclip',   optional: true },
+        { number: 6, label: 'Récapitulatif',           icon: 'pi-check-circle' }
     ];
 
     constructor(
-        private fb: FormBuilder,
-        private eventService: EventService,
-        private fileService: FileService,
+        private fb:                 FormBuilder,
+        private eventService:       EventService,
+        private fileService:        FileService,
         private participantService: ParticipantService,
-        private router: Router,
-        private messageService: MessageService
+        private router:             Router,
+        private messageService:     MessageService
     ) {}
 
     ngOnInit(): void {
@@ -118,7 +103,7 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
-    // CHARGEMENT DES PARTICIPANTS EXISTANTS
+    // CHARGEMENT DES DONNÉES
     // ==========================================
     loadAvailableParticipants(): void {
         this.participantService.getAllParticipants().subscribe({
@@ -129,126 +114,93 @@ export class EventCreateComponent implements OnInit {
                 }));
                 console.log('✅ Participants chargés:', this.availableParticipants.length);
             },
-            error: (error) => {
-                console.error('❌ Erreur chargement participants:', error);
-            }
+            error: (err) => console.error('❌ Erreur chargement participants:', err)
         });
     }
 
-    // ==========================================
-    // CHARGEMENT DES PAYS
-    // ==========================================
     loadCountries(): void {
         try {
-            const allCountries = Country.getAllCountries();
-            this.countries = allCountries.map(country => ({
-                label: country.name,
-                value: country.name,
-                code: country.isoCode
-            })).sort((a, b) => a.label.localeCompare(b.label));
-            
+            this.countries = Country.getAllCountries()
+                .map(c => ({ label: c.name, value: c.name, code: c.isoCode }))
+                .sort((a, b) => a.label.localeCompare(b.label));
             console.log('✅ Pays chargés:', this.countries.length);
-        } catch (error) {
-            console.error('❌ Erreur chargement pays:', error);
+        } catch (err) {
+            console.error('❌ Erreur chargement pays:', err);
         }
     }
 
-    // ==========================================
-    // CHARGEMENT DES VILLES
-    // ==========================================
     loadCities(countryCode: string): void {
         try {
-            const citiesData = City.getCitiesOfCountry(countryCode);
-            
-            if (citiesData && citiesData.length > 0) {
-                this.cities = citiesData.map(city => ({
-                    label: city.name,
-                    value: city.name
-                })).sort((a, b) => a.label.localeCompare(b.label));
-            } else {
-                this.cities = [];
-            }
-            
+            const data = City.getCitiesOfCountry(countryCode);
+            this.cities = data && data.length > 0
+                ? data.map(c => ({ label: c.name, value: c.name }))
+                      .sort((a, b) => a.label.localeCompare(b.label))
+                : [];
             console.log(`✅ Villes chargées pour ${countryCode}:`, this.cities.length);
-        } catch (error) {
-            console.error('❌ Erreur chargement villes:', error);
+        } catch (err) {
+            console.error('❌ Erreur chargement villes:', err);
             this.cities = [];
         }
     }
 
     onCountryChange(event: any): void {
-        const selectedCountryName = event.value;
-        const country = this.countries.find(c => c.value === selectedCountryName);
-        
+        const country = this.countries.find(c => c.value === event.value);
         if (country) {
             this.selectedCountryCode = country.code;
             this.loadCities(country.code);
-            this.eventForm.get('ville')?.setValue('');
         } else {
             this.cities = [];
-            this.eventForm.get('ville')?.setValue('');
         }
+        this.eventForm.get('ville')?.setValue('');
     }
 
-    hasCities(): boolean {
-        return this.cities.length > 0;
-    }
+    hasCities(): boolean { return this.cities.length > 0; }
 
     // ==========================================
     // GESTION DES DATES
     // ==========================================
     onStartDateChange(): void {
         const startDate = this.eventForm.get('startDate')?.value;
-        if (startDate) {
-            this.minEndDate = new Date(startDate);
-            
-            const endDate = this.eventForm.get('endDate')?.value;
-            if (endDate && new Date(endDate) < new Date(startDate)) {
-                this.eventForm.get('endDate')?.setValue(startDate);
-                this.messageService.add({
-                    severity: 'info',
-                    summary: '📅 Date ajustée',
-                    detail: 'La date de fin a été ajustée automatiquement',
-                    life: 3000
-                });
-            }
+        if (!startDate) return;
+        this.minEndDate = new Date(startDate);
+        const endDate = this.eventForm.get('endDate')?.value;
+        if (endDate && new Date(endDate) < new Date(startDate)) {
+            this.eventForm.get('endDate')?.setValue(startDate);
+            this.messageService.add({
+                severity: 'info',
+                summary: '📅 Date ajustée',
+                detail: 'La date de fin a été ajustée automatiquement',
+                life: 3000
+            });
         }
     }
 
     endDateBeforeStartDate(): boolean {
-        const startDate = this.eventForm.get('startDate')?.value;
-        const endDate = this.eventForm.get('endDate')?.value;
-        
-        if (!startDate || !endDate) return false;
-        
-        return new Date(endDate) < new Date(startDate);
+        const s = this.eventForm.get('startDate')?.value;
+        const e = this.eventForm.get('endDate')?.value;
+        return !!(s && e && new Date(e) < new Date(s));
     }
 
     // ==========================================
-    // PROGRESSION HORIZONTALE
+    // PROGRESSION
     // ==========================================
     get progressValue(): number {
         return ((this.currentStep + 1) / 6) * 100;
     }
 
-    getStepClass(index: number): string {
-        if (index < this.currentStep) return 'step-completed';
-        if (index === this.currentStep) return 'step-active';
+    getStepClass(i: number): string {
+        if (i < this.currentStep) return 'step-completed';
+        if (i === this.currentStep) return 'step-active';
         return 'step-pending';
     }
 
-    isStepClickable(index: number): boolean {
-        if (index < this.currentStep) return true;
-        if (index === this.currentStep + 1) {
-            return this.canProceedFromStep(this.currentStep);
-        }
-        return false;
+    isStepClickable(i: number): boolean {
+        return i < this.currentStep ||
+               (i === this.currentStep + 1 && this.canProceedFromStep(this.currentStep));
     }
 
-    onStepClick(index: number): void {
-        if (this.isStepClickable(index)) {
-            this.goToStep(index);
-        }
+    onStepClick(i: number): void {
+        if (this.isStepClickable(i)) this.goToStep(i);
     }
 
     goToStep(step: number): void {
@@ -262,7 +214,6 @@ export class EventCreateComponent implements OnInit {
             });
             return;
         }
-
         this.currentStep = step;
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -273,38 +224,20 @@ export class EventCreateComponent implements OnInit {
     canProceedFromStep(stepIndex: number): boolean {
         switch (stepIndex) {
             case 0:
-                return !!(this.eventForm.get('title')?.valid && 
+                return !!(this.eventForm.get('title')?.valid &&
                           this.eventForm.get('type')?.valid);
-            
-            case 1:
-                const startDate = this.eventForm.get('startDate');
-                const endDate = this.eventForm.get('endDate');
-                
-                if (!startDate?.value || !endDate?.value) {
-                    return false;
-                }
-
-                const start = new Date(startDate.value);
-                const end = new Date(endDate.value);
-                
-                if (end < start) {
-                    return false;
-                }
-
-                return true;
-            
+            case 1: {
+                const s = this.eventForm.get('startDate')?.value;
+                const e = this.eventForm.get('endDate')?.value;
+                return !!(s && e && new Date(e) >= new Date(s));
+            }
             case 2:
-                if (this.scheduleMode === 'global') {
-                    return !!(this.eventForm.get('globalStartTime')?.valid && 
-                              this.eventForm.get('globalEndTime')?.valid);
-                } else {
-                    return this.schedules.length > 0 && this.schedules.valid;
-                }
-            
+                return this.scheduleMode === 'global'
+                    ? !!(this.eventForm.get('globalStartTime')?.valid &&
+                         this.eventForm.get('globalEndTime')?.valid)
+                    : this.schedules.length > 0 && this.schedules.valid;
             case 3:
             case 4:
-                return true;
-            
             default:
                 return true;
         }
@@ -325,40 +258,34 @@ export class EventCreateComponent implements OnInit {
                     this.eventForm.get('globalStartTime')?.markAsTouched();
                     this.eventForm.get('globalEndTime')?.markAsTouched();
                 } else {
-                    this.schedules.controls.forEach(control => {
-                        Object.keys(control.value).forEach(key => {
-                            control.get(key)?.markAsTouched();
-                        });
-                    });
+                    this.schedules.controls.forEach(c =>
+                        Object.keys(c.value).forEach(k => c.get(k)?.markAsTouched())
+                    );
                 }
                 break;
         }
     }
 
     // ==========================================
-    // FORM INITIALIZATION
+    // INITIALISATION DU FORMULAIRE
     // ==========================================
     initForm(): void {
         this.eventForm = this.fb.group({
-            title: ['', [Validators.required, Validators.minLength(3)]],
-            description: [''],
-            type: ['', Validators.required],
-            status: ['PLANIFIE', Validators.required],
-            
-            startDate: ['', Validators.required],
-            endDate: ['', Validators.required],
-            pays: ['Burkina Faso'],
-            ville: ['Ouagadougou'],
-            meetingLink: [''],
-            
+            title:           ['', [Validators.required, Validators.minLength(3)]],
+            description:     [''],
+            type:            ['', Validators.required],
+            status:          ['PLANIFIE', Validators.required],
+            startDate:       ['', Validators.required],
+            endDate:         ['', Validators.required],
+            pays:            ['Burkina Faso'],
+            ville:           ['Ouagadougou'],
+            meetingLink:     [''],
             globalStartTime: ['09:00', Validators.required],
-            globalEndTime: ['17:00', Validators.required],
-            schedules: this.fb.array([]),
-            
-            participants: this.fb.array([])
+            globalEndTime:   ['17:00', Validators.required],
+            schedules:       this.fb.array([]),
+            participants:    this.fb.array([])
         });
-
-        this.addSchedule();
+        
     }
 
     get schedules(): FormArray {
@@ -370,24 +297,26 @@ export class EventCreateComponent implements OnInit {
     }
 
     // ==========================================
-    // SCHEDULE MANAGEMENT
+    // GESTION DES HORAIRES
     // ==========================================
     onScheduleModeChange(mode: string): void {
         this.scheduleMode = mode as 'global' | 'custom';
         if (this.scheduleMode === 'custom' && this.schedules.length === 0) {
-            this.addSchedule();
+            this.addScheduleQuiet();
         }
     }
 
-    addSchedule(): void {
-        const scheduleGroup = this.fb.group({
-            dateJour: ['', Validators.required],
+    private addScheduleQuiet(): void {
+        this.schedules.push(this.fb.group({
+            dateJour:  ['', Validators.required],
             startTime: ['09:00', Validators.required],
-            endTime: ['17:00', Validators.required],
-            address: ['']
-        });
-        this.schedules.push(scheduleGroup);
-        
+            endTime:   ['17:00', Validators.required],
+            address:   ['']
+        }));
+    }
+
+    addSchedule(): void {
+        this.addScheduleQuiet();
         this.messageService.add({
             severity: 'success',
             summary: '✅ Ajouté',
@@ -402,22 +331,20 @@ export class EventCreateComponent implements OnInit {
             this.messageService.add({
                 severity: 'error',
                 summary: '🗑 Supprimé',
-                detail: 'Horaire supprimé avec succès',
+                detail: 'Horaire supprimé',
                 life: 2000
             });
         }
     }
 
     // ==========================================
-    // GESTION DES PARTICIPANTS MIXTE
+    // GESTION DES PARTICIPANTS
     // ==========================================
-    
-    // Ajouter un participant existant
     addExistingParticipant(): void {
         if (!this.selectedExistingParticipant) return;
 
-        const alreadyExists = this.participants.controls.some(control => 
-            control.get('email')?.value === this.selectedExistingParticipant.email
+        const alreadyExists = this.participants.controls.some(c =>
+            c.get('email')?.value === this.selectedExistingParticipant.email
         );
 
         if (alreadyExists) {
@@ -430,59 +357,50 @@ export class EventCreateComponent implements OnInit {
             return;
         }
 
-        const participantGroup = this.fb.group({
-            id: [this.selectedExistingParticipant.id],
-            firstName: [this.selectedExistingParticipant.firstName, Validators.required],
-            lastName: [this.selectedExistingParticipant.lastName, Validators.required],
-            email: [this.selectedExistingParticipant.email, [Validators.required, Validators.email]],
-            phoneNumber: [this.selectedExistingParticipant.phoneNumber || ''],
-           structure : [this.selectedExistingParticipant.structure || ''],
-            jobTitle: [this.selectedExistingParticipant.jobTitle || ''],
+        this.participants.push(this.fb.group({
+            id:              [this.selectedExistingParticipant.id],
+            firstName:       [this.selectedExistingParticipant.firstName,       Validators.required],
+            lastName:        [this.selectedExistingParticipant.lastName,        Validators.required],
+            email:           [this.selectedExistingParticipant.email,           [Validators.required, Validators.email]],
+            phoneNumber:     [this.selectedExistingParticipant.phoneNumber  || ''],
+            structure:       [this.selectedExistingParticipant.structure    || ''],
+            jobTitle:        [this.selectedExistingParticipant.jobTitle     || ''],
             participantType: [this.selectedExistingParticipant.participantType, Validators.required],
-            isExisting: [true]
-        });
+            isExisting:      [true]
+        }));
 
-        this.participants.push(participantGroup);
         this.selectedExistingParticipant = null;
-
         this.messageService.add({
             severity: 'success',
             summary: '✅ Participant ajouté',
             detail: 'Participant existant ajouté à la liste',
             life: 2000
         });
-
-        setTimeout(() => {
-            const cards = document.querySelectorAll('.participant-card');
-            if (cards.length > 0) {
-                cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }, 100);
+        this.scrollToLastParticipant();
     }
 
-    // Créer un nouveau participant 
     addNewParticipant(): void {
-        const participantGroup = this.fb.group({
-            id: [null],
-            firstName: ['', Validators.required],
-            lastName: ['', Validators.required],
-            email: ['', [Validators.required, Validators.email]],
-            phoneNumber: [''],
-            structure: [''],
-            jobTitle: [''],
+        this.participants.push(this.fb.group({
+            id:              [null],
+            firstName:       ['', Validators.required],
+            lastName:        ['', Validators.required],
+            email:           ['', [Validators.required, Validators.email]],
+            phoneNumber:     [''],
+            structure:       [''],
+            jobTitle:        [''],
             participantType: ['INTERNE', Validators.required],
-            isExisting: [false]
-        });
-
-        this.participants.push(participantGroup);
-
+            isExisting:      [false]
+        }));
         this.messageService.add({
             severity: 'success',
             summary: '✅ Formulaire ajouté',
-            detail: 'Remplissez les champs obligatoires (*) puis cliquez sur "Suivant" quand vous avez terminé',
+            detail: 'Remplissez les champs obligatoires (*)',
             life: 4000
         });
+        this.scrollToLastParticipant();
+    }
 
+    private scrollToLastParticipant(): void {
         setTimeout(() => {
             const cards = document.querySelectorAll('.participant-card');
             if (cards.length > 0) {
@@ -492,76 +410,57 @@ export class EventCreateComponent implements OnInit {
     }
 
     removeParticipant(index: number): void {
-        const participantName = this.participants.at(index).get('firstName')?.value || 'Participant';
+        const name = this.participants.at(index).get('firstName')?.value || 'Participant';
         this.participants.removeAt(index);
         this.messageService.add({
             severity: 'error',
             summary: '🗑 Supprimé',
-            detail: `${participantName} supprimé de la liste`,
+            detail: `${name} supprimé de la liste`,
             life: 2000
         });
     }
 
-    // VALIDER LES PARTICIPANTS 
     validateParticipants(): boolean {
-        let allValid = true;
-        let invalidCount = 0;
-        
-        this.participants.controls.forEach(control => {
-        
-            Object.keys(control.value).forEach(key => {
-                control.get(key)?.markAsTouched();
-            });
-            
-            if (control.invalid) {
-                allValid = false;
-                invalidCount++;
-            }
+        let invalid = 0;
+        this.participants.controls.forEach(c => {
+            Object.keys(c.value).forEach(k => c.get(k)?.markAsTouched());
+            if (c.invalid) invalid++;
         });
-        
-        if (!allValid) {
+        if (invalid > 0) {
             this.messageService.add({
                 severity: 'warn',
                 summary: '⚠ Formulaires incomplets',
-                detail: `${invalidCount} participant(s) ont des champs obligatoires manquants. Veuillez les remplir ou les supprimer avant de continuer.`,
+                detail: `${invalid} participant(s) avec des champs manquants`,
                 life: 6000
             });
+            return false;
         }
-        
-        return allValid;
+        return true;
     }
 
-
     onNextFromParticipants(): void {
-        
-        if (this.participants.length === 0) {
-            this.goToStep(4);
-            return;
-        }
-
-    
-        if (this.validateParticipants()) {
-            this.messageService.add({
-                severity: 'success',
-                summary: '✅ Participants validés',
-                detail: `${this.participants.length} participant(s) ajouté(s) avec succès`,
-                life: 3000
-            });
+        if (this.participants.length === 0 || this.validateParticipants()) {
+            if (this.participants.length > 0) {
+                this.messageService.add({
+                    severity: 'success',
+                    summary: '✅ Participants validés',
+                    detail: `${this.participants.length} participant(s) ajouté(s)`,
+                    life: 3000
+                });
+            }
             this.goToStep(4);
         }
     }
 
     isExistingParticipant(index: number): boolean {
-        const control = this.participants.at(index);
-        return control?.get('isExisting')?.value === true;
+        return this.participants.at(index)?.get('isExisting')?.value === true;
     }
 
     // ==========================================
-    // FILE UPLOAD
+    // GESTION DES FICHIERS
     // ==========================================
     onFileSelect(event: any): void {
-        const files: FileList = event.target.files;
-        this.handleFiles(files);
+        this.handleFiles(event.target.files);
     }
 
     onDragOver(event: DragEvent): void {
@@ -572,14 +471,11 @@ export class EventCreateComponent implements OnInit {
     onDrop(event: DragEvent): void {
         event.preventDefault();
         event.stopPropagation();
-        
-        const files = event.dataTransfer?.files;
-        if (files) {
-            this.handleFiles(files);
-        }
+        if (event.dataTransfer?.files) this.handleFiles(event.dataTransfer.files);
     }
 
     handleFiles(files: FileList): void {
+        let added = 0;
         Array.from(files).forEach(file => {
             if (file.size > 10 * 1024 * 1024) {
                 this.messageService.add({
@@ -590,37 +486,32 @@ export class EventCreateComponent implements OnInit {
                 });
                 return;
             }
-
-            const uploadedFile: UploadedFile = { file };
-
+            const uf: UploadedFile = { file };
             if (file.type.startsWith('image/')) {
                 const reader = new FileReader();
-                reader.onload = (e: any) => {
-                    uploadedFile.preview = e.target.result;
-                };
+                reader.onload = (e: any) => { uf.preview = e.target.result; };
                 reader.readAsDataURL(file);
             }
-
-            this.uploadedFiles.push(uploadedFile);
+            this.uploadedFiles.push(uf);
+            added++;
         });
-
-        if (files.length > 0) {
+        if (added > 0) {
             this.messageService.add({
                 severity: 'success',
                 summary: '✅ Ajouté',
-                detail: `${files.length} fichier(s) ajouté(s)`,
+                detail: `${added} fichier(s) ajouté(s)`,
                 life: 3000
             });
         }
     }
 
     removeFile(index: number): void {
-        const fileName = this.uploadedFiles[index].file.name;
+        const name = this.uploadedFiles[index].file.name;
         this.uploadedFiles.splice(index, 1);
         this.messageService.add({
             severity: 'error',
             summary: '🗑 Supprimé',
-            detail: `${fileName} retiré`,
+            detail: `${name} retiré`,
             life: 2000
         });
     }
@@ -628,83 +519,75 @@ export class EventCreateComponent implements OnInit {
     getFileIcon(file: File): string {
         const type = file.type.toLowerCase();
         const name = file.name.toLowerCase();
-
-        if (type.includes('pdf')) return 'pi pi-file-pdf text-red-500';
-        if (type.includes('word') || name.endsWith('.doc') || name.endsWith('.docx')) 
-            return 'pi pi-file-word text-blue-500';
-        if (type.includes('excel') || name.endsWith('.xls') || name.endsWith('.xlsx')) 
-            return 'pi pi-file-excel text-green-500';
-        if (type.includes('image')) return 'pi pi-image text-purple-500';
-        
+        if (type.includes('pdf'))                                  return 'pi pi-file-pdf text-red-500';
+        if (type.includes('word') || name.match(/\.docx?$/))      return 'pi pi-file-word text-blue-500';
+        if (type.includes('excel') || name.match(/\.xlsx?$/))     return 'pi pi-file-excel text-green-500';
+        if (type.includes('image'))                                return 'pi pi-image text-purple-500';
         return 'pi pi-file text-gray-500';
     }
 
     formatFileSize(bytes: number): string {
         if (bytes === 0) return '0 Bytes';
         const k = 1024;
-        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+        return Math.round((bytes / Math.pow(k, i)) * 100) / 100 +
+               ' ' + ['Bytes', 'KB', 'MB', 'GB'][i];
     }
 
     // ==========================================
     // VALIDATION
     // ==========================================
     isFieldInvalid(fieldName: string): boolean {
-        const field = this.eventForm.get(fieldName);
-        return !!(field && field.invalid && field.touched);
+        const f = this.eventForm.get(fieldName);
+        return !!(f && f.invalid && f.touched);
     }
 
     getErrorMessage(controlName: string): string {
-        const control = this.eventForm.get(controlName);
-        if (control?.hasError('required')) return 'Ce champ est requis';
-        if (control?.hasError('email')) return 'Email invalide';
-        if (control?.hasError('minlength')) return 'Minimum 3 caractères';
+        const c = this.eventForm.get(controlName);
+        if (c?.hasError('required'))  return 'Ce champ est requis';
+        if (c?.hasError('email'))     return 'Email invalide';
+        if (c?.hasError('minlength')) return 'Minimum 3 caractères';
         return '';
     }
 
     // ==========================================
-    // DISPLAY HELPERS
+    // HELPERS D'AFFICHAGE
     // ==========================================
-    getTypeLabel(typeValue: string): string {
-        const option = this.typeOptions.find(opt => opt.value === typeValue);
-        return option ? option.label : 'Non défini';
+    getTypeLabel(v: string): string {
+        return this.typeOptions.find(o => o.value === v)?.label ?? 'Non défini';
     }
 
-    getParticipantTypeLabel(typeValue: string): string {
-        const option = this.participantTypeOptions.find(opt => opt.value === typeValue);
-        return option ? option.label : 'Non défini';
+    getParticipantTypeLabel(v: string): string {
+        return this.participantTypeOptions.find(o => o.value === v)?.label ?? 'Non défini';
     }
 
     formatDateDisplay(date: Date): string {
         if (!date) return '';
         const d = new Date(date);
-        const day = String(d.getDate()).padStart(2, '0');
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const year = d.getFullYear();
-        return `${day}/${month}/${year}`;
+        return `${String(d.getDate()).padStart(2,'0')}/${String(d.getMonth()+1).padStart(2,'0')}/${d.getFullYear()}`;
     }
 
     calculateDuration(start: Date, end: Date): string {
         if (!start || !end) return 'Non calculable';
-        
-        const startDate = new Date(start);
-        const endDate = new Date(end);
-        
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(0, 0, 0, 0);
-        
-        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
-        
-        return diffDays === 1 ? '1 jour' : `${diffDays} jours`;
+        const s = new Date(start); s.setHours(0,0,0,0);
+        const e = new Date(end);   e.setHours(0,0,0,0);
+        const days = Math.ceil(Math.abs(e.getTime() - s.getTime()) / 86400000) + 1;
+        return days === 1 ? '1 jour' : `${days} jours`;
+    }
+
+    formatDate(date: Date): string {
+        if (!date) return '';
+        const d = new Date(date);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
     // ==========================================
-    // SUBMIT
+    // SOUMISSION
     // ==========================================
     async onSubmit(): Promise<void> {
-        if (!this.canProceedFromStep(0) || !this.canProceedFromStep(1) || !this.canProceedFromStep(2)) {
+        if (!this.canProceedFromStep(0) ||
+            !this.canProceedFromStep(1) ||
+            !this.canProceedFromStep(2)) {
             this.messageService.add({
                 severity: 'warn',
                 summary: 'Formulaire incomplet',
@@ -717,108 +600,97 @@ export class EventCreateComponent implements OnInit {
         this.loading = true;
 
         try {
-            const formValue = this.eventForm.value;
+            const fv = this.eventForm.value;
 
-            let eventData: any = {
-                title: formValue.title,
-                description: formValue.description || null,
-                type: formValue.type,
-                status: 'PLANIFIE',
-                startDate: this.formatDate(formValue.startDate),
-                endDate: this.formatDate(formValue.endDate),
-                pays: formValue.pays || null,
-                ville: formValue.ville || null,
-                meetingLink: formValue.meetingLink || null,
-                schedules: []
+            const eventData: any = {
+                title:       fv.title?.trim(),
+                description: fv.description?.trim() || null,
+                type:        fv.type,
+                status:      'PLANIFIE',
+                startDate:   this.formatDate(fv.startDate),
+                endDate:     this.formatDate(fv.endDate),
+                pays:        fv.pays?.trim()        || null,
+                ville:       fv.ville?.trim()       || null,
+                meetingLink: fv.meetingLink?.trim() || null,
             };
 
             if (this.scheduleMode === 'global') {
-                eventData.schedules = [{
-                    dateJour: this.formatDate(formValue.startDate),
-                    startTime: formValue.globalStartTime + ':00',
-                    endTime: formValue.globalEndTime + ':00',
-                    address: formValue.ville || null
-                }];
+                const st = fv.globalStartTime;
+                const et = fv.globalEndTime;
+                eventData.globalStartTime = st.length === 5 ? st + ':00' : st;
+                eventData.globalEndTime   = et.length === 5 ? et + ':00' : et;
+                eventData.schedules       = [];
             } else {
-                eventData.schedules = formValue.schedules
-                    .filter((schedule: any) => schedule.dateJour)
-                    .map((schedule: any) => ({
-                        dateJour: this.formatDate(schedule.dateJour),
-                        startTime: schedule.startTime + ':00',
-                        endTime: schedule.endTime + ':00',
-                        address: schedule.address || formValue.ville || null
-                    }));
+                eventData.schedules = fv.schedules
+                    .filter((s: any) => s.dateJour)
+                    .map((s: any) => {
+                        const st = s.startTime;
+                        const et = s.endTime;
+                        return {
+                            dateJour:  this.formatDate(s.dateJour),
+                            startTime: st.length === 5 ? st + ':00' : st,
+                            endTime:   et.length === 5 ? et + ':00' : et,
+                            address:   s.address || fv.ville || null
+                        };
+                    });
             }
 
-            if (formValue.participants && formValue.participants.length > 0) {
-                eventData.participants = formValue.participants.map((p: any) => ({
-                    firstName: p.firstName,
-                    lastName: p.lastName,
-                    email: p.email,
-                    phoneNumber: p.phoneNumber || null,
-                    structure: p.structure || null,
-                    jobTitle: p.jobTitle || null,
+            if (fv.participants?.length > 0) {
+                eventData.participants = fv.participants.map((p: any) => ({
+                    id:              p.id              || null,
+                    firstName:       p.firstName?.trim(),
+                    lastName:        p.lastName?.trim(),
+                    email:           p.email?.trim().toLowerCase(),
+                    phoneNumber:     p.phoneNumber     || null,
+                    structure:       p.structure       || null,
+                    jobTitle:        p.jobTitle        || null,
                     participantType: p.participantType
                 }));
             }
 
-            console.log('Données envoyées:', eventData);
+            console.log('📤 Payload envoyé:', JSON.stringify(eventData, null, 2));
 
-            const createdEvent = await this.eventService.createEvent(eventData).toPromise();
+            const createdEvent = await this.eventService
+                .createEvent(eventData).toPromise();
 
-            if (createdEvent && createdEvent.id && this.uploadedFiles.length > 0) {
+            // ✅ Upload des fichiers APRÈS création
+            if (createdEvent?.id && this.uploadedFiles.length > 0) {
                 await this.uploadFiles(createdEvent.id);
             }
 
             this.messageService.add({
                 severity: 'success',
                 summary: '🎉 Événement créé !',
-                detail: 'Redirection...',
+                detail: 'Redirection en cours...',
                 life: 3000
             });
 
             setTimeout(() => {
-                this.router.navigate(['/events'], { 
-                    queryParams: { 
-                        created: createdEvent?.id,
-                        timestamp: Date.now() 
-                    } 
+                this.router.navigate(['/events'], {
+                    queryParams: { created: createdEvent?.id, timestamp: Date.now() }
                 });
             }, 1500);
 
         } catch (error: any) {
-            console.error('Erreur:', error);
+            console.error('❌ Erreur création:', error);
             this.loading = false;
-            
-            const errorMessage = error.error?.message || error.message || 'Erreur inconnue';
             this.messageService.add({
                 severity: 'error',
                 summary: '❌ Erreur',
-                detail: errorMessage,
-                life: 6000
+                detail: error?.error?.message || error?.message || 'Erreur inconnue',
+                life: 8000
             });
         }
     }
 
     async uploadFiles(eventId: string): Promise<void> {
-        const uploadPromises = this.uploadedFiles.map(item => {
+        const promises = this.uploadedFiles.map(item => {
             const formData = new FormData();
-            formData.append('file', item.file);
+            formData.append('file',    item.file);
             formData.append('eventId', eventId);
-            
             return this.fileService.uploadFile(formData).toPromise();
         });
-        
-        await Promise.all(uploadPromises);
-    }
-
-    formatDate(date: Date): string {
-        if (!date) return '';
-        const d = new Date(date);
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        await Promise.all(promises);
     }
 
     cancel(): void {

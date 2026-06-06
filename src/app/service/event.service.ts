@@ -1,118 +1,120 @@
-
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environments } from '../../environments/environments'; 
+import { environments } from '../../environments/environments';
 import { Event, Participant } from '../models';
 import { EventType, EventStatus } from '../models';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 export class EventService {
-  private apiUrl = `${environments.apiUrl}/event`;
+    private apiUrl = `${environments.apiUrl}/event`;
 
-  constructor(private http: HttpClient) {}
+    constructor(private http: HttpClient) {}
 
-  getAllEvents(): Observable<Event[]> {
-    return this.http.get<Event[]>(`${this.apiUrl}/all`);
-  }
+    getAllEvents(): Observable<Event[]> {
+        return this.http.get<Event[]>(`${this.apiUrl}/all`);
+    }
 
-  getEventById(id: string): Observable<Event> {
-    return this.http.get<Event>(`${this.apiUrl}/get/${id}`);
-  }
+    getEventById(id: string): Observable<Event> {
+        return this.http.get<Event>(`${this.apiUrl}/get/${id}`);
+    }
 
-  createEvent(event: Event): Observable<Event> {
-    return this.http.post<Event>(`${this.apiUrl}/create`, event);
-  }
+    createEvent(event: any): Observable<Event> {
+        return this.http.post<Event>(`${this.apiUrl}/create`, event);
+    }
 
-  updateEvent(id: string, event: Event): Observable<Event> {
-    return this.http.put<Event>(`${this.apiUrl}/update/${id}`, event);
-  }
+    updateEvent(id: string, event: any): Observable<Event> {
+        return this.http.put<Event>(`${this.apiUrl}/update/${id}`, event);
+    }
 
-  deleteEvent(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/delete/${id}`);
-  }
+    updateStatusOnly(id: string, status: string): Observable<void> {
+        return this.http.patch<void>(
+            `${this.apiUrl}/status/${id}?status=${status}`,
+            null
+        );
+    }
 
-  cancelEvent(id: string, reason: string): Observable<Event> {
-    const params = new HttpParams().set('reason', reason);
-    return this.http.patch<Event>(`${this.apiUrl}/cancel/${id}`, null, { params });
-  }
+    deleteEvent(id: string): Observable<void> {
+        return this.http.delete<void>(`${this.apiUrl}/delete/${id}`);
+    }
 
-  postponeEvent(id: string, newStartDate: string, newEndDate: string): Observable<Event> {
-    const params = new HttpParams()
-      .set('newStartDate', newStartDate)
-      .set('newEndDate', newEndDate);
-    return this.http.patch<Event>(`${this.apiUrl}/postpone/${id}`, null, { params });
-  }
+    cancelEvent(id: string, reason: string): Observable<Event> {
+        const params = new HttpParams().set('reason', reason);
+        return this.http.patch<Event>(`${this.apiUrl}/cancel/${id}`, null, { params });
+    }
 
-  searchEvents(filters: {
-    keyword?: string;
-    type?: EventType;
-    status?: EventStatus;
-    startDate?: string;
-    endDate?: string;
-  }): Observable<Event[]> {
-    let params = new HttpParams();
-    Object.keys(filters).forEach(key => {
-      const value = (filters as any)[key];
-      if (value) {
-        params = params.set(key, value);
-      }
-    });
-    return this.http.get<Event[]>(`${this.apiUrl}/search`, { params });
-  }
+    postponeEvent(id: string, newStartDate: string, newEndDate: string): Observable<Event> {
+        const params = new HttpParams()
+            .set('newStartDate', newStartDate)
+            .set('newEndDate',   newEndDate);
+        return this.http.patch<Event>(`${this.apiUrl}/postpone/${id}`, null, { params });
+    }
 
-  getEventsByMonth(year: number, month: number): Observable<Event[]> {
-    return this.http.get<Event[]>(`${this.apiUrl}/calendar/${year}/${month}`);
-  }
+    searchEvents(filters: {
+        keyword?: string;
+        type?:    EventType;
+        status?:  EventStatus;
+        startDate?: string;
+        endDate?:   string;
+    }): Observable<Event[]> {
+        let params = new HttpParams();
+        Object.keys(filters).forEach(key => {
+            const value = (filters as any)[key];
+            if (value) params = params.set(key, value);
+        });
+        return this.http.get<Event[]>(`${this.apiUrl}/search`, { params });
+    }
 
-  addParticipant(eventId: string, participant: Participant): Observable<Event> {
-    return this.http.post<Event>(`${this.apiUrl}/${eventId}/participants`, participant);
-  }
+    getEventsByMonth(year: number, month: number): Observable<Event[]> {
+        return this.http.get<Event[]>(`${this.apiUrl}/calendar/${year}/${month}`);
+    }
 
-  removeParticipant(eventId: string, participantId: string): Observable<Event> {
-    return this.http.delete<Event>(`${this.apiUrl}/${eventId}/participants/${participantId}`);
-  }
+    addParticipant(eventId: string, participant: Participant): Observable<Event> {
+        return this.http.post<Event>(`${this.apiUrl}/${eventId}/participants`, participant);
+    }
 
-  getEventParticipants(eventId: string): Observable<Participant[]> {
-    return this.http.get<Participant[]>(`${this.apiUrl}/${eventId}/participants`);
-  }
+    removeParticipant(eventId: string, participantId: string): Observable<Event> {
+        return this.http.delete<Event>(
+            `${this.apiUrl}/${eventId}/participants/${participantId}`
+        );
+    }
 
-  generateAttendanceSheet(eventId: string): Observable<Blob> {
-    return this.http.get(`${this.apiUrl}/attendance-sheet/${eventId}`, {
-      responseType: 'blob'
-    });
-  }
+    getEventParticipants(eventId: string): Observable<Participant[]> {
+        return this.http.get<Participant[]>(`${this.apiUrl}/${eventId}/participants`);
+    }
 
-  
-  exportMonthlyPdf(
-    year: number, 
-    month: number, 
-    keyword?: string, 
-    type?: string, 
-    status?: string
-  ): Observable<Blob> {
-    let params = new HttpParams()
-      .set('year', year.toString())
-      .set('month', month.toString());
-      
-    if (keyword) params = params.set('keyword', keyword);
-    if (type) params = params.set('type', type);
-    if (status) params = params.set('status', status);
+    generateAttendanceSheet(eventId: string): Observable<Blob> {
+        return this.http.get(`${this.apiUrl}/attendance-sheet/${eventId}`, {
+            responseType: 'blob'
+        });
+    }
 
-    return this.http.get(`${environments.apiUrl}/events/export/monthly`, {
-      params,
-      responseType: 'blob'
-    });
-  }
+    exportMonthlyPdf(
+        year:     number,
+        month:    number,
+        keyword?: string,
+        type?:    any,
+        status?:  any
+    ): Observable<Blob> {
+        let params = new HttpParams()
+            .set('year',  year.toString())
+            .set('month', month.toString());
+        if (keyword) params = params.set('keyword', keyword);
+        if (type)    params = params.set('type',    type);
+        if (status)  params = params.set('status',  status);
+        return this.http.get(`${environments.apiUrl}/events/export/monthly`, {
+            params,
+            responseType: 'blob'
+        });
+    }
 
-  getApiUrl(): string {
-    return environments.apiUrl;
-  }
+    getApiUrl(): string {
+        return environments.apiUrl;
+    }
 
-  getEventsByParticipant(participantId: string): Observable<Event[]> {
-    return this.http.get<Event[]>(`${this.apiUrl}/participants/${participantId}/events`);
-  }
+    getEventsByParticipant(participantId: string): Observable<Event[]> {
+        return this.http.get<Event[]>(`${this.apiUrl}/participants/${participantId}/events`);
+    }
 }
-
