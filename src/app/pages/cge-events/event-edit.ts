@@ -1,19 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators,
+         ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
-import { Button }              from 'primeng/button';
-import { InputText }           from 'primeng/inputtext';
-import { Toast }               from 'primeng/toast';
-import { ConfirmDialog }       from 'primeng/confirmdialog';
-import { Skeleton }            from 'primeng/skeleton';
+import { Button }        from 'primeng/button';
+import { InputText }     from 'primeng/inputtext';
+import { Toast }         from 'primeng/toast';
+import { ConfirmDialog } from 'primeng/confirmdialog';
+import { Skeleton }      from 'primeng/skeleton';
 import { MessageService, ConfirmationService } from 'primeng/api';
-import { Dialog }              from 'primeng/dialog';
-import { Tooltip }             from 'primeng/tooltip';
-import { Select }              from 'primeng/select';
-import { TableModule }         from 'primeng/table';
-import { Textarea }            from 'primeng/textarea';
+import { Dialog }        from 'primeng/dialog';
+import { Tooltip }       from 'primeng/tooltip';
+import { Select }        from 'primeng/select';
+import { TableModule }   from 'primeng/table';
+import { Textarea }           from 'primeng/textarea';
+import { AutoCompleteModule } from 'primeng/autocomplete';
 
 import { EventService }       from '../../service/event.service';
 import { FileService }        from '../../service/file.service';
@@ -26,11 +28,11 @@ import { Event, FileUpload, Participant } from '../../models';
     imports: [
         CommonModule, ReactiveFormsModule, FormsModule,
         Button, InputText, Toast, ConfirmDialog, Skeleton,
-        Dialog, Tooltip, Select, TableModule, Textarea
+        Dialog, Tooltip, Select, TableModule, Textarea, AutoCompleteModule
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './event-edit.html',
-    styleUrls: ['./event-edit.css']
+    styleUrls:   ['./event-edit.css']
 })
 export class EventEditComponent implements OnInit {
 
@@ -41,15 +43,18 @@ export class EventEditComponent implements OnInit {
     loadingParticipants = false;
     loadingFiles        = false;
 
-    currentStatus: string = 'PLANIFIE';
+    currentStatus = 'PLANIFIE';
 
     participants:          Participant[] = [];
     files:                 FileUpload[]  = [];
-    availableParticipants: any[]         = [];
+    participantSuggestions: any[] = [];
 
     addParticipantDialogVisible = false;
     selectedParticipantToAdd: any;
 
+    // ==========================================
+    // OPTIONS — Types événement
+    // ==========================================
     eventTypes = [
         { label: 'Réunion',    value: 'REUNION'    },
         { label: 'Conférence', value: 'CONFERENCE' },
@@ -59,6 +64,36 @@ export class EventEditComponent implements OnInit {
         { label: 'Mission',    value: 'MISSION'    },
         { label: 'Autre',      value: 'AUTRE'      }
     ];
+
+    // ==========================================
+    // ✅ OPTIONS — Types de lieu
+    // ==========================================
+    lieuTypes = [
+        { label: '🏛️ Interne — Dans le bâtiment ASCELC', value: 'INTERNE'       },
+        { label: '🇧🇫 National — Burkina Faso',           value: 'NATIONAL'      },
+        { label: '✈️ International — À l\'étranger',      value: 'INTERNATIONAL' },
+        { label: '💻 Virtuel — Réunion en ligne',          value: 'VIRTUEL'       }
+    ];
+
+    // ✅ Salles internes ASCELC
+   sallesDisponibles = [
+    { label: 'Bureau CGE',                  value: 'Bureau CGE'                  },
+    { label: 'Bureau CGEA',                 value: 'Bureau CGEA'                 },
+    { label: 'Salle de Réunion RDC',        value: 'Salle de Réunion RDC'        },
+    { label: 'Salle de Réunion 1er Étage',  value: 'Salle de Réunion 1er Étage'  },
+    { label: 'Salle de Réunion 3ème Étage', value: 'Salle de Réunion 3ème Étage' },
+    { label: 'Salle de Réunion 4ème Étage', value: 'Salle de Réunion 4ème Étage' },
+    { label: 'Salle de Réunion 5ème Étage', value: 'Salle de Réunion 5ème Étage' },
+    { label: 'Salle de Conférence',         value: 'Salle de Conférence'         },
+    { label: 'Autre',                       value: 'Autre'                       }
+];
+
+    // ✅ Villes Burkina Faso
+    villesBurkina = [
+        'Ouagadougou', 'Bobo-Dioulasso', 'Koudougou',
+        'Banfora', 'Ouahigouya', 'Kaya', 'Dédougou',
+        'Fada N\'Gourma', 'Tenkodogo', 'Dori', 'Autre'
+    ].map(v => ({ label: v, value: v }));
 
     constructor(
         private fb:                  FormBuilder,
@@ -79,10 +114,12 @@ export class EventEditComponent implements OnInit {
             this.loadEvent();
             this.loadParticipants();
             this.loadFiles();
-            this.loadAvailableParticipants();
         }
     }
 
+    // ==========================================
+    // INITIALISATION DU FORMULAIRE
+    // ==========================================
     initForm(): void {
         this.eventForm = this.fb.group({
             title:       ['', Validators.required],
@@ -90,10 +127,33 @@ export class EventEditComponent implements OnInit {
             description: [''],
             startDate:   ['', Validators.required],
             endDate:     ['', Validators.required],
-            ville:       [''],
-            pays:        [''],
-            meetingLink: ['']
+
+            // ✅ Champs lieu enrichis
+            lieuType:    [''],
+            salle:       [''],       // INTERNE
+            ville:       [''],       // NATIONAL + INTERNATIONAL
+            pays:        [''],       // INTERNATIONAL
+            nomLieu:     [''],       // NATIONAL + INTERNATIONAL
+            meetingLink: ['']        // VIRTUEL + tous
         });
+
+        // ✅ Réinitialiser les champs lieu quand lieuType change
+        this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
+            this.eventForm.patchValue({
+                salle:       '',
+                ville:       '',
+                pays:        '',
+                nomLieu:     '',
+                meetingLink: ''
+            }, { emitEvent: false });
+        });
+    }
+
+    // ==========================================
+    // GETTER — type de lieu courant
+    // ==========================================
+    get currentLieuType(): string {
+        return this.eventForm.get('lieuType')?.value || '';
     }
 
     // ==========================================
@@ -113,8 +173,12 @@ export class EventEditComponent implements OnInit {
                     description: event.description || '',
                     startDate:   event.startDate   || '',
                     endDate:     event.endDate     || '',
+                    // ✅ Champs lieu
+                    lieuType:    (event as any).lieuType    || '',
+                    salle:       (event as any).salle       || '',
                     ville:       event.ville       || '',
                     pays:        event.pays        || '',
+                    nomLieu:     (event as any).nomLieu     || '',
                     meetingLink: event.meetingLink || ''
                 });
                 this.loading = false;
@@ -133,41 +197,22 @@ export class EventEditComponent implements OnInit {
     loadParticipants(): void {
         if (!this.eventId) return;
         this.loadingParticipants = true;
-
         this.eventService.getEventParticipants(this.eventId).subscribe({
-            next: (p) => {
-                this.participants        = p;
-                this.loadingParticipants = false;
-            },
-            error: () => { this.loadingParticipants = false; }
+            next: (p) => { this.participants = p; this.loadingParticipants = false; },
+            error: ()  => { this.loadingParticipants = false; }
         });
     }
 
     loadFiles(): void {
         if (!this.eventId) return;
         this.loadingFiles = true;
-
         this.fileService.getFilesByEvent(this.eventId).subscribe({
-            next: (f) => {
-                this.files        = f;
-                this.loadingFiles = false;
-            },
-            error: () => { this.loadingFiles = false; }
+            next: (f) => { this.files = f; this.loadingFiles = false; },
+            error: ()  => { this.loadingFiles = false; }
         });
     }
 
-    loadAvailableParticipants(): void {
-        this.participantService.getAllParticipants().subscribe({
-            next: (participants) => {
-                this.availableParticipants = participants
-                    .filter(p => !this.participants.some(ep => ep.id === p.id))
-                    .map(p => ({
-                        ...p,
-                        displayName: `${p.firstName} ${p.lastName} (${p.email})`
-                    }));
-            }
-        });
-    }
+
 
     // ==========================================
     // SOUMISSION
@@ -194,18 +239,21 @@ export class EventEditComponent implements OnInit {
             description: fv.description?.trim() || null,
             startDate:   fv.startDate,
             endDate:     fv.endDate,
-            ville:       fv.ville?.trim()       || null,
-            pays:        fv.pays?.trim()        || null,
+            status:      this.currentStatus,
+            // ✅ Champs lieu
+            lieuType:    fv.lieuType    || null,
+            salle:       fv.salle?.trim()    || null,
+            ville:       fv.ville?.trim()    || null,
+            pays:        fv.pays?.trim()     || null,
+            nomLieu:     fv.nomLieu?.trim()  || null,
             meetingLink: fv.meetingLink?.trim() || null,
-            status:          this.currentStatus,
+            // Champs requis par le backend
             globalStartTime: undefined,
             globalEndTime:   undefined,
             schedules:       [],
             participants:    [],
             files:           []
         };
-
-        console.log('📤 Update payload:', JSON.stringify(eventData, null, 2));
 
         this.eventService.updateEvent(this.eventId, eventData).subscribe({
             next: () => {
@@ -220,7 +268,7 @@ export class EventEditComponent implements OnInit {
                     });
                 }, 1000);
             },
-            error: (err) => {
+            error: (err: any) => {
                 this.messageService.add({
                     severity: 'error',
                     summary: 'Erreur',
@@ -235,34 +283,44 @@ export class EventEditComponent implements OnInit {
     // PARTICIPANTS
     // ==========================================
     showAddParticipantDialog(): void {
-        this.loadAvailableParticipants();
         this.selectedParticipantToAdd    = null;
+        this.participantSuggestions      = [];
         this.addParticipantDialogVisible = true;
+    }
+
+    onParticipantSearch(event: { query: string }): void {
+        const q = event.query?.trim();
+        if (!q) { this.participantSuggestions = []; return; }
+        const addedIds = new Set(this.participants.map(p => p.id));
+        this.participantService.autocompleteParticipants(q).subscribe({
+            next: (results: Participant[]) => {
+                this.participantSuggestions = results
+                    .filter(p => !addedIds.has(p.id))
+                    .map(p => ({ ...p, displayName: `${p.firstName} ${p.lastName} (${p.email})` }));
+            },
+            error: () => { this.participantSuggestions = []; }
+        });
     }
 
     addParticipant(): void {
         if (!this.selectedParticipantToAdd || !this.eventId) return;
-
         this.eventService.addParticipant(
             this.eventId, this.selectedParticipantToAdd
         ).subscribe({
             next: () => {
                 this.messageService.add({
-                    severity: 'success',
-                    summary: 'Succès',
+                    severity: 'success', summary: 'Succès',
                     detail: 'Participant ajouté avec succès'
                 });
                 this.loadParticipants();
-                this.loadAvailableParticipants();
+                this.selectedParticipantToAdd    = null;
+                this.participantSuggestions      = [];
                 this.addParticipantDialogVisible = false;
             },
-            error: (err) => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Erreur',
-                    detail: err.error?.message || 'Impossible d\'ajouter le participant'
-                });
-            }
+            error: (err: any) => this.messageService.add({
+                severity: 'error', summary: 'Erreur',
+                detail: err.error?.message || 'Impossible d\'ajouter le participant'
+            })
         });
     }
 
@@ -279,24 +337,18 @@ export class EventEditComponent implements OnInit {
 
     removeParticipant(participantId: string): void {
         if (!this.eventId) return;
-
         this.eventService.removeParticipant(this.eventId, participantId).subscribe({
             next: () => {
                 this.messageService.add({
-                    severity: 'success',
-                    summary: 'Succès',
+                    severity: 'success', summary: 'Succès',
                     detail: 'Participant retiré avec succès'
                 });
                 this.loadParticipants();
-                this.loadAvailableParticipants();
             },
-            error: () => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Erreur',
-                    detail: 'Impossible de retirer le participant'
-                });
-            }
+            error: () => this.messageService.add({
+                severity: 'error', summary: 'Erreur',
+                detail: 'Impossible de retirer le participant'
+            })
         });
     }
 
@@ -305,29 +357,23 @@ export class EventEditComponent implements OnInit {
     // ==========================================
     onFileSelected(event: any): void {
         if (!this.eventId) return;
-
         const files = event.target.files;
         for (const file of files) {
             const formData = new FormData();
             formData.append('file',    file);
             formData.append('eventId', this.eventId);
-
             this.fileService.uploadFile(formData).subscribe({
                 next: () => {
                     this.messageService.add({
-                        severity: 'success',
-                        summary: 'Succès',
+                        severity: 'success', summary: 'Succès',
                         detail: `Fichier "${file.name}" ajouté`
                     });
                     this.loadFiles();
                 },
-                error: () => {
-                    this.messageService.add({
-                        severity: 'error',
-                        summary: 'Erreur',
-                        detail: `Impossible d'ajouter "${file.name}"`
-                    });
-                }
+                error: () => this.messageService.add({
+                    severity: 'error', summary: 'Erreur',
+                    detail: `Impossible d'ajouter "${file.name}"`
+                })
             });
         }
         event.target.value = '';
@@ -335,23 +381,17 @@ export class EventEditComponent implements OnInit {
 
     downloadFile(file: FileUpload): void {
         if (!file.id) return;
-
         this.fileService.downloadFile(file.id).subscribe({
             next: (blob) => {
                 const url = window.URL.createObjectURL(blob);
                 const a   = document.createElement('a');
-                a.href     = url;
-                a.download = file.fileName;
-                a.click();
+                a.href = url; a.download = file.fileName; a.click();
                 window.URL.revokeObjectURL(url);
             },
-            error: () => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Erreur',
-                    detail: 'Impossible de télécharger le fichier'
-                });
-            }
+            error: () => this.messageService.add({
+                severity: 'error', summary: 'Erreur',
+                detail: 'Impossible de télécharger le fichier'
+            })
         });
     }
 
@@ -370,19 +410,15 @@ export class EventEditComponent implements OnInit {
         this.fileService.deleteFile(fileId).subscribe({
             next: () => {
                 this.messageService.add({
-                    severity: 'success',
-                    summary: 'Succès',
+                    severity: 'success', summary: 'Succès',
                     detail: 'Fichier supprimé'
                 });
                 this.loadFiles();
             },
-            error: () => {
-                this.messageService.add({
-                    severity: 'error',
-                    summary: 'Erreur',
-                    detail: 'Impossible de supprimer le fichier'
-                });
-            }
+            error: () => this.messageService.add({
+                severity: 'error', summary: 'Erreur',
+                detail: 'Impossible de supprimer le fichier'
+            })
         });
     }
 

@@ -1,0 +1,45 @@
+.corbeille-page { padding: 0; }
+
+.corbeille-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #ef5350, #b71c1c);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 22px; flex-shrink: 0;
+}
+
+.count-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
+    padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px;
+}
+
+.alert-purge {
+    display: flex; align-items: flex-start; gap: 10px;
+    background: #fff3e0; border: 1px solid #ffb74d;
+    border-left: 4px solid #ff9800;
+    border-radius: 10px; padding: 14px 18px;
+    color: #e65100; font-size: 13px;
+}
+
+.empty-state {
+    text-align: center; padding: 60px 20px;
+    color: var(--text-color-secondary);
+}
+.empty-state i { font-size: 64px; color: #4caf50; margin-bottom: 16px; display: block; }
+.empty-state h4 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.empty-state p  { margin-bottom: 20px; }
+
+.last-refresh {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 12px; color: var(--text-color-secondary);
+    background: var(--surface-ground);
+    padding: 4px 10px; border-radius: 20px;
+}
+
+:host ::ng-deep {
+    .p-datatable .p-datatable-thead > tr > th {
+        background-color: #455a64 !important;
+        color: white !important; font-weight: 600 !important;
+    }
+}

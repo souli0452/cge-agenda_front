@@ -23,6 +23,7 @@ import { InputIconModule }       from 'primeng/inputicon';
 import { TooltipModule }         from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SkeletonModule }        from 'primeng/skeleton';
+import { AutoCompleteModule }    from 'primeng/autocomplete';
 
 import { EventService }       from '../../service/event.service';
 import { FileService }        from '../../service/file.service';
@@ -48,7 +49,7 @@ interface UploadedFile {
         DatePickerModule, SelectModule, RadioButtonModule,
         CardModule, DividerModule, ToastModule,
         IconFieldModule, InputIconModule, TooltipModule,
-        ProgressSpinnerModule, SkeletonModule
+        ProgressSpinnerModule, SkeletonModule, AutoCompleteModule
     ],
     providers: [MessageService],
     templateUrl: './event-create.html',
@@ -62,8 +63,8 @@ export class EventCreateComponent implements OnInit {
     uploadedFiles: UploadedFile[] = [];
     currentStep = 0;
 
-    typeOptions        = EVENT_TYPE_OPTIONS;
-    statusOptions      = EVENT_STATUS_OPTIONS;
+    typeOptions            = EVENT_TYPE_OPTIONS;
+    statusOptions          = EVENT_STATUS_OPTIONS;
     participantTypeOptions = PARTICIPANT_TYPE_OPTIONS;
 
     today:      Date = new Date();
@@ -73,14 +74,25 @@ export class EventCreateComponent implements OnInit {
     cities:    any[] = [];
     selectedCountryCode = 'BF';
 
-    availableParticipants:      any[] = [];
-    selectedExistingParticipant: any  = null;
-    showCreateParticipantForm = false;
+    participantSuggestions:      any[] = [];
+    selectedExistingParticipant: any   = null;
+
+    sallesDisponibles = [
+        { label: 'Bureau CGE',                  value: 'Bureau CGE'                  },
+        { label: 'Bureau CGEA',                 value: 'Bureau CGEA'                 },
+        { label: 'Salle de Réunion RDC',        value: 'Salle de Réunion RDC'        },
+        { label: 'Salle de Réunion 1er Étage',  value: 'Salle de Réunion 1er Étage'  },
+        { label: 'Salle de Réunion 3ème Étage', value: 'Salle de Réunion 3ème Étage' },
+        { label: 'Salle de Réunion 4ème Étage', value: 'Salle de Réunion 4ème Étage' },
+        { label: 'Salle de Réunion 5ème Étage', value: 'Salle de Réunion 5ème Étage' },
+        { label: 'Salle de Conférence',         value: 'Salle de Conférence'         },
+        { label: 'Autre',                       value: 'Autre'                       }
+    ];
 
     steps = [
-        { number: 1, label: 'Informations générales', icon: 'pi-info-circle' },
-        { number: 2, label: 'Dates et Lieu',           icon: 'pi-calendar' },
-        { number: 3, label: 'Horaires',                icon: 'pi-clock' },
+        { number: 1, label: 'Informations générales', icon: 'pi-info-circle'  },
+        { number: 2, label: 'Dates et Lieu',           icon: 'pi-calendar'    },
+        { number: 3, label: 'Horaires',                icon: 'pi-clock'       },
         { number: 4, label: 'Participants',            icon: 'pi-users',       optional: true },
         { number: 5, label: 'Documents',               icon: 'pi-paperclip',   optional: true },
         { number: 6, label: 'Récapitulatif',           icon: 'pi-check-circle' }
@@ -99,22 +111,67 @@ export class EventCreateComponent implements OnInit {
         this.initForm();
         this.loadCountries();
         this.loadCities('BF');
-        this.loadAvailableParticipants();
     }
 
-    // ==========================================
-    // CHARGEMENT DES DONNÉES
-    // ==========================================
-    loadAvailableParticipants(): void {
-        this.participantService.getAllParticipants().subscribe({
-            next: (participants: Participant[]) => {
-                this.availableParticipants = participants.map(p => ({
-                    ...p,
-                    displayName: `${p.firstName} ${p.lastName} (${p.email})`
-                }));
-                console.log('✅ Participants chargés:', this.availableParticipants.length);
+    initForm(): void {
+        this.eventForm = this.fb.group({
+            title:           ['', [Validators.required, Validators.minLength(3)]],
+            description:     [''],
+            type:            ['', Validators.required],
+            startDate:       ['', Validators.required],
+            endDate:         ['', Validators.required],
+            pays:            ['Burkina Faso'],
+            ville:           ['Ouagadougou'],
+            meetingLink:     [''],
+            globalStartTime: ['09:00', Validators.required],
+            globalEndTime:   ['17:00', Validators.required],
+            schedules:       this.fb.array([]),
+            participants:    this.fb.array([]),
+            lieuType:        [''],
+            salle:           [''],
+            nomLieu:         ['']
+        });
+
+        this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
+            this.eventForm.patchValue({
+                salle:       '',
+                ville:       '',
+                pays:        '',
+                nomLieu:     '',
+                meetingLink: ''
+            }, { emitEvent: false });
+
+            if (type === 'NATIONAL') {
+                this.loadCities('BF');
+            }
+        });
+    }
+
+    get currentLieuType(): string {
+        return this.eventForm.get('lieuType')?.value || '';
+    }
+
+    get schedules(): FormArray {
+        return this.eventForm.get('schedules') as FormArray;
+    }
+
+    get participants(): FormArray {
+        return this.eventForm.get('participants') as FormArray;
+    }
+
+    onParticipantSearch(event: { query: string }): void {
+        const q = event.query?.trim();
+        if (!q) { this.participantSuggestions = []; return; }
+        const addedEmails = new Set(
+            (this.participants.controls as any[]).map(c => c.get('email')?.value)
+        );
+        this.participantService.autocompleteParticipants(q).subscribe({
+            next: (results: Participant[]) => {
+                this.participantSuggestions = results
+                    .filter(p => !addedEmails.has(p.email))
+                    .map(p => ({ ...p, displayName: `${p.firstName} ${p.lastName} (${p.email})` }));
             },
-            error: (err) => console.error('❌ Erreur chargement participants:', err)
+            error: () => { this.participantSuggestions = []; }
         });
     }
 
@@ -123,9 +180,8 @@ export class EventCreateComponent implements OnInit {
             this.countries = Country.getAllCountries()
                 .map(c => ({ label: c.name, value: c.name, code: c.isoCode }))
                 .sort((a, b) => a.label.localeCompare(b.label));
-            console.log('✅ Pays chargés:', this.countries.length);
         } catch (err) {
-            console.error('❌ Erreur chargement pays:', err);
+            console.error('Erreur chargement pays:', err);
         }
     }
 
@@ -136,9 +192,7 @@ export class EventCreateComponent implements OnInit {
                 ? data.map(c => ({ label: c.name, value: c.name }))
                       .sort((a, b) => a.label.localeCompare(b.label))
                 : [];
-            console.log(`✅ Villes chargées pour ${countryCode}:`, this.cities.length);
         } catch (err) {
-            console.error('❌ Erreur chargement villes:', err);
             this.cities = [];
         }
     }
@@ -156,9 +210,6 @@ export class EventCreateComponent implements OnInit {
 
     hasCities(): boolean { return this.cities.length > 0; }
 
-    // ==========================================
-    // GESTION DES DATES
-    // ==========================================
     onStartDateChange(): void {
         const startDate = this.eventForm.get('startDate')?.value;
         if (!startDate) return;
@@ -168,7 +219,7 @@ export class EventCreateComponent implements OnInit {
             this.eventForm.get('endDate')?.setValue(startDate);
             this.messageService.add({
                 severity: 'info',
-                summary: '📅 Date ajustée',
+                summary: 'Date ajustée',
                 detail: 'La date de fin a été ajustée automatiquement',
                 life: 3000
             });
@@ -181,22 +232,20 @@ export class EventCreateComponent implements OnInit {
         return !!(s && e && new Date(e) < new Date(s));
     }
 
-    // ==========================================
-    // PROGRESSION
-    // ==========================================
     get progressValue(): number {
         return ((this.currentStep + 1) / 6) * 100;
     }
 
     getStepClass(i: number): string {
-        if (i < this.currentStep) return 'step-completed';
+        if (i < this.currentStep)   return 'step-completed';
         if (i === this.currentStep) return 'step-active';
         return 'step-pending';
     }
 
     isStepClickable(i: number): boolean {
         return i < this.currentStep ||
-               (i === this.currentStep + 1 && this.canProceedFromStep(this.currentStep));
+               (i === this.currentStep + 1 &&
+                this.canProceedFromStep(this.currentStep));
     }
 
     onStepClick(i: number): void {
@@ -204,11 +253,12 @@ export class EventCreateComponent implements OnInit {
     }
 
     goToStep(step: number): void {
-        if (step > this.currentStep && !this.canProceedFromStep(this.currentStep)) {
+        if (step > this.currentStep &&
+            !this.canProceedFromStep(this.currentStep)) {
             this.markStepFieldsAsTouched(this.currentStep);
             this.messageService.add({
                 severity: 'warn',
-                summary: '⚠ Champs obligatoires manquants',
+                summary: 'Champs obligatoires manquants',
                 detail: 'Veuillez remplir tous les champs requis avant de continuer',
                 life: 4000
             });
@@ -218,9 +268,6 @@ export class EventCreateComponent implements OnInit {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ==========================================
-    // VALIDATION DES ÉTAPES
-    // ==========================================
     canProceedFromStep(stepIndex: number): boolean {
         switch (stepIndex) {
             case 0:
@@ -259,46 +306,13 @@ export class EventCreateComponent implements OnInit {
                     this.eventForm.get('globalEndTime')?.markAsTouched();
                 } else {
                     this.schedules.controls.forEach(c =>
-                        Object.keys(c.value).forEach(k => c.get(k)?.markAsTouched())
-                    );
+                        Object.keys(c.value).forEach(k =>
+                            c.get(k)?.markAsTouched()));
                 }
                 break;
         }
     }
 
-    // ==========================================
-    // INITIALISATION DU FORMULAIRE
-    // ==========================================
-    initForm(): void {
-        this.eventForm = this.fb.group({
-            title:           ['', [Validators.required, Validators.minLength(3)]],
-            description:     [''],
-            type:            ['', Validators.required],
-            status:          ['PLANIFIE', Validators.required],
-            startDate:       ['', Validators.required],
-            endDate:         ['', Validators.required],
-            pays:            ['Burkina Faso'],
-            ville:           ['Ouagadougou'],
-            meetingLink:     [''],
-            globalStartTime: ['09:00', Validators.required],
-            globalEndTime:   ['17:00', Validators.required],
-            schedules:       this.fb.array([]),
-            participants:    this.fb.array([])
-        });
-        
-    }
-
-    get schedules(): FormArray {
-        return this.eventForm.get('schedules') as FormArray;
-    }
-
-    get participants(): FormArray {
-        return this.eventForm.get('participants') as FormArray;
-    }
-
-    // ==========================================
-    // GESTION DES HORAIRES
-    // ==========================================
     onScheduleModeChange(mode: string): void {
         this.scheduleMode = mode as 'global' | 'custom';
         if (this.scheduleMode === 'custom' && this.schedules.length === 0) {
@@ -318,28 +332,17 @@ export class EventCreateComponent implements OnInit {
     addSchedule(): void {
         this.addScheduleQuiet();
         this.messageService.add({
-            severity: 'success',
-            summary: '✅ Ajouté',
-            detail: 'Horaire ajouté avec succès',
-            life: 2000
+            severity: 'success', summary: 'Ajouté',
+            detail: 'Horaire ajouté avec succès', life: 2000
         });
     }
 
     removeSchedule(index: number): void {
         if (this.schedules.length > 1) {
             this.schedules.removeAt(index);
-            this.messageService.add({
-                severity: 'error',
-                summary: '🗑 Supprimé',
-                detail: 'Horaire supprimé',
-                life: 2000
-            });
         }
     }
 
-    // ==========================================
-    // GESTION DES PARTICIPANTS
-    // ==========================================
     addExistingParticipant(): void {
         if (!this.selectedExistingParticipant) return;
 
@@ -349,19 +352,17 @@ export class EventCreateComponent implements OnInit {
 
         if (alreadyExists) {
             this.messageService.add({
-                severity: 'warn',
-                summary: '⚠ Déjà ajouté',
-                detail: 'Ce participant est déjà dans la liste',
-                life: 3000
+                severity: 'warn', summary: 'Déjà ajouté',
+                detail: 'Ce participant est déjà dans la liste', life: 3000
             });
             return;
         }
 
         this.participants.push(this.fb.group({
             id:              [this.selectedExistingParticipant.id],
-            firstName:       [this.selectedExistingParticipant.firstName,       Validators.required],
-            lastName:        [this.selectedExistingParticipant.lastName,        Validators.required],
-            email:           [this.selectedExistingParticipant.email,           [Validators.required, Validators.email]],
+            firstName:       [this.selectedExistingParticipant.firstName, Validators.required],
+            lastName:        [this.selectedExistingParticipant.lastName,  Validators.required],
+            email:           [this.selectedExistingParticipant.email,     [Validators.required, Validators.email]],
             phoneNumber:     [this.selectedExistingParticipant.phoneNumber  || ''],
             structure:       [this.selectedExistingParticipant.structure    || ''],
             jobTitle:        [this.selectedExistingParticipant.jobTitle     || ''],
@@ -371,10 +372,8 @@ export class EventCreateComponent implements OnInit {
 
         this.selectedExistingParticipant = null;
         this.messageService.add({
-            severity: 'success',
-            summary: '✅ Participant ajouté',
-            detail: 'Participant existant ajouté à la liste',
-            life: 2000
+            severity: 'success', summary: 'Participant ajouté',
+            detail: 'Participant existant ajouté à la liste', life: 2000
         });
         this.scrollToLastParticipant();
     }
@@ -392,10 +391,8 @@ export class EventCreateComponent implements OnInit {
             isExisting:      [false]
         }));
         this.messageService.add({
-            severity: 'success',
-            summary: '✅ Formulaire ajouté',
-            detail: 'Remplissez les champs obligatoires (*)',
-            life: 4000
+            severity: 'success', summary: 'Formulaire ajouté',
+            detail: 'Remplissez les champs obligatoires (*)', life: 4000
         });
         this.scrollToLastParticipant();
     }
@@ -404,7 +401,9 @@ export class EventCreateComponent implements OnInit {
         setTimeout(() => {
             const cards = document.querySelectorAll('.participant-card');
             if (cards.length > 0) {
-                cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                cards[cards.length - 1].scrollIntoView({
+                    behavior: 'smooth', block: 'center'
+                });
             }
         }, 100);
     }
@@ -413,10 +412,8 @@ export class EventCreateComponent implements OnInit {
         const name = this.participants.at(index).get('firstName')?.value || 'Participant';
         this.participants.removeAt(index);
         this.messageService.add({
-            severity: 'error',
-            summary: '🗑 Supprimé',
-            detail: `${name} supprimé de la liste`,
-            life: 2000
+            severity: 'error', summary: 'Supprimé',
+            detail: `${name} supprimé de la liste`, life: 2000
         });
     }
 
@@ -428,10 +425,8 @@ export class EventCreateComponent implements OnInit {
         });
         if (invalid > 0) {
             this.messageService.add({
-                severity: 'warn',
-                summary: '⚠ Formulaires incomplets',
-                detail: `${invalid} participant(s) avec des champs manquants`,
-                life: 6000
+                severity: 'warn', summary: 'Formulaires incomplets',
+                detail: `${invalid} participant(s) avec des champs manquants`, life: 6000
             });
             return false;
         }
@@ -442,10 +437,8 @@ export class EventCreateComponent implements OnInit {
         if (this.participants.length === 0 || this.validateParticipants()) {
             if (this.participants.length > 0) {
                 this.messageService.add({
-                    severity: 'success',
-                    summary: '✅ Participants validés',
-                    detail: `${this.participants.length} participant(s) ajouté(s)`,
-                    life: 3000
+                    severity: 'success', summary: 'Participants validés',
+                    detail: `${this.participants.length} participant(s) ajouté(s)`, life: 3000
                 });
             }
             this.goToStep(4);
@@ -456,12 +449,7 @@ export class EventCreateComponent implements OnInit {
         return this.participants.at(index)?.get('isExisting')?.value === true;
     }
 
-    // ==========================================
-    // GESTION DES FICHIERS
-    // ==========================================
-    onFileSelect(event: any): void {
-        this.handleFiles(event.target.files);
-    }
+    onFileSelect(event: any): void { this.handleFiles(event.target.files); }
 
     onDragOver(event: DragEvent): void {
         event.preventDefault();
@@ -479,10 +467,8 @@ export class EventCreateComponent implements OnInit {
         Array.from(files).forEach(file => {
             if (file.size > 10 * 1024 * 1024) {
                 this.messageService.add({
-                    severity: 'warn',
-                    summary: '⚠ Fichier trop volumineux',
-                    detail: `${file.name} dépasse 10 MB`,
-                    life: 4000
+                    severity: 'warn', summary: 'Fichier trop volumineux',
+                    detail: `${file.name} dépasse 10 MB`, life: 4000
                 });
                 return;
             }
@@ -497,10 +483,8 @@ export class EventCreateComponent implements OnInit {
         });
         if (added > 0) {
             this.messageService.add({
-                severity: 'success',
-                summary: '✅ Ajouté',
-                detail: `${added} fichier(s) ajouté(s)`,
-                life: 3000
+                severity: 'success', summary: 'Ajouté',
+                detail: `${added} fichier(s) ajouté(s)`, life: 3000
             });
         }
     }
@@ -509,20 +493,18 @@ export class EventCreateComponent implements OnInit {
         const name = this.uploadedFiles[index].file.name;
         this.uploadedFiles.splice(index, 1);
         this.messageService.add({
-            severity: 'error',
-            summary: '🗑 Supprimé',
-            detail: `${name} retiré`,
-            life: 2000
+            severity: 'error', summary: 'Supprimé',
+            detail: `${name} retiré`, life: 2000
         });
     }
 
     getFileIcon(file: File): string {
         const type = file.type.toLowerCase();
         const name = file.name.toLowerCase();
-        if (type.includes('pdf'))                                  return 'pi pi-file-pdf text-red-500';
-        if (type.includes('word') || name.match(/\.docx?$/))      return 'pi pi-file-word text-blue-500';
-        if (type.includes('excel') || name.match(/\.xlsx?$/))     return 'pi pi-file-excel text-green-500';
-        if (type.includes('image'))                                return 'pi pi-image text-purple-500';
+        if (type.includes('pdf'))                              return 'pi pi-file-pdf text-red-500';
+        if (type.includes('word') || name.match(/\.docx?$/))  return 'pi pi-file-word text-blue-500';
+        if (type.includes('excel') || name.match(/\.xlsx?$/)) return 'pi pi-file-excel text-green-500';
+        if (type.includes('image'))                            return 'pi pi-image text-purple-500';
         return 'pi pi-file text-gray-500';
     }
 
@@ -534,9 +516,6 @@ export class EventCreateComponent implements OnInit {
                ' ' + ['Bytes', 'KB', 'MB', 'GB'][i];
     }
 
-    // ==========================================
-    // VALIDATION
-    // ==========================================
     isFieldInvalid(fieldName: string): boolean {
         const f = this.eventForm.get(fieldName);
         return !!(f && f.invalid && f.touched);
@@ -550,9 +529,6 @@ export class EventCreateComponent implements OnInit {
         return '';
     }
 
-    // ==========================================
-    // HELPERS D'AFFICHAGE
-    // ==========================================
     getTypeLabel(v: string): string {
         return this.typeOptions.find(o => o.value === v)?.label ?? 'Non défini';
     }
@@ -581,8 +557,37 @@ export class EventCreateComponent implements OnInit {
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
+    getLieuResume(): string {
+        const fv   = this.eventForm.value;
+        const type = fv.lieuType;
+        if (!type) {
+            if (fv.ville && fv.pays) return `${fv.ville}, ${fv.pays}`;
+            if (fv.ville) return fv.ville;
+            if (fv.pays)  return fv.pays;
+            return 'Non défini';
+        }
+        switch (type) {
+            case 'INTERNE':
+                return fv.salle ? `ASCELC — ${fv.salle}` : 'ASCELC';
+            case 'NATIONAL': {
+                const parts = [fv.nomLieu, fv.ville].filter(Boolean);
+                return parts.join(' — ') || 'Burkina Faso';
+            }
+            case 'INTERNATIONAL': {
+                const parts = [fv.nomLieu, fv.ville, fv.pays].filter(Boolean);
+                return parts.join(', ') || 'International';
+            }
+            case 'VIRTUEL':
+                return fv.meetingLink
+                    ? `Réunion en ligne — ${fv.meetingLink}`
+                    : 'Réunion en ligne';
+            default:
+                return 'Non défini';
+        }
+    }
+
     // ==========================================
-    // SOUMISSION
+    // ✅ SOUMISSION — sans status (backend décide)
     // ==========================================
     async onSubmit(): Promise<void> {
         if (!this.canProceedFromStep(0) ||
@@ -602,18 +607,22 @@ export class EventCreateComponent implements OnInit {
         try {
             const fv = this.eventForm.value;
 
+            // ✅ PAS de status ici — le backend détermine selon le rôle
             const eventData: any = {
                 title:       fv.title?.trim(),
                 description: fv.description?.trim() || null,
                 type:        fv.type,
-                status:      'PLANIFIE',
                 startDate:   this.formatDate(fv.startDate),
                 endDate:     this.formatDate(fv.endDate),
                 pays:        fv.pays?.trim()        || null,
                 ville:       fv.ville?.trim()       || null,
                 meetingLink: fv.meetingLink?.trim() || null,
+                lieuType:    fv.lieuType            || null,
+                salle:       fv.salle?.trim()       || null,
+                nomLieu:     fv.nomLieu?.trim()     || null,
             };
 
+            // Horaires
             if (this.scheduleMode === 'global') {
                 const st = fv.globalStartTime;
                 const et = fv.globalEndTime;
@@ -635,6 +644,7 @@ export class EventCreateComponent implements OnInit {
                     });
             }
 
+            // Participants
             if (fv.participants?.length > 0) {
                 eventData.participants = fv.participants.map((p: any) => ({
                     id:              p.id              || null,
@@ -648,35 +658,37 @@ export class EventCreateComponent implements OnInit {
                 }));
             }
 
-            console.log('📤 Payload envoyé:', JSON.stringify(eventData, null, 2));
+            console.log('Payload:', JSON.stringify(eventData, null, 2));
 
             const createdEvent = await this.eventService
                 .createEvent(eventData).toPromise();
 
-            // ✅ Upload des fichiers APRÈS création
             if (createdEvent?.id && this.uploadedFiles.length > 0) {
                 await this.uploadFiles(createdEvent.id);
             }
 
             this.messageService.add({
                 severity: 'success',
-                summary: '🎉 Événement créé !',
+                summary: 'Evenement créé !',
                 detail: 'Redirection en cours...',
                 life: 3000
             });
 
             setTimeout(() => {
                 this.router.navigate(['/events'], {
-                    queryParams: { created: createdEvent?.id, timestamp: Date.now() }
+                    queryParams: {
+                        created:   createdEvent?.id,
+                        timestamp: Date.now()
+                    }
                 });
             }, 1500);
 
         } catch (error: any) {
-            console.error('❌ Erreur création:', error);
+            console.error('Erreur création:', error);
             this.loading = false;
             this.messageService.add({
                 severity: 'error',
-                summary: '❌ Erreur',
+                summary: 'Erreur',
                 detail: error?.error?.message || error?.message || 'Erreur inconnue',
                 life: 8000
             });
