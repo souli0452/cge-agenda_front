@@ -1,0 +1,106 @@
+.audit-page { padding: 0; }
+
+.audit-header {
+    background: linear-gradient(135deg, #145214 0%, #228B22 55%, #2e9e2e 100%);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    position: relative;
+    overflow: hidden;
+}
+.audit-header::after {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.audit-header h2 {
+    margin: 0; font-size: 22px; font-weight: 700;
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.audit-header p  {
+    margin: 4px 0 0; font-size: 13px;
+    color: rgba(255,255,255,0.82) !important;
+}
+
+.active-users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.user-card {
+    background: var(--surface-card);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    border-left: 4px solid #4caf50;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.user-card .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #1a6b1a, #228B22);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 16px; flex-shrink: 0;
+}
+.user-card .info { min-width: 0; }
+.user-card .name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-card .email { font-size: 11px; color: var(--text-color-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-card .last  { font-size: 11px; color: #4caf50; margin-top: 2px; }
+
+.filters-bar {
+    background: var(--surface-card);
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+.filters-bar > * { flex: 1 1 180px; min-width: 140px; }
+
+.action-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+}
+
+.ip-chip {
+    background: var(--surface-100);
+    border: 1px solid var(--surface-300);
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text-color-secondary);
+}
+
+.section-title {
+    font-size: 16px; font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+}
+
+:host ::ng-deep {
+    .p-datatable .p-datatable-thead > tr > th {
+        background: #228B22 !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 10px 12px !important;
+    }
+    .p-datatable .p-datatable-tbody > tr > td { padding: 10px 12px; }
+}

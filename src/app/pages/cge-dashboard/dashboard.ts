@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -6,12 +6,14 @@ import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 import { EventService } from '../../service/event.service';
 import { StatsService } from '../../service/stats.service';
-import { 
-    Event, 
-    DashboardStats, 
-    EventTypeLabels, 
+import {
+    Event,
+    DashboardStats,
+    EventTypeLabels,
     EventStatusLabels,
     getEventTypeSeverity,
     getEventStatusSeverity,
@@ -54,75 +56,46 @@ import {
 
             <!-- KPI Cards -->
             <div class="col-span-12 lg:col-span-6 xl:col-span-3">
-                <div class="card mb-0 hover:shadow-lg transition-shadow">
-                    <div class="flex justify-between mb-4">
-                        <div>
-                            <span class="block text-muted-color font-medium mb-4">Total Événements</span>
-                            <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-                                {{ stats?.totalEvents || 0 }}
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center bg-blue-100 dark:bg-blue-400/10 rounded-border" 
-                             style="width: 2.5rem; height: 2.5rem">
-                            <i class="pi pi-calendar text-blue-500 text-xl"></i>
-                        </div>
+                <div class="card mb-0 kpi-card kpi-card--blue">
+                    <div class="kpi-value">{{ stats?.totalEvents || 0 }}</div>
+                    <div class="kpi-label">Total Événements</div>
+                    <div class="kpi-meta">
+                        <i class="pi pi-calendar"></i>
+                        <span>{{ stats?.upcomingEventsCount || 0 }} à venir</span>
                     </div>
-                    <span class="text-primary font-medium">{{ stats?.upcomingEventsCount || 0 }} </span>
-                    <span class="text-muted-color">à venir</span>
                 </div>
             </div>
 
             <div class="col-span-12 lg:col-span-6 xl:col-span-3">
-                <div class="card mb-0 hover:shadow-lg transition-shadow">
-                    <div class="flex justify-between mb-4">
-                        <div>
-                            <span class="block text-muted-color font-medium mb-4">Participants</span>
-                            <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-                                {{ stats?.totalParticipants || 0 }}
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center bg-orange-100 dark:bg-orange-400/10 rounded-border" 
-                             style="width: 2.5rem; height: 2.5rem">
-                            <i class="pi pi-users text-orange-500 text-xl"></i>
-                        </div>
+                <div class="card mb-0 kpi-card kpi-card--amber">
+                    <div class="kpi-value">{{ stats?.totalParticipants || 0 }}</div>
+                    <div class="kpi-label">Participants</div>
+                    <div class="kpi-meta">
+                        <i class="pi pi-users"></i>
+                        <span>participants uniques</span>
                     </div>
-                    <span class="text-muted-color">participants uniques</span>
                 </div>
             </div>
 
             <div class="col-span-12 lg:col-span-6 xl:col-span-3">
-                <div class="card mb-0 hover:shadow-lg transition-shadow">
-                    <div class="flex justify-between mb-4">
-                        <div>
-                            <span class="block text-muted-color font-medium mb-4">En Cours</span>
-                            <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-                                {{ getStatusCount('EN_COURS') }}
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center bg-cyan-100 dark:bg-cyan-400/10 rounded-border" 
-                             style="width: 2.5rem; height: 2.5rem">
-                            <i class="pi pi-clock text-cyan-500 text-xl"></i>
-                        </div>
+                <div class="card mb-0 kpi-card kpi-card--teal">
+                    <div class="kpi-value">{{ getStatusCount('EN_COURS') }}</div>
+                    <div class="kpi-label">En Cours</div>
+                    <div class="kpi-meta">
+                        <i class="pi pi-clock"></i>
+                        <span>événements actifs</span>
                     </div>
-                    <span class="text-muted-color">événements actifs</span>
                 </div>
             </div>
 
             <div class="col-span-12 lg:col-span-6 xl:col-span-3">
-                <div class="card mb-0 hover:shadow-lg transition-shadow">
-                    <div class="flex justify-between mb-4">
-                        <div>
-                            <span class="block text-muted-color font-medium mb-4">Terminés</span>
-                            <div class="text-surface-900 dark:text-surface-0 font-medium text-xl">
-                                {{ getStatusCount('TERMINE') }}
-                            </div>
-                        </div>
-                        <div class="flex items-center justify-center bg-purple-100 dark:bg-purple-400/10 rounded-border" 
-                             style="width: 2.5rem; height: 2.5rem">
-                            <i class="pi pi-check-circle text-purple-500 text-xl"></i>
-                        </div>
+                <div class="card mb-0 kpi-card kpi-card--violet">
+                    <div class="kpi-value">{{ getStatusCount('TERMINE') }}</div>
+                    <div class="kpi-label">Terminés</div>
+                    <div class="kpi-meta">
+                        <i class="pi pi-check-circle"></i>
+                        <span>événements complétés</span>
                     </div>
-                    <span class="text-muted-color">événements complétés</span>
                 </div>
             </div>
 
@@ -198,7 +171,11 @@ import {
                         </ng-template>
 
                         <ng-template pTemplate="body" let-event>
-                            <tr class="cursor-pointer" (click)="viewEvent(event.id)">
+                            <tr class="cursor-pointer"
+                                tabindex="0"
+                                (click)="viewEvent(event.id)"
+                                (keydown.enter)="viewEvent(event.id)"
+                                (keydown.space)="viewEvent(event.id)">
                                 <td>
                                     <div class="flex flex-col gap-1">
                                         <span class="font-semibold text-surface-900 dark:text-surface-0">
@@ -248,32 +225,35 @@ import {
                                 </td>
                                 <td (click)="$event.stopPropagation()">
                                     <div class="flex gap-1">
-                                        <p-button 
-                                            icon="pi pi-eye" 
-                                            [rounded]="true" 
-                                            [text]="true" 
+                                        <p-button
+                                            icon="pi pi-eye"
+                                            [rounded]="true"
+                                            [text]="true"
                                             severity="secondary"
                                             size="small"
+                                            ariaLabel="Voir les détails"
                                             pTooltip="Voir détails"
                                             tooltipPosition="top"
                                             (onClick)="viewEvent(event.id)">
                                         </p-button>
-                                        <p-button 
-                                            icon="pi pi-pencil" 
-                                            [rounded]="true" 
-                                            [text]="true" 
+                                        <p-button
+                                            icon="pi pi-pencil"
+                                            [rounded]="true"
+                                            [text]="true"
                                             severity="secondary"
                                             size="small"
+                                            ariaLabel="Modifier l'événement"
                                             pTooltip="Modifier"
                                             tooltipPosition="top"
                                             (onClick)="editEvent(event.id)">
                                         </p-button>
-                                        <p-button 
-                                            icon="pi pi-download" 
-                                            [rounded]="true" 
-                                            [text]="true" 
+                                        <p-button
+                                            icon="pi pi-download"
+                                            [rounded]="true"
+                                            [text]="true"
                                             severity="help"
                                             size="small"
+                                            ariaLabel="Télécharger la liste d'émargement"
                                             pTooltip="Liste émargement"
                                             tooltipPosition="top"
                                             (onClick)="downloadAttendance(event.id)">
@@ -321,75 +301,38 @@ import {
 
             <!-- Quick Stats Footer -->
             <div class="col-span-12">
-                <div class="card bg-gradient-to-r from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20">
+                <div class="card bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20">
                     <div class="grid grid-cols-12 gap-6">
                         <div class="col-span-12 md:col-span-3 text-center">
-                            <div class="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-2">
+                            <div class="text-4xl font-bold text-sky-600 dark:text-sky-400 mb-2" style="letter-spacing: -0.03em;">
                                 {{ getStatusCount('PLANIFIE') }}
                             </div>
-                            <div class="text-sm text-muted-color font-medium">Événements Planifiés</div>
+                            <div class="text-xs font-semibold text-muted-color uppercase" style="letter-spacing: 0.08em;">Planifiés</div>
                         </div>
                         <div class="col-span-12 md:col-span-3 text-center">
-                            <div class="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-2">
+                            <div class="text-4xl font-bold text-amber-600 dark:text-amber-400 mb-2" style="letter-spacing: -0.03em;">
                                 {{ getStatusCount('EN_COURS') }}
                             </div>
-                            <div class="text-sm text-muted-color font-medium">En Cours</div>
+                            <div class="text-xs font-semibold text-muted-color uppercase" style="letter-spacing: 0.08em;">En Cours</div>
                         </div>
                         <div class="col-span-12 md:col-span-3 text-center">
-                            <div class="text-4xl font-bold text-green-600 dark:text-green-400 mb-2">
+                            <div class="text-4xl font-bold text-emerald-600 dark:text-emerald-400 mb-2" style="letter-spacing: -0.03em;">
                                 {{ getStatusCount('TERMINE') }}
                             </div>
-                            <div class="text-sm text-muted-color font-medium">Terminés</div>
+                            <div class="text-xs font-semibold text-muted-color uppercase" style="letter-spacing: 0.08em;">Terminés</div>
                         </div>
                         <div class="col-span-12 md:col-span-3 text-center">
-                            <div class="text-4xl font-bold text-red-600 dark:text-red-400 mb-2">
+                            <div class="text-4xl font-bold text-rose-600 dark:text-rose-400 mb-2" style="letter-spacing: -0.03em;">
                                 {{ getStatusCount('ANNULER') + getStatusCount('REPORTER') }}
                             </div>
-                            <div class="text-sm text-muted-color font-medium">Annulés / Reportés</div>
+                            <div class="text-xs font-semibold text-muted-color uppercase" style="letter-spacing: 0.08em;">Annulés / Reportés</div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     `,
-    styles: [`
-        :host ::ng-deep {
-            .p-chart canvas {
-                max-height: 320px;
-            }
-            
-            .p-datatable .p-datatable-tbody > tr {
-                transition: all 0.2s ease;
-            }
-            
-            .p-datatable .p-datatable-tbody > tr:hover {
-                background: var(--surface-hover) !important;
-                transform: scale(1.01);
-            }
-            
-            .p-tag {
-                font-size: 0.7rem;
-                padding: 0.25rem 0.5rem;
-                font-weight: 600;
-            }
-            
-            .p-button.p-button-sm {
-                padding: 0.375rem;
-            }
-            
-            .card {
-                transition: all 0.3s ease;
-            }
-            
-            .card.hover\\:shadow-lg:hover {
-                box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            }
-            
-            .cursor-pointer {
-                cursor: pointer;
-            }
-        }
-    `]
+    styleUrls: ['./dashboard.css']
 })
 export class CgeDashboardComponent implements OnInit {
     loading = false;
@@ -418,49 +361,51 @@ export class CgeDashboardComponent implements OnInit {
     loadData(): void {
         this.loading = true;
 
-        // Charger les statistiques
-        this.statsService.getDashboardStats().subscribe({
-            next: (data: DashboardStats) => {
-                this.stats = data;
-                this.prepareCharts();
-                console.log(' Stats chargées:', this.stats);
-            },
-            error: (err: any) => {
-                console.error('Erreur stats:', err);
-            }
-        });
-
-        // Charger les événements récents
-        this.eventService.getAllEvents().subscribe({
-            next: (events: Event[]) => {
-                this.recentEvents = events
-                    .sort((a, b) => {
-                        const dateA = new Date(a.createdAt || a.startDate).getTime();
-                        const dateB = new Date(b.createdAt || b.startDate).getTime();
-                        return dateB - dateA;
-                    })
+        forkJoin({
+            stats:  this.statsService.getDashboardStats().pipe(catchError(() => of(null))),
+            events: this.eventService.getAllEvents()
+        }).subscribe({
+            next: ({ stats, events }) => {
+                this.recentEvents = [...events]
+                    .sort((a, b) =>
+                        new Date(b.createdAt || b.startDate).getTime() -
+                        new Date(a.createdAt || a.startDate).getTime()
+                    )
                     .slice(0, 5);
-                
+
+                this.stats = stats ?? this.computeStatsFromEvents(events);
+                this.prepareCharts();
                 this.loading = false;
-                console.log(' Événements récents:', this.recentEvents.length);
             },
-            error: (err: any) => {
-                console.error(' Erreur événements:', err);
-                this.loading = false;
-            }
+            error: () => { this.loading = false; }
         });
     }
 
-    loadEventsByStatusMonth(): void {
-        //courante dynamiquement
-        this.statsService.getEventsByStatusAndMonth(this.currentYear).subscribe({
-            next: (data: any) => {
-                console.log(' Données par statut/mois:', data);
-                this.prepareStatusMonthChart(data);
-            },
-            error: (err: any) => {
-                console.error(' Erreur stats par mois:', err);
+    private computeStatsFromEvents(events: Event[]): DashboardStats {
+        const now = new Date(); now.setHours(0, 0, 0, 0);
+        const eventsByStatus: { [key: string]: number } = {};
+        const eventsByType:   { [key: string]: number } = {};
+        let totalParticipants   = 0;
+        let upcomingEventsCount = 0;
+
+        for (const e of events) {
+            eventsByStatus[e.status] = (eventsByStatus[e.status] || 0) + 1;
+            eventsByType[e.type]     = (eventsByType[e.type]     || 0) + 1;
+            totalParticipants       += e.participants?.length || 0;
+            const start = new Date(e.startDate); start.setHours(0, 0, 0, 0);
+            if (start >= now && !['ANNULER', 'REJETE'].includes(e.status as string)) {
+                upcomingEventsCount++;
             }
+        }
+
+        return { totalEvents: events.length, upcomingEventsCount, totalParticipants, eventsByStatus, eventsByType };
+    }
+
+    loadEventsByStatusMonth(): void {
+        this.statsService.getEventsByStatusAndMonth(this.currentYear).pipe(
+            catchError(() => of(null))
+        ).subscribe(data => {
+            if (data) this.prepareStatusMonthChart(data);
         });
     }
 
@@ -513,8 +458,6 @@ export class CgeDashboardComponent implements OnInit {
             labels: months,
             datasets: datasets
         };
-
-        console.log(' Chart par statut/mois préparé');
     }
 
     getStatusChartColor(status: string): string {
@@ -675,12 +618,8 @@ export class CgeDashboardComponent implements OnInit {
                 a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);
-                
-                console.log(' Liste d\'émargement téléchargée');
             },
-            error: (err: any) => {
-                console.error(' Erreur téléchargement:', err);
-            }
+            error: () => {}
         });
     }
 

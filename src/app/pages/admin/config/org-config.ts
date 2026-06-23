@@ -1,0 +1,355 @@
+﻿import { Component, OnInit, SecurityContext } from '@angular/core';
+import { CommonModule }      from '@angular/common';
+import { FormsModule }       from '@angular/forms';
+import { HttpClient }        from '@angular/common/http';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
+import { ButtonModule }      from 'primeng/button';
+import { InputTextModule }   from 'primeng/inputtext';
+import { TabsModule }        from 'primeng/tabs';
+import { DividerModule }     from 'primeng/divider';
+import { ToastModule }       from 'primeng/toast';
+import { DialogModule }      from 'primeng/dialog';
+import { SkeletonModule }    from 'primeng/skeleton';
+import { TooltipModule }     from 'primeng/tooltip';
+import { ColorPickerModule } from 'primeng/colorpicker';
+import { MessageService }    from 'primeng/api';
+
+import { environments }      from '../../../../environments/environments';
+
+interface OrgConfig {
+    id?:                       string;
+    nomOrganisation:           string;
+    slogan:                    string;
+    emailExpediteurNom:        string;
+    couleurPrimaire:           string;
+    logoUrl:                   string;
+    adresse:                   string;
+    siteWeb:                   string;
+    subjectInvitation:         string;
+    subjectValidationRequest:  string;
+    subjectValidated:          string;
+    subjectRejected:           string;
+    subjectChangesRequested:   string;
+    subjectAmendmentsCorrected:string;
+    subjectCancellation:       string;
+    subjectPostponement:       string;
+    subjectEventUpdate:        string;
+    subjectReminder:           string;
+    subjectDelegation:         string;
+    updatedAt?:                string;
+}
+
+interface EmailTemplate {
+    key:         string;
+    field:       keyof OrgConfig;
+    label:       string;
+    icon:        string;
+    iconColor:   string;
+    description: string;
+}
+
+@Component({
+    selector:   'app-org-config',
+    standalone: true,
+    imports: [
+        CommonModule, FormsModule,
+        ButtonModule, InputTextModule, TabsModule,
+        DividerModule, ToastModule, DialogModule,
+        SkeletonModule, TooltipModule, ColorPickerModule
+    ],
+    providers: [MessageService],
+    styleUrls: ['./org-config.css'],
+    template: `
+<p-toast position="top-right"></p-toast>
+
+<div class="config-container">
+
+    <!-- EN-TÊTE -->
+    <div class="page-header">
+        <div class="header-left">
+            <div class="header-icon">
+                <i class="pi pi-building"></i>
+            </div>
+            <div>
+                <h1 class="page-title">Configuration système</h1>
+                <p class="page-subtitle">Organisation et templates d'emails</p>
+            </div>
+        </div>
+        <p-button
+            label="Enregistrer tout"
+            icon="pi pi-save"
+            severity="success"
+            [loading]="saving"
+            (onClick)="save()" />
+    </div>
+
+    <!-- TABS -->
+    <p-tabs [(value)]="activeTab">
+
+        <!-- ==============================
+             ONGLET 1 : ORGANISATION
+             ============================== -->
+        <p-tabpanel value="0">
+            <ng-template #header>
+                <span><i class="pi pi-building" style="margin-right:6px"></i>Organisation</span>
+            </ng-template>
+
+            <div *ngIf="loading" class="skeleton-form">
+                <p-skeleton height="44px" styleClass="mb-3" *ngFor="let i of [1,2,3,4,5,6]" />
+            </div>
+
+            <div *ngIf="!loading" class="org-form">
+
+                <div class="form-section">
+                    <h3 class="section-title">Identité</h3>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label class="field-label">Nom de l'organisation <span class="req">*</span></label>
+                            <input pInputText [(ngModel)]="config.nomOrganisation"
+                                   placeholder="Ex: ASCELC" class="w-full" />
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label">Nom expéditeur email</label>
+                            <input pInputText [(ngModel)]="config.emailExpediteurNom"
+                                   placeholder="Ex: CGE Agenda" class="w-full" />
+                            <small class="field-hint">Affiché dans le champ "De :" des emails</small>
+                        </div>
+                    </div>
+
+                    <div class="form-field">
+                        <label class="field-label">Slogan / Sous-titre</label>
+                        <input pInputText [(ngModel)]="config.slogan"
+                               placeholder="Ex: Autorité Supérieure de Contrôle d'État..."
+                               class="w-full" />
+                    </div>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label class="field-label">Adresse</label>
+                            <input pInputText [(ngModel)]="config.adresse"
+                                   placeholder="Ex: Burkina Faso" class="w-full" />
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label">Site web</label>
+                            <input pInputText [(ngModel)]="config.siteWeb"
+                                   placeholder="Ex: https://ascelc.bf" class="w-full" />
+                        </div>
+                    </div>
+                </div>
+
+                <p-divider />
+
+                <div class="form-section">
+                    <h3 class="section-title">Apparence emails</h3>
+
+                    <div class="form-grid-2">
+                        <div class="form-field">
+                            <label class="field-label">Couleur principale</label>
+                            <div class="color-row">
+                                <p-colorPicker [(ngModel)]="config.couleurPrimaire"
+                                               format="hex"
+                                               appendTo="body" />
+                                <input pInputText [(ngModel)]="config.couleurPrimaire"
+                                       placeholder="#228B22" style="flex:1" />
+                                <div class="color-preview"
+                                     [style.background]="config.couleurPrimaire">
+                                </div>
+                            </div>
+                            <small class="field-hint">Couleur de la bannière des emails</small>
+                        </div>
+                        <div class="form-field">
+                            <label class="field-label">URL du logo</label>
+                            <input pInputText [(ngModel)]="config.logoUrl"
+                                   placeholder="https://..." class="w-full" />
+                            <small class="field-hint">URL publique de l'image (PNG/SVG recommandé)</small>
+                        </div>
+                    </div>
+
+                    <!-- Aperçu bannière email -->
+                    <div class="banner-preview"
+                         [style.background]="'linear-gradient(135deg, ' + darken(config.couleurPrimaire) + ', ' + config.couleurPrimaire + ')'">
+                        <img *ngIf="config.logoUrl" [src]="config.logoUrl"
+                             style="max-height:40px; margin-bottom:8px; filter:drop-shadow(0 1px 4px rgba(0,0,0,0.3))" />
+                        <div class="banner-preview-title">{{ config.nomOrganisation }}</div>
+                        <div class="banner-preview-sub">{{ config.slogan }}</div>
+                    </div>
+                </div>
+
+                <div class="last-saved" *ngIf="config.updatedAt">
+                    <i class="pi pi-history"></i>
+                    Dernière modification : {{ config.updatedAt | date:'dd/MM/yyyy à HH:mm' }}
+                </div>
+            </div>
+        </p-tabpanel>
+
+        <!-- ==============================
+             ONGLET 2 : SUJETS EMAIL
+             ============================== -->
+        <p-tabpanel value="1">
+            <ng-template #header>
+                <span><i class="pi pi-envelope" style="margin-right:6px"></i>Sujets des emails</span>
+            </ng-template>
+
+            <div class="subjects-hint">
+                <i class="pi pi-info-circle"></i>
+                Utilisez <code>{{ '{' }}titre{{ '}' }}</code> pour insérer le titre de l'événement dans le sujet.
+            </div>
+
+            <div *ngIf="loading" class="skeleton-form">
+                <p-skeleton height="44px" styleClass="mb-3" *ngFor="let i of [1,2,3,4,5]" />
+            </div>
+
+            <div *ngIf="!loading" class="templates-list">
+                <div *ngFor="let tpl of emailTemplates" class="template-row">
+                    <div class="template-meta">
+                        <div class="template-icon-wrap" [style.background]="tpl.iconColor + '20'">
+                            <i [class]="tpl.icon" [style.color]="tpl.iconColor"></i>
+                        </div>
+                        <div class="template-info">
+                            <div class="template-label">{{ tpl.label }}</div>
+                            <div class="template-desc">{{ tpl.description }}</div>
+                        </div>
+                    </div>
+                    <div class="template-subject-wrap">
+                        <input pInputText
+                               [(ngModel)]="config[tpl.field]"
+                               [placeholder]="'Sujet : ' + tpl.label"
+                               class="template-subject-input" />
+                        <p-button
+                            icon="pi pi-eye"
+                            [rounded]="true"
+                            [text]="true"
+                            severity="secondary"
+                            size="small"
+                            pTooltip="Prévisualiser le template"
+                            tooltipPosition="left"
+                            (onClick)="openPreview(tpl.key)" />
+                    </div>
+                </div>
+            </div>
+        </p-tabpanel>
+
+    </p-tabs>
+</div>
+
+<!-- DIALOG PREVIEW -->
+<p-dialog
+    [(visible)]="previewVisible"
+    [modal]="true"
+    [style]="{width: '720px', 'max-height': '90vh'}"
+    header="Aperçu du template email"
+    [draggable]="false"
+    [resizable]="true">
+
+    <div *ngIf="previewLoading" style="padding:40px; text-align:center">
+        <i class="pi pi-spin pi-spinner" style="font-size:2rem; color:#228B22"></i>
+        <p style="margin-top:12px; color:#666">Rendu en cours...</p>
+    </div>
+
+    <iframe *ngIf="!previewLoading && previewHtml"
+            [srcdoc]="previewHtml"
+            style="width:100%; height:520px; border:none; border-radius:8px;"
+            sandbox="allow-same-origin">
+    </iframe>
+
+    <ng-template pTemplate="footer">
+        <p-button
+            label="Fermer"
+            [text]="true"
+            severity="secondary"
+            (onClick)="previewVisible = false" />
+    </ng-template>
+</p-dialog>
+    `,
+})
+export class OrgConfigComponent implements OnInit {
+
+    activeTab    = '0';
+    loading      = true;
+    saving       = false;
+    previewVisible = false;
+    previewLoading = false;
+    previewHtml    = '';
+
+    config: OrgConfig = {
+        nomOrganisation: '', slogan: '', emailExpediteurNom: '',
+        couleurPrimaire: '#228B22', logoUrl: '', adresse: '', siteWeb: '',
+        subjectInvitation: '', subjectValidationRequest: '', subjectValidated: '',
+        subjectRejected: '', subjectChangesRequested: '', subjectAmendmentsCorrected: '',
+        subjectCancellation: '', subjectPostponement: '', subjectEventUpdate: '',
+        subjectReminder: '', subjectDelegation: ''
+    };
+
+    emailTemplates: EmailTemplate[] = [
+        { key: 'invitation',          field: 'subjectInvitation',          label: 'Invitation',               icon: 'pi pi-calendar-plus',   iconColor: '#228B22', description: 'Envoyé quand un participant est invité à un événement' },
+        { key: 'validation-request',  field: 'subjectValidationRequest',   label: 'Demande de validation',    icon: 'pi pi-send',            iconColor: '#ff9800', description: 'Envoyé aux CGE pour valider un nouvel événement' },
+        { key: 'validated',           field: 'subjectValidated',           label: 'Événement validé',         icon: 'pi pi-check-circle',    iconColor: '#4caf50', description: 'Confirmé : l\'organisateur est notifié' },
+        { key: 'rejected',            field: 'subjectRejected',            label: 'Événement rejeté',         icon: 'pi pi-times-circle',    iconColor: '#f44336', description: 'L\'organisateur est notifié du rejet' },
+        { key: 'changes-requested',   field: 'subjectChangesRequested',    label: 'Corrections demandées',    icon: 'pi pi-pencil',          iconColor: '#9c27b0', description: 'Le CGE demande des corrections à l\'organisateur' },
+        { key: 'amendments-corrected',field: 'subjectAmendmentsCorrected', label: 'Corrections apportées',   icon: 'pi pi-check',           iconColor: '#2196F3', description: 'L\'organisateur a apporté les corrections demandées' },
+        { key: 'cancellation',        field: 'subjectCancellation',        label: 'Annulation',               icon: 'pi pi-ban',             iconColor: '#f44336', description: 'Participants notifiés de l\'annulation' },
+        { key: 'postponement',        field: 'subjectPostponement',        label: 'Report',                   icon: 'pi pi-calendar',        iconColor: '#ff9800', description: 'Participants notifiés du report de l\'événement' },
+        { key: 'event-update',        field: 'subjectEventUpdate',         label: 'Mise à jour',              icon: 'pi pi-refresh',         iconColor: '#607d8b', description: 'Modification d\'un événement déjà planifié' },
+        { key: 'reminder',            field: 'subjectReminder',            label: 'Rappel',                   icon: 'pi pi-clock',           iconColor: '#ff9800', description: 'Rappel automatique avant l\'événement' },
+        { key: 'delegation',          field: 'subjectDelegation',          label: 'Délégation',               icon: 'pi pi-user-edit',       iconColor: '#00bcd4', description: 'Notification de délégation de participation' },
+    ];
+
+    constructor(
+        private http:           HttpClient,
+        private messageService: MessageService,
+        private sanitizer:      DomSanitizer
+    ) {}
+
+    ngOnInit(): void {
+        this.http.get<OrgConfig>(`${environments.apiUrl}/admin/config`).subscribe({
+            next:  (c) => { this.config = c; this.loading = false; },
+            error: ()  => { this.loading = false; }
+        });
+    }
+
+    save(): void {
+        this.saving = true;
+        this.http.put<OrgConfig>(`${environments.apiUrl}/admin/config`, this.config).subscribe({
+            next: (c) => {
+                this.config = c;
+                this.saving = false;
+                this.messageService.add({ severity: 'success', summary: '✅ Enregistré', detail: 'Configuration mise à jour', life: 3000 });
+            },
+            error: () => {
+                this.saving = false;
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible d\'enregistrer la configuration' });
+            }
+        });
+    }
+
+    openPreview(templateKey: string): void {
+        this.previewHtml    = '';
+        this.previewLoading = true;
+        this.previewVisible = true;
+        this.http.get(
+            `${environments.apiUrl}/admin/config/preview/${templateKey}`,
+            { responseType: 'text' }
+        ).subscribe({
+            next: (html) => {
+                this.previewHtml    = html;
+                this.previewLoading = false;
+            },
+            error: () => {
+                this.previewHtml    = '<p style="color:red;padding:20px">Erreur lors du rendu du template.</p>';
+                this.previewLoading = false;
+            }
+        });
+    }
+
+    darken(hex: string): string {
+        if (!hex || hex.length < 7) return '#1a6b1a';
+        try {
+            const r = Math.max(0, parseInt(hex.slice(1,3), 16) - 40);
+            const g = Math.max(0, parseInt(hex.slice(3,5), 16) - 40);
+            const b = Math.max(0, parseInt(hex.slice(5,7), 16) - 40);
+            return `#${r.toString(16).padStart(2,'0')}${g.toString(16).padStart(2,'0')}${b.toString(16).padStart(2,'0')}`;
+        } catch { return hex; }
+    }
+}
