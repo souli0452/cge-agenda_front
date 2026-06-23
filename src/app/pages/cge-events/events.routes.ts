@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { unsavedChangesGuard } from '../../guards/unsaved-changes.guard';
 
 export const EVENTS_ROUTES: Routes = [
     {
@@ -7,7 +8,8 @@ export const EVENTS_ROUTES: Routes = [
     },
     {
         path: 'create',
-        loadComponent: () => import('./event-create').then(m => m.EventCreateComponent)
+        loadComponent: () => import('./event-create').then(m => m.EventCreateComponent),
+        canDeactivate: [unsavedChangesGuard]
     },
     {
         path: ':id',
@@ -15,6 +17,7 @@ export const EVENTS_ROUTES: Routes = [
     },
     {
         path: ':id/edit',
-        loadComponent: () => import('./event-edit').then(m => m.EventEditComponent)
+        loadComponent: () => import('./event-edit').then(m => m.EventEditComponent),
+        canDeactivate: [unsavedChangesGuard]
     }
 ];

@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HasUnsavedChanges } from '../../guards/unsaved-changes.guard';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators,
          ReactiveFormsModule, FormsModule } from '@angular/forms';
@@ -34,7 +35,7 @@ import { Event, FileUpload, Participant } from '../../models';
     templateUrl: './event-edit.html',
     styleUrls:   ['./event-edit.css']
 })
-export class EventEditComponent implements OnInit {
+export class EventEditComponent implements OnInit, HasUnsavedChanges {
 
     eventForm!: FormGroup;
     eventId?: string;
@@ -106,6 +107,10 @@ export class EventEditComponent implements OnInit {
         private confirmationService: ConfirmationService
     ) {
         this.initForm();
+    }
+
+    hasUnsavedChanges(): boolean {
+        return this.eventForm?.dirty ?? false;
     }
 
     ngOnInit(): void {

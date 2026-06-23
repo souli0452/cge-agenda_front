@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HasUnsavedChanges } from '../../guards/unsaved-changes.guard';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -55,7 +56,7 @@ interface UploadedFile {
     templateUrl: './event-create.html',
     styleUrl: './event-create.css'
 })
-export class EventCreateComponent implements OnInit {
+export class EventCreateComponent implements OnInit, HasUnsavedChanges {
 
     loading    = false;
     eventForm!: FormGroup;
@@ -106,6 +107,10 @@ export class EventCreateComponent implements OnInit {
         private router:             Router,
         private messageService:     MessageService
     ) {}
+
+    hasUnsavedChanges(): boolean {
+        return this.eventForm?.dirty ?? false;
+    }
 
     ngOnInit(): void {
         this.initForm();
