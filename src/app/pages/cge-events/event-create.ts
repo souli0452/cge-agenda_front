@@ -33,7 +33,8 @@ import {
     Event, Participant,
     EVENT_TYPE_OPTIONS,
     EVENT_STATUS_OPTIONS,
-    PARTICIPANT_TYPE_OPTIONS
+    PARTICIPANT_TYPE_OPTIONS,
+    endDateAfterStart
 } from '../../models';
 
 interface UploadedFile {
@@ -59,6 +60,7 @@ interface UploadedFile {
 export class EventCreateComponent implements OnInit, HasUnsavedChanges {
 
     loading    = false;
+    private submitted = false;
     eventForm!: FormGroup;
     scheduleMode: 'global' | 'custom' = 'global';
     uploadedFiles: UploadedFile[] = [];
@@ -109,7 +111,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
     ) {}
 
     hasUnsavedChanges(): boolean {
-        return this.eventForm?.dirty ?? false;
+        return (this.eventForm?.dirty ?? false) && !this.submitted;
     }
 
     ngOnInit(): void {
@@ -135,7 +137,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             lieuType:        [''],
             salle:           [''],
             nomLieu:         ['']
-        });
+        }, { validators: endDateAfterStart });
 
         this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
             this.eventForm.patchValue({
@@ -679,6 +681,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
                 life: 3000
             });
 
+            this.submitted = true;
             setTimeout(() => {
                 this.router.navigate(['/events'], {
                     queryParams: {

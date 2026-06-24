@@ -102,6 +102,10 @@
               @if (eventForm.get('endDate')?.invalid && eventForm.get('endDate')?.touched) {
                 <small class="field-error">Date de fin requise</small>
               }
+              <small class="text-red-500 block mt-1"
+                     *ngIf="eventForm.errors?.['endBeforeStart'] && eventForm.get('endDate')?.touched">
+                La date de fin doit être postérieure à la date de début
+              </small>
             </div>
           </div>
         </div>

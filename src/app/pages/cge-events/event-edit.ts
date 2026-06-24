@@ -21,7 +21,7 @@ import { AutoCompleteModule } from 'primeng/autocomplete';
 import { EventService }       from '../../service/event.service';
 import { FileService }        from '../../service/file.service';
 import { ParticipantService } from '../../service/participant.service';
-import { Event, FileUpload, Participant } from '../../models';
+import { Event, FileUpload, Participant, endDateAfterStart } from '../../models';
 
 @Component({
     selector: 'app-event-edit',
@@ -40,6 +40,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
     eventForm!: FormGroup;
     eventId?: string;
     loading             = false;
+    private submitted   = false;
     saving              = false;
     loadingParticipants = false;
     loadingFiles        = false;
@@ -110,7 +111,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     hasUnsavedChanges(): boolean {
-        return this.eventForm?.dirty ?? false;
+        return (this.eventForm?.dirty ?? false) && !this.submitted;
     }
 
     ngOnInit(): void {
@@ -140,7 +141,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
             pays:        [''],       // INTERNATIONAL
             nomLieu:     [''],       // NATIONAL + INTERNATIONAL
             meetingLink: ['']        // VIRTUEL + tous
-        });
+        }, { validators: endDateAfterStart });
 
         // ✅ Réinitialiser les champs lieu quand lieuType change
         this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
@@ -267,6 +268,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
                     summary: 'Succès',
                     detail: 'Événement modifié avec succès'
                 });
+                this.submitted = true;
                 setTimeout(() => {
                     this.router.navigate(['/events'], {
                         queryParams: { updated: this.eventId }
