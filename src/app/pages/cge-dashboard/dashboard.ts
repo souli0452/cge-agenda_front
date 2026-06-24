@@ -60,7 +60,7 @@ import {
                     <div class="kpi-value">{{ stats?.totalEvents || 0 }}</div>
                     <div class="kpi-label">Total Événements</div>
                     <div class="kpi-meta">
-                        <i class="pi pi-calendar"></i>
+                        <i class="pi pi-calendar" aria-hidden="true"></i>
                         <span>{{ stats?.upcomingEventsCount || 0 }} à venir</span>
                     </div>
                 </div>
@@ -71,7 +71,7 @@ import {
                     <div class="kpi-value">{{ stats?.totalParticipants || 0 }}</div>
                     <div class="kpi-label">Participants</div>
                     <div class="kpi-meta">
-                        <i class="pi pi-users"></i>
+                        <i class="pi pi-users" aria-hidden="true"></i>
                         <span>participants uniques</span>
                     </div>
                 </div>
@@ -82,7 +82,7 @@ import {
                     <div class="kpi-value">{{ getStatusCount('EN_COURS') }}</div>
                     <div class="kpi-label">En Cours</div>
                     <div class="kpi-meta">
-                        <i class="pi pi-clock"></i>
+                        <i class="pi pi-clock" aria-hidden="true"></i>
                         <span>événements actifs</span>
                     </div>
                 </div>
@@ -93,7 +93,7 @@ import {
                     <div class="kpi-value">{{ getStatusCount('TERMINE') }}</div>
                     <div class="kpi-label">Terminés</div>
                     <div class="kpi-meta">
-                        <i class="pi pi-check-circle"></i>
+                        <i class="pi pi-check-circle" aria-hidden="true"></i>
                         <span>événements complétés</span>
                     </div>
                 </div>
@@ -185,7 +185,7 @@ import {
                                             {{ event.description | slice:0:60 }}{{ event.description.length > 60 ? '...' : '' }}
                                         </span>
                                         <div class="flex items-center gap-1 mt-1" *ngIf="event.ville || event.pays">
-                                            <i class="pi pi-map-marker text-xs text-muted-color"></i>
+                                            <i class="pi pi-map-marker text-xs text-muted-color" aria-hidden="true"></i>
                                             <span class="text-xs text-muted-color">
                                                 {{ event.ville }}{{ event.ville && event.pays ? ', ' : '' }}{{ event.pays }}
                                             </span>
@@ -202,7 +202,7 @@ import {
                                 <td>
                                     <div class="flex flex-col gap-1">
                                         <div class="flex items-center gap-2">
-                                            <i class="pi pi-calendar text-sm text-muted-color"></i>
+                                            <i class="pi pi-calendar text-sm text-muted-color" aria-hidden="true"></i>
                                             <span class="font-medium">{{ event.startDate | date:'dd/MM/yyyy' }}</span>
                                         </div>
                                         <span class="text-xs text-muted-color" *ngIf="event.endDate !== event.startDate">
@@ -219,7 +219,7 @@ import {
                                 </td>
                                 <td class="text-center">
                                     <div class="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-border px-3 py-1">
-                                        <i class="pi pi-users text-sm"></i>
+                                        <i class="pi pi-users text-sm" aria-hidden="true"></i>
                                         <span class="font-semibold">{{ event.participants?.length || 0 }}</span>
                                     </div>
                                 </td>
@@ -267,7 +267,7 @@ import {
                             <tr>
                                 <td colspan="6" class="text-center py-12">
                                     <div class="flex flex-col items-center gap-3">
-                                        <i class="pi pi-calendar-times text-6xl text-muted-color"></i>
+                                        <i class="pi pi-calendar-times text-6xl text-muted-color" aria-hidden="true"></i>
                                         <div>
                                             <p class="text-surface-900 dark:text-surface-0 font-semibold text-lg m-0 mb-2">
                                                 Aucun événement
@@ -289,8 +289,8 @@ import {
                         <ng-template pTemplate="loadingbody">
                             <tr>
                                 <td colspan="6">
-                                    <div class="flex items-center justify-center py-8">
-                                        <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+                                    <div class="flex items-center justify-center py-8" aria-label="Chargement en cours">
+                                        <i class="pi pi-spin pi-spinner text-4xl text-primary" aria-hidden="true"></i>
                                     </div>
                                 </td>
                             </tr>

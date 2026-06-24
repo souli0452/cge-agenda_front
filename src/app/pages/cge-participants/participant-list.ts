@@ -47,7 +47,7 @@ import { Participant } from '../../models';
       <div class="page-header">
         <div class="header-left">
           <h1>
-            <i class="pi pi-users"></i>
+            <i class="pi pi-users" aria-hidden="true"></i>
             Gestion des Participants
           </h1>
         </div>
@@ -113,11 +113,11 @@ import { Participant } from '../../models';
       <div class="table-container">
         @if (loading && participants.length === 0) {
           <div class="text-center py-5">
-            <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);"></i>
+            <i class="pi pi-spin pi-spinner" style="font-size: 2rem; color: var(--primary-color);" aria-hidden="true"></i>
           </div>
         } @else if (!loading && participants.length === 0) {
           <div class="empty-state">
-            <i class="pi pi-users empty-state-icon"></i>
+            <i class="pi pi-users empty-state-icon" aria-hidden="true"></i>
             <div class="empty-state-title">Aucun participant trouvé</div>
             <p style="color: var(--text-color-secondary); font-size: 14px;">
               Cliquez sur "Nouveau Participant" pour en ajouter un
@@ -154,11 +154,11 @@ import { Participant } from '../../models';
                   <strong>{{ participant.firstName }} {{ participant.lastName }}</strong>
                 </td>
                 <td>
-                  <i class="pi pi-envelope mr-2" style="color: var(--text-color-secondary);"></i>
+                  <i class="pi pi-envelope mr-2" style="color: var(--text-color-secondary);" aria-hidden="true"></i>
                   {{ participant.email }}
                 </td>
                 <td>
-                  <i class="pi pi-phone mr-2" style="color: var(--text-color-secondary);"></i>
+                  <i class="pi pi-phone mr-2" style="color: var(--text-color-secondary);" aria-hidden="true"></i>
                   {{ participant.phoneNumber || '-' }}
                 </td>
                 <td>{{ participant.structure || '-' }}</td>
@@ -167,7 +167,7 @@ import { Participant } from '../../models';
                   <span
                     [class]="'participant-badge ' + (participant.participantType === 'INTERNE' ? 'badge-interne' : 'badge-externe')"
                   >
-                    <i [class]="participant.participantType === 'INTERNE' ? 'pi pi-building' : 'pi pi-users'"></i>
+                    <i [class]="participant.participantType === 'INTERNE' ? 'pi pi-building' : 'pi pi-users'" aria-hidden="true"></i>
                     {{ participant.participantType === 'INTERNE' ? 'Interne' : 'Externe' }}
                   </span>
                 </td>
@@ -178,6 +178,7 @@ import { Participant } from '../../models';
                       severity="info"
                       [text]="true"
                       [rounded]="true"
+                      ariaLabel="Modifier le participant"
                       (onClick)="editParticipant(participant)"
                       pTooltip="Modifier"
                     />
@@ -186,6 +187,7 @@ import { Participant } from '../../models';
                       severity="secondary"
                       [text]="true"
                       [rounded]="true"
+                      ariaLabel="Voir les détails du participant"
                       (onClick)="viewParticipant(participant)"
                       pTooltip="Détails"
                     />
@@ -194,6 +196,7 @@ import { Participant } from '../../models';
                       severity="danger"
                       [text]="true"
                       [rounded]="true"
+                      ariaLabel="Supprimer le participant"
                       (onClick)="confirmDelete(participant)"
                       pTooltip="Supprimer"
                     />
@@ -220,7 +223,7 @@ import { Participant } from '../../models';
             <!-- Section Identité -->
             <div class="form-section">
               <div class="section-header">
-                <i class="pi pi-user"></i>
+                <i class="pi pi-user" aria-hidden="true"></i>
                 <span>Identité</span>
               </div>
 
@@ -260,7 +263,7 @@ import { Participant } from '../../models';
             <!-- Section Contact -->
             <div class="form-section">
               <div class="section-header">
-                <i class="pi pi-envelope"></i>
+                <i class="pi pi-envelope" aria-hidden="true"></i>
                 <span>Contact</span>
               </div>
 
@@ -296,7 +299,7 @@ import { Participant } from '../../models';
             <!-- Section Professionnelle -->
             <div class="form-section">
               <div class="section-header">
-                <i class="pi pi-briefcase"></i>
+                <i class="pi pi-briefcase" aria-hidden="true"></i>
                 <span>Informations professionnelles</span>
               </div>
 

@@ -535,6 +535,7 @@ import {
                         <h3>Observation CGE</h3>
                         <p-button *ngIf="canValidate && isOperational"
                                   icon="pi pi-pencil" [text]="true" size="small"
+                                  ariaLabel="Modifier l'observation"
                                   pTooltip="Modifier" (onClick)="openObservationDialog()">
                         </p-button>
                     </div>
@@ -550,6 +551,7 @@ import {
                         <h3>Délégation CGE</h3>
                         <p-button *ngIf="canValidate && isOperational"
                                   icon="pi pi-pencil" [text]="true" size="small"
+                                  ariaLabel="Modifier la délégation"
                                   pTooltip="Modifier" (onClick)="openDelegateDialog()">
                         </p-button>
                     </div>
@@ -576,7 +578,8 @@ import {
                         <h3>Fichiers</h3>
                         <span class="ed-badge-count">{{ files.length }}</span>
                         <p-button *ngIf="!isEnAttente" icon="pi pi-upload" [text]="true"
-                                  size="small" pTooltip="Ajouter des fichiers"
+                                  size="small" ariaLabel="Ajouter des fichiers"
+                                  pTooltip="Ajouter des fichiers"
                                   (onClick)="triggerFileUpload()">
                         </p-button>
                     </div>
@@ -605,13 +608,16 @@ import {
                             <div class="ed-file-btns">
                                 <p-button icon="pi pi-eye" [rounded]="true" [text]="true"
                                           severity="secondary" size="small"
+                                          ariaLabel="Prévisualiser le fichier"
                                           (onClick)="openFilePreview(file)"></p-button>
                                 <p-button icon="pi pi-download" [rounded]="true" [text]="true"
                                           severity="secondary" size="small"
+                                          ariaLabel="Télécharger le fichier"
                                           (onClick)="downloadFileOnly(file)"></p-button>
                                 <p-button *ngIf="!isEnAttente" icon="pi pi-trash"
                                           [rounded]="true" [text]="true" severity="danger"
                                           size="small"
+                                          ariaLabel="Supprimer le fichier"
                                           (onClick)="confirmDeleteFile(file)"></p-button>
                             </div>
                         </div>
@@ -622,6 +628,7 @@ import {
                         <p>Aucun fichier joint</p>
                         <p-button *ngIf="!isEnAttente" label="Ajouter" icon="pi pi-upload"
                                   size="small" severity="success"
+                                  ariaLabel="Ajouter des fichiers à cet événement"
                                   (onClick)="triggerFileUpload()"></p-button>
                     </div>
                 </div>

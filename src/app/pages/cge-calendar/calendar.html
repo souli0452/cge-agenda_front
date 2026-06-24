@@ -19,17 +19,17 @@
         <!-- Mini-stats -->
         <div class="cal-stats">
             <div class="cal-stat-chip">
-                <i class="pi pi-calendar-clock"></i>
+                <i class="pi pi-calendar-clock" aria-hidden="true"></i>
                 <span class="stat-value">{{ eventsToday }}</span>
                 <span class="stat-label">aujourd'hui</span>
             </div>
             <div class="cal-stat-chip chip-blue">
-                <i class="pi pi-calendar"></i>
+                <i class="pi pi-calendar" aria-hidden="true"></i>
                 <span class="stat-value">{{ eventsThisMonth }}</span>
                 <span class="stat-label">ce mois</span>
             </div>
             <div class="cal-stat-chip chip-purple">
-                <i class="pi pi-list"></i>
+                <i class="pi pi-list" aria-hidden="true"></i>
                 <span class="stat-value">{{ events.length }}</span>
                 <span class="stat-label">total</span>
             </div>
@@ -167,7 +167,7 @@
         <div class="detail-banner"
              [style.background]="'linear-gradient(135deg, ' + darkenColor(getEventColor(selectedEvent.type)) + ', ' + getEventColor(selectedEvent.type) + ')'">
             <div class="detail-banner-type">
-                <i class="pi pi-calendar-clock"></i>
+                <i class="pi pi-calendar-clock" aria-hidden="true"></i>
                 {{ getTypeLabel(selectedEvent.type) }}
             </div>
             <h2 class="detail-banner-title">{{ selectedEvent.title }}</h2>
@@ -179,8 +179,8 @@
                     {{ getStatusLabel(selectedEvent.status) }}
                 </span>
             </div>
-            <button class="detail-close-btn" (click)="eventDetailDialogVisible = false">
-                <i class="pi pi-times"></i>
+            <button class="detail-close-btn" aria-label="Fermer le détail" (click)="eventDetailDialogVisible = false">
+                <i class="pi pi-times" aria-hidden="true"></i>
             </button>
         </div>
 
@@ -189,8 +189,8 @@
 
             <!-- Description -->
             <div class="detail-row" *ngIf="selectedEvent.description">
-                <div class="detail-icon-wrap" style="background:#e8f5e9">
-                    <i class="pi pi-align-left" style="color:#228B22"></i>
+                <div class="detail-icon-wrap" style="background:#e8f5e9" aria-hidden="true">
+                    <i class="pi pi-align-left" style="color:#228B22" aria-hidden="true"></i>
                 </div>
                 <div>
                     <div class="detail-field-label">Description</div>
@@ -200,8 +200,8 @@
 
             <!-- Période -->
             <div class="detail-row">
-                <div class="detail-icon-wrap" style="background:#e3f2fd">
-                    <i class="pi pi-calendar" style="color:#2196F3"></i>
+                <div class="detail-icon-wrap" style="background:#e3f2fd" aria-hidden="true">
+                    <i class="pi pi-calendar" style="color:#2196F3" aria-hidden="true"></i>
                 </div>
                 <div style="flex:1">
                     <div class="detail-field-label">Période</div>
@@ -220,8 +220,8 @@
 
             <!-- Lieu -->
             <div class="detail-row" *ngIf="selectedEvent.ville || selectedEvent.pays">
-                <div class="detail-icon-wrap" style="background:#fff3e0">
-                    <i class="pi pi-map-marker" style="color:#ff9800"></i>
+                <div class="detail-icon-wrap" style="background:#fff3e0" aria-hidden="true">
+                    <i class="pi pi-map-marker" style="color:#ff9800" aria-hidden="true"></i>
                 </div>
                 <div>
                     <div class="detail-field-label">Lieu</div>
@@ -233,13 +233,13 @@
 
             <!-- Lien visio -->
             <div class="detail-row" *ngIf="selectedEvent.meetingLink">
-                <div class="detail-icon-wrap" style="background:#f3e5f5">
-                    <i class="pi pi-video" style="color:#9c27b0"></i>
+                <div class="detail-icon-wrap" style="background:#f3e5f5" aria-hidden="true">
+                    <i class="pi pi-video" style="color:#9c27b0" aria-hidden="true"></i>
                 </div>
                 <div>
                     <div class="detail-field-label">Visioconférence</div>
                     <a [href]="selectedEvent.meetingLink" target="_blank" class="visio-link">
-                        <i class="pi pi-external-link"></i>
+                        <i class="pi pi-external-link" aria-hidden="true"></i>
                         Rejoindre la réunion
                     </a>
                 </div>
@@ -248,12 +248,12 @@
             <!-- Compteurs -->
             <div class="detail-counters">
                 <div class="counter-card">
-                    <i class="pi pi-users counter-icon" style="color:#228B22"></i>
+                    <i class="pi pi-users counter-icon" style="color:#228B22" aria-hidden="true"></i>
                     <span class="counter-value">{{ selectedEvent.participants?.length || 0 }}</span>
                     <span class="counter-label">participant(s)</span>
                 </div>
                 <div class="counter-card">
-                    <i class="pi pi-paperclip counter-icon" style="color:#2196F3"></i>
+                    <i class="pi pi-paperclip counter-icon" style="color:#2196F3" aria-hidden="true"></i>
                     <span class="counter-value">{{ selectedEvent.files?.length || 0 }}</span>
                     <span class="counter-label">fichier(s)</span>
                 </div>

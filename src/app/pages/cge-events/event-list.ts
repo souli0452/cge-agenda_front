@@ -175,7 +175,12 @@ import { EventRowActionsComponent } from './components/event-row-actions/event-r
                 <tr class="el-row"
                     [class.el-row-rejected]="event.status === 'REJETE'"
                     [style]="{'--row-color': getEventTypeColor(event.type)}"
-                    (click)="viewEvent(event.id)">
+                    tabindex="0"
+                    role="button"
+                    [attr.aria-label]="'Voir les détails de ' + event.title"
+                    (click)="viewEvent(event.id)"
+                    (keydown.enter)="viewEvent(event.id)"
+                    (keydown.space)="$event.preventDefault(); viewEvent(event.id)">
 
                     <!-- Barre de couleur latérale -->
                     <td class="el-td-bar"></td>
@@ -384,6 +389,7 @@ import { EventRowActionsComponent } from './components/event-row-actions/event-r
                 <td class="text-center">
                     <p-button icon="pi pi-trash" [rounded]="true" [text]="true"
                               severity="danger" size="small"
+                              ariaLabel="Retirer le participant"
                               (onClick)="confirmRemoveParticipant(p)" />
                 </td>
             </tr>
@@ -432,9 +438,13 @@ import { EventRowActionsComponent } from './components/event-row-actions/event-r
                 <td>{{ formatFileSize(file.fileSize) }}</td>
                 <td class="text-center">
                     <p-button icon="pi pi-download" [rounded]="true" [text]="true"
-                              severity="secondary" size="small" (onClick)="downloadFile(file)" />
+                              severity="secondary" size="small"
+                              ariaLabel="Télécharger le fichier"
+                              (onClick)="downloadFile(file)" />
                     <p-button icon="pi pi-trash" [rounded]="true" [text]="true"
-                              severity="danger" size="small" (onClick)="confirmDeleteFile(file)" />
+                              severity="danger" size="small"
+                              ariaLabel="Supprimer le fichier"
+                              (onClick)="confirmDeleteFile(file)" />
                 </td>
             </tr>
         </ng-template>

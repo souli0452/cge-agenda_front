@@ -55,7 +55,7 @@ const ACTION_LABELS: Record<string, string> = {
     <!-- EN-TÊTE -->
     <div class="audit-header">
         <div>
-            <h2><i class="pi pi-shield mr-2"></i>Journal d'audit</h2>
+            <h2><i class="pi pi-shield mr-2" aria-hidden="true"></i>Journal d'audit</h2>
             <p>Traçabilité complète — actions, utilisateurs, adresses IP</p>
         </div>
         <p-button label="Rafraîchir" icon="pi pi-refresh" severity="secondary"
@@ -65,7 +65,7 @@ const ACTION_LABELS: Record<string, string> = {
     <!-- UTILISATEURS ACTIFS (24h) -->
     <div class="card mb-4" *ngIf="activeUsers.length > 0">
         <div class="section-title">
-            <i class="pi pi-users" style="color:#4caf50"></i>
+            <i class="pi pi-users" style="color:#4caf50" aria-hidden="true"></i>
             Utilisateurs actifs (24 dernières heures)
             <span style="background:#e8f5e9;color:#388e3c;border-radius:12px;padding:2px 10px;font-size:12px;">
                 {{ activeUsers.length }}
@@ -155,7 +155,7 @@ const ACTION_LABELS: Record<string, string> = {
 
                     <td>
                         <span class="action-tag" [ngStyle]="getActionStyle(log.action)">
-                            <i [class]="getActionIcon(log.action)"></i>
+                            <i [class]="getActionIcon(log.action)" aria-hidden="true"></i>
                             {{ getActionLabel(log.action) }}
                         </span>
                     </td>
@@ -196,7 +196,7 @@ const ACTION_LABELS: Record<string, string> = {
             <ng-template pTemplate="emptymessage">
                 <tr>
                     <td colspan="7" class="text-center py-5" style="color:var(--text-color-secondary);">
-                        <i class="pi pi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                        <i class="pi pi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;" aria-hidden="true"></i>
                         Aucune entrée d'audit trouvée
                     </td>
                 </tr>

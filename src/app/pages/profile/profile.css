@@ -171,7 +171,7 @@
     padding: 6px 0;
 }
 
-.pf-perm i { font-size: 15px; color: #bbb; }
+.pf-perm i { font-size: 15px; color: var(--text-color-secondary); }
 .pf-perm-on { color: var(--text-color); }
 .pf-perm-on i { color: #4caf50; }
 

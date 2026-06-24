@@ -19,12 +19,14 @@ import { DividerModule }       from 'primeng/divider';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { environments } from '../../../../environments/environments';
+import { UserTableComponent } from './components/user-table/user-table';
+import { UserFormDialogComponent } from './components/user-form-dialog/user-form-dialog';
 
 // ==========================================
 // MODÈLES
 // ==========================================
 interface KeycloakUser {
-    id:               string;
+    id:               string | undefined;
     username:         string;
     email:            string;
     firstName:        string;
@@ -60,7 +62,8 @@ interface KcRole {
         ToastModule, DialogModule, InputTextModule,
         SelectModule, TooltipModule, SkeletonModule,
         IconFieldModule, InputIconModule,
-        ConfirmDialogModule, DividerModule
+        ConfirmDialogModule, DividerModule,
+        UserTableComponent, UserFormDialogComponent
     ],
     providers: [MessageService, ConfirmationService],
     styleUrls: ['./users.css'],
@@ -161,341 +164,28 @@ interface KcRole {
     <!-- TABLEAU                                      -->
     <!-- ============================================ -->
     <div class="table-card">
-
-        <!-- Skeleton loading -->
-        <div *ngIf="loading" class="skeleton-list">
-            <p-skeleton height="48px"
-                        *ngFor="let i of [1,2,3,4,5]"
-                        styleClass="mb-2" />
-        </div>
-
-        <!-- Tableau principal -->
-        <p-table
-            *ngIf="!loading"
-            [value]="filteredUsers"
-            [paginator]="true"
-            [rows]="10"
-            [rowsPerPageOptions]="[5, 10, 20, 50]"
-            [showCurrentPageReport]="true"
-            currentPageReportTemplate="Affichage de {first} à {last} sur {totalRecords}"
-            responsiveLayout="scroll"
-            styleClass="users-table"
-            [tableStyle]="{'min-width': '800px'}">
-
-            <ng-template pTemplate="header">
-                <tr>
-                    <th pSortableColumn="username" style="width:20%">
-                        Identifiant
-                        <p-sortIcon field="username" />
-                    </th>
-                    <th pSortableColumn="lastName" style="width:20%">
-                        Nom complet
-                        <p-sortIcon field="lastName" />
-                    </th>
-                    <th style="width:22%">Email</th>
-                    <th style="width:16%">Rôle</th>
-                    <th style="width:10%" class="text-center">Statut</th>
-                    <th style="width:12%" class="text-center">Actions</th>
-                </tr>
-            </ng-template>
-
-            <ng-template pTemplate="body" let-user>
-                <tr class="user-row">
-
-                    <!-- Identifiant + avatar -->
-                    <td>
-                        <div class="user-identity">
-                            <div class="user-avatar"
-                                 [style.background]="getAvatarColor(user)">
-                                {{ getInitials(user) }}
-                            </div>
-                            <span class="username-text">
-                                {{ user.username }}
-                            </span>
-                        </div>
-                    </td>
-
-                    <!-- Nom complet -->
-                    <td>
-                        <span class="fullname-text">
-                            {{ user.firstName }} {{ user.lastName }}
-                        </span>
-                    </td>
-
-                    <!-- Email -->
-                    <td>
-                        <div class="email-cell">
-                            <i class="pi pi-envelope email-icon"></i>
-                            <span>{{ user.email }}</span>
-                        </div>
-                    </td>
-
-                    <!-- Rôles -->
-                    <td>
-                        <div class="roles-cell">
-                            <div *ngFor="let r of (user.realmRoles || [getPrimaryRole(user)])"
-                                 class="role-badge role-badge-sm"
-                                 [style.background]="getRoleColor(r) + '20'"
-                                 [style.color]="getRoleColor(r)"
-                                 [style.border]="'1px solid ' + getRoleColor(r) + '40'">
-                                {{ getRoleLabel(r) }}
-                            </div>
-                        </div>
-                    </td>
-
-                    <!-- Statut -->
-                    <td class="text-center">
-                        <div class="status-badge"
-                             [class.status-active]="user.enabled"
-                             [class.status-inactive]="!user.enabled">
-                            <span class="status-dot"></span>
-                            {{ user.enabled ? 'Actif' : 'Inactif' }}
-                        </div>
-                    </td>
-
-                    <!-- Actions -->
-                    <td class="text-center">
-                        <div class="action-buttons">
-                            <p-button
-                                icon="pi pi-pencil"
-                                [rounded]="true"
-                                [text]="true"
-                                severity="secondary"
-                                size="small"
-                                pTooltip="Modifier"
-                                tooltipPosition="top"
-                                (onClick)="openEditDialog(user)" />
-
-                            <p-button
-                                [icon]="user.enabled ? 'pi pi-ban' : 'pi pi-check-circle'"
-                                [rounded]="true"
-                                [text]="true"
-                                [severity]="user.enabled ? 'warn' : 'success'"
-                                size="small"
-                                [pTooltip]="user.enabled ? 'Désactiver' : 'Activer'"
-                                tooltipPosition="top"
-                                (onClick)="toggleUserStatus(user)" />
-
-                            <p-button
-                                icon="pi pi-key"
-                                [rounded]="true"
-                                [text]="true"
-                                severity="help"
-                                size="small"
-                                pTooltip="Reset mot de passe"
-                                tooltipPosition="top"
-                                (onClick)="openResetPasswordDialog(user)" />
-
-                            <p-button
-                                icon="pi pi-id-card"
-                                [rounded]="true"
-                                [text]="true"
-                                severity="help"
-                                size="small"
-                                pTooltip="Gérer les rôles"
-                                tooltipPosition="top"
-                                (onClick)="openRolesDialog(user)" />
-
-                            <p-button
-                                icon="pi pi-trash"
-                                [rounded]="true"
-                                [text]="true"
-                                severity="danger"
-                                size="small"
-                                pTooltip="Supprimer"
-                                tooltipPosition="top"
-                                (onClick)="confirmDelete(user)" />
-                        </div>
-                    </td>
-
-                </tr>
-            </ng-template>
-
-            <ng-template pTemplate="emptymessage">
-                <tr>
-                    <td colspan="6">
-                        <div class="empty-state">
-                            <i class="pi pi-users empty-icon"></i>
-                            <h3 class="empty-title">Aucun utilisateur trouvé</h3>
-                            <p class="empty-desc">
-                                Modifiez vos filtres ou créez un nouvel utilisateur
-                            </p>
-                        </div>
-                    </td>
-                </tr>
-            </ng-template>
-
-        </p-table>
+        <app-user-table
+            [users]="filteredUsers"
+            [loading]="loading"
+            [totalRecords]="filteredUsers.length"
+            [rows]="20"
+            (edit)="openEditDialog($event)"
+            (delete)="confirmDelete($event)"
+            (roleEdit)="openRolesDialog($event)"
+            (resetPwd)="openResetPasswordDialog($event)">
+        </app-user-table>
     </div>
 </div>
 
 <!-- ============================================ -->
 <!-- DIALOG : CRÉER / MODIFIER                    -->
 <!-- ============================================ -->
-<p-dialog
+<app-user-form-dialog
     [(visible)]="userDialogVisible"
-    [modal]="true"
-    [style]="{width: '560px', 'max-height': '90vh'}"
-    [header]="editMode ? 'Modifier utilisateur' : 'Nouvel utilisateur'"
-    [draggable]="false"
-    [resizable]="false">
-
-    <div class="user-form">
-
-        <!-- Prénom + Nom -->
-        <div class="form-row-2">
-            <div class="form-field">
-                <label class="field-label">
-                    Prénom <span class="required">*</span>
-                </label>
-                <input pInputText
-                       [(ngModel)]="userForm.firstName"
-                       placeholder="Prénom"
-                       class="w-full" />
-            </div>
-            <div class="form-field">
-                <label class="field-label">
-                    Nom <span class="required">*</span>
-                </label>
-                <input pInputText
-                       [(ngModel)]="userForm.lastName"
-                       placeholder="Nom de famille"
-                       class="w-full" />
-            </div>
-        </div>
-
-        <!-- Identifiant -->
-        <div class="form-field">
-            <label class="field-label">
-                Identifiant <span class="required">*</span>
-            </label>
-            <input pInputText
-                   [(ngModel)]="userForm.username"
-                   placeholder="Ex: jean.dupont"
-                   class="w-full"
-                   [attr.readonly]="editMode ? true : null" />
-            <small class="field-hint" *ngIf="!editMode">
-                <i class="pi pi-info-circle"></i>
-                Utilisé pour la connexion — ne peut plus être modifié après création
-            </small>
-        </div>
-
-        <!-- Email -->
-        <div class="form-field">
-            <label class="field-label">
-                Email <span class="required">*</span>
-            </label>
-            <input pInputText
-                   type="email"
-                   [(ngModel)]="userForm.email"
-                   placeholder="email@ascelc.bf"
-                   class="w-full" />
-        </div>
-
-        <!-- Mot de passe (création seulement) -->
-        <div class="form-field" *ngIf="!editMode">
-            <label class="field-label">
-                Mot de passe <span class="required">*</span>
-            </label>
-            <input pInputText
-                   type="password"
-                   [(ngModel)]="userForm.password"
-                   placeholder="Minimum 8 caractères"
-                   class="w-full" />
-        </div>
-
-        <!-- Rôle -->
-        <div class="form-field">
-            <label class="field-label">
-                Rôle <span class="required">*</span>
-            </label>
-            <p-select
-                [options]="roleOptions"
-                [(ngModel)]="userForm.role"
-                optionLabel="label"
-                optionValue="value"
-                placeholder="Sélectionnez un rôle"
-                [style]="{'width': '100%'}"
-                styleClass="w-full"
-                appendTo="body"
-                [scrollHeight]="'320px'">
-
-                <!-- Item sélectionné -->
-                <ng-template pTemplate="selectedItem" let-item>
-                    <div class="role-select-item" *ngIf="item">
-                        <span class="role-dot-sm"
-                              [style.background]="getRoleColor(item.value)">
-                        </span>
-                        <span class="font-semibold">{{ item.label }}</span>
-                    </div>
-                </ng-template>
-
-                <!-- Options du dropdown -->
-                <ng-template pTemplate="item" let-item>
-                    <div class="role-dropdown-item">
-                        <span class="role-dot-sm"
-                              [style.background]="getRoleColor(item.value)">
-                        </span>
-                        <div class="role-item-info">
-                            <div class="role-item-name">{{ item.label }}</div>
-                            <div class="role-item-desc">
-                                {{ getRoleDescription(item.value) }}
-                            </div>
-                        </div>
-                    </div>
-                </ng-template>
-
-            </p-select>
-            <small class="field-hint" *ngIf="userForm.role">
-                <i class="pi pi-shield"></i>
-                {{ getRoleDescription(userForm.role) }}
-            </small>
-        </div>
-
-        <!-- Statut -->
-        <div class="form-field">
-            <label class="field-label">Statut du compte</label>
-            <div class="status-toggle">
-                <label class="status-option"
-                       [class.active-option]="userForm.enabled === true">
-                    <input type="radio"
-                           [(ngModel)]="userForm.enabled"
-                           [value]="true"
-                           style="display:none" />
-                    <i class="pi pi-check-circle"></i>
-                    Actif
-                </label>
-                <label class="status-option inactive-option"
-                       [class.selected-inactive]="userForm.enabled === false">
-                    <input type="radio"
-                           [(ngModel)]="userForm.enabled"
-                           [value]="false"
-                           style="display:none" />
-                    <i class="pi pi-ban"></i>
-                    Inactif
-                </label>
-            </div>
-        </div>
-
-    </div>
-
-    <ng-template pTemplate="footer">
-        <div class="dialog-footer">
-            <p-button
-                label="Annuler"
-                [text]="true"
-                severity="secondary"
-                (onClick)="userDialogVisible = false" />
-            <p-button
-                [label]="editMode ? 'Enregistrer' : 'Creer'"
-                [icon]="editMode ? 'pi pi-save' : 'pi pi-plus'"
-                severity="success"
-                [loading]="actionLoading"
-                [disabled]="!isFormValid()"
-                (onClick)="saveUser()" />
-        </div>
-    </ng-template>
-</p-dialog>
+    [user]="selectedUser"
+    [editMode]="editMode"
+    (save)="onUserFormSave($event)">
+</app-user-form-dialog>
 
 <!-- ============================================ -->
 <!-- DIALOG : RESET MOT DE PASSE                  -->
@@ -979,7 +669,7 @@ export class AdminUsersComponent implements OnInit {
         this.userDialogVisible = true;
     }
 
-    openEditDialog(user: KeycloakUser): void {
+    openEditDialog(user: any): void {
         this.editMode     = true;
         this.selectedUser = user;
         this.userForm = {
@@ -994,7 +684,33 @@ export class AdminUsersComponent implements OnInit {
         this.userDialogVisible = true;
     }
 
-    openResetPasswordDialog(user: KeycloakUser): void {
+    onUserFormSave(data: any): void {
+        if (this.editMode && this.selectedUser) {
+            this.userForm = {
+                username:  data.username  || this.selectedUser.username,
+                email:     data.email,
+                firstName: data.firstName,
+                lastName:  data.lastName,
+                password:  data.password  || '',
+                role:      data.role,
+                enabled:   data.enabled
+            };
+            this.saveUser();
+        } else {
+            this.userForm = {
+                username:  data.username,
+                email:     data.email,
+                firstName: data.firstName,
+                lastName:  data.lastName,
+                password:  data.password,
+                role:      data.role,
+                enabled:   data.enabled
+            };
+            this.saveUser();
+        }
+    }
+
+    openResetPasswordDialog(user: any): void {
         this.selectedUser            = user;
         this.newPassword             = '';
         this.confirmPassword         = '';
@@ -1112,7 +828,7 @@ export class AdminUsersComponent implements OnInit {
         });
     }
 
-    confirmDelete(user: KeycloakUser): void {
+    confirmDelete(user: any): void {
         this.confirmationService.confirm({
             message:               `Supprimer définitivement "${user.firstName} ${user.lastName}" (${user.username}) ?`,
             header:                'Confirmation de suppression',
@@ -1205,7 +921,7 @@ export class AdminUsersComponent implements OnInit {
     // ==========================================
     // GESTION DES RÔLES PAR UTILISATEUR
     // ==========================================
-    openRolesDialog(user: KeycloakUser): void {
+    openRolesDialog(user: any): void {
         this.selectedUserForRoles = user;
         this.roleToAssign         = '';
         this.rolesLoading         = true;
