@@ -1,0 +1,77 @@
+<p-dialog [(visible)]="visible"
+          [modal]="true"
+          [header]="editMode ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'"
+          [style]="{ width: '520px' }"
+          [draggable]="false"
+          (onHide)="close()">
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="form-row-2">
+            <div class="form-field">
+                <label class="field-label" for="uf-lastname">Nom <span class="required">*</span></label>
+                <input pInputText id="uf-lastname" formControlName="lastName" class="w-full"
+                       [ngClass]="{'ng-invalid ng-dirty': form.get('lastName')?.invalid && form.get('lastName')?.touched}" />
+                @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+                    <small class="field-error">Nom requis</small>
+                }
+            </div>
+            <div class="form-field">
+                <label class="field-label" for="uf-firstname">Prénom <span class="required">*</span></label>
+                <input pInputText id="uf-firstname" formControlName="firstName" class="w-full" />
+            </div>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label" for="uf-email">Email <span class="required">*</span></label>
+            <input pInputText id="uf-email" type="email" formControlName="email" class="w-full" />
+            @if (form.get('email')?.errors?.['email'] && form.get('email')?.touched) {
+                <small class="field-error">Format email invalide</small>
+            }
+        </div>
+
+        @if (!editMode) {
+            <div class="form-field">
+                <label class="field-label" for="uf-username">Nom d'utilisateur <span class="required">*</span></label>
+                <input pInputText id="uf-username" formControlName="username" class="w-full" />
+            </div>
+
+            <div class="form-field">
+                <label class="field-label" for="uf-password">Mot de passe <span class="required">*</span></label>
+                <input pInputText id="uf-password" type="password" formControlName="password" class="w-full" />
+                <small class="field-hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Minimum 8 caractères</small>
+            </div>
+        }
+
+        <div class="form-field">
+            <label class="field-label" for="uf-role">Rôle <span class="required">*</span></label>
+            <p-select id="uf-role" [options]="roleOptions" formControlName="role"
+                      placeholder="Sélectionner un rôle" class="w-full" appendTo="body">
+            </p-select>
+        </div>
+
+        <div class="form-field">
+            <label class="field-label">Statut du compte</label>
+            <div class="status-toggle">
+                <div class="status-option" [class.active-option]="form.get('enabled')?.value === true"
+                     (click)="form.get('enabled')?.setValue(true)" role="radio" tabindex="0"
+                     (keydown.enter)="form.get('enabled')?.setValue(true)">
+                    <i class="pi pi-check-circle" aria-hidden="true"></i> Actif
+                </div>
+                <div class="status-option inactive-option" [class.selected-inactive]="form.get('enabled')?.value === false"
+                     (click)="form.get('enabled')?.setValue(false)" role="radio" tabindex="0"
+                     (keydown.enter)="form.get('enabled')?.setValue(false)">
+                    <i class="pi pi-times-circle" aria-hidden="true"></i> Inactif
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="close()"></p-button>
+        <p-button [label]="editMode ? 'Enregistrer' : 'Créer'"
+                  severity="success"
+                  [disabled]="form.invalid"
+                  (onClick)="submit()">
+        </p-button>
+    </ng-template>
+</p-dialog>

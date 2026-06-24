@@ -1,0 +1,108 @@
+<div class="ut-search-bar">
+    <label for="ut-search" class="sr-only">Rechercher un utilisateur</label>
+    <p-iconfield iconPosition="left">
+        <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
+        <input pInputText id="ut-search" type="text"
+               [(ngModel)]="search"
+               placeholder="Rechercher par nom, email…"
+               autocomplete="off"
+               class="w-full" />
+    </p-iconfield>
+</div>
+
+@if (loading) {
+    <div style="padding:20px">
+        @for (i of [1,2,3,4,5]; track i) {
+            <p-skeleton height="48px" styleClass="mb-2"></p-skeleton>
+        }
+    </div>
+} @else {
+    <p-table [value]="filteredUsers"
+             [rows]="rows"
+             [paginator]="true"
+             [rowsPerPageOptions]="[10, 20, 50]"
+             [totalRecords]="filteredUsers.length"
+             [tableStyle]="{'min-width': '60rem'}"
+             styleClass="users-table p-datatable-sm">
+
+        <ng-template pTemplate="header">
+            <tr>
+                <th scope="col">Utilisateur</th>
+                <th scope="col">Email</th>
+                <th scope="col">Rôle principal</th>
+                <th scope="col">Statut</th>
+                <th scope="col" style="width:160px; text-align:center">Actions</th>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="body" let-user>
+            <tr class="user-row">
+                <td>
+                    <div class="user-identity">
+                        <div class="user-avatar"
+                             [style.background]="getRoleColor(user.realmRoles?.[0] || user.roles?.[0])">
+                            {{ getInitials(user) }}
+                        </div>
+                        <div>
+                            <div class="fullname-text">{{ user.lastName }} {{ user.firstName }}</div>
+                            <div class="username-text">&#64;{{ user.username }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td>{{ user.email }}</td>
+                <td>
+                    <span class="role-badge"
+                          [style.color]="getRoleColor(user.realmRoles?.[0] || user.roles?.[0])"
+                          [style.background]="getRoleBg(user.realmRoles?.[0] || user.roles?.[0])">
+                        {{ getRoleLabel(user.realmRoles?.[0] || user.roles?.[0] || 'USER') }}
+                    </span>
+                </td>
+                <td>
+                    <span class="status-badge"
+                          [class.status-active]="user.enabled"
+                          [class.status-inactive]="!user.enabled">
+                        <span class="status-dot"></span>
+                        {{ user.enabled ? 'Actif' : 'Inactif' }}
+                    </span>
+                </td>
+                <td>
+                    <div class="action-buttons" [attr.aria-label]="'Actions pour ' + user.lastName">
+                        <p-button icon="pi pi-pencil"
+                                  ariaLabel="Modifier l'utilisateur"
+                                  [rounded]="true" [text]="true" severity="secondary"
+                                  pTooltip="Modifier" tooltipPosition="top"
+                                  (onClick)="edit.emit(user)">
+                        </p-button>
+                        <p-button icon="pi pi-id-card"
+                                  ariaLabel="Gérer les rôles"
+                                  [rounded]="true" [text]="true" severity="help"
+                                  pTooltip="Rôles" tooltipPosition="top"
+                                  (onClick)="roleEdit.emit(user)">
+                        </p-button>
+                        <p-button icon="pi pi-key"
+                                  ariaLabel="Réinitialiser le mot de passe"
+                                  [rounded]="true" [text]="true" severity="warn"
+                                  pTooltip="Reset MDP" tooltipPosition="top"
+                                  (onClick)="resetPwd.emit(user)">
+                        </p-button>
+                        <p-button icon="pi pi-trash"
+                                  ariaLabel="Supprimer l'utilisateur"
+                                  [rounded]="true" [text]="true" severity="danger"
+                                  pTooltip="Supprimer" tooltipPosition="top"
+                                  (onClick)="delete.emit(user)">
+                        </p-button>
+                    </div>
+                </td>
+            </tr>
+        </ng-template>
+
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5" class="empty-state">
+                    <i class="pi pi-users empty-icon" aria-hidden="true"></i>
+                    <p class="empty-title">Aucun utilisateur trouvé</p>
+                </td>
+            </tr>
+        </ng-template>
+    </p-table>
+}
