@@ -1,36 +1,238 @@
-:host ::ng-deep {
-    .p-chart canvas {
-        max-height: 320px;
+.db-shell {
+    position: relative;
+    width: 100%;
+}
+.db-wrap {
+    position: relative;
+    padding:  var(--pad) 0; 
+}
+
+.db-wrap .mb-grid {
+    max-width: none;
+    margin:    0;
+    padding:   0;
+}
+
+.db-grid-toggle {
+    position:    fixed;
+    top:         80px;
+    right:       18px;
+    z-index:     1000;
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    background:  var(--surface-card);
+    border:      1px solid var(--surface-border);
+    border-radius: 6px;
+    padding:     6px 12px;
+    font-family: monospace;
+    font-size:   11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color:       var(--text-color-secondary);
+    cursor:      pointer;
+    transition:  all 0.2s ease;
+    box-shadow:  0 2px 8px rgba(0,0,0,0.08);
+}
+.db-grid-toggle:hover {
+    background: var(--surface-hover);
+    color:      var(--text-color);
+}
+body.mb-grid-on .db-grid-toggle {
+    background: var(--cge-vert);
+    color:      #fff;
+    border-color: var(--cge-vert);
+}
+
+.db-toggle-dot {
+    width:         8px;
+    height:        8px;
+    border-radius: 50%;
+    background:    var(--surface-border);
+}
+body.mb-grid-on .db-toggle-dot {
+    background: rgba(255,255,255,0.8);
+}
+
+.db-header-left {
+    padding-top: calc(2 * var(--bl));
+}
+.db-header-right {
+    display:         flex;
+    align-items:     flex-end;
+    justify-content: flex-end;
+    padding-top:     calc(2 * var(--bl));
+}
+
+.db-eyebrow {
+    margin:         0 0 calc(var(--bl)) 0;
+    font-family:    monospace;
+    font-size:      11px;
+    font-weight:    600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color:          var(--cge-vert-moyen);
+}
+
+.db-title {
+    margin:      0 0 calc(var(--bl)) 0;
+    font-size:   clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 800;
+    line-height: calc(4 * var(--bl));   
+    letter-spacing: -0.025em;
+    color:       var(--text-color);
+}
+
+.db-subtitle {
+    margin:    0;
+    font-size: 0.9375rem;
+    line-height: var(--lh);            
+    color:     var(--text-color-secondary);
+}
+
+.db-rule {
+    border: none;
+    border-top: 2px solid var(--surface-border);
+    margin: 0;
+}
+
+.db-chart-hd {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     baseline;
+    margin-bottom:   calc(2 * var(--bl));
+}
+.db-chart-title {
+    margin:      0;
+    font-size:   1rem;
+    font-weight: 700;
+    line-height: var(--lh);
+    color:       var(--text-color);
+}
+.db-chart-sub {
+    font-family: monospace;
+    font-size:   11px;
+    color:       var(--text-color-secondary);
+}
+
+.db-table-hd {
+    display:         flex;
+    justify-content: space-between;
+    align-items:     center;
+    margin-bottom:   calc(2 * var(--bl));
+}
+
+.db-stats-band {
+    background:    var(--surface-ground);
+    border-radius: 12px;
+    padding:       calc(3 * var(--bl)) calc(2 * var(--bl));
+}
+
+.db-stat {
+    display:        flex;
+    flex-direction: column;
+    align-items:    center;
+    gap:            calc(var(--bl));
+    padding:        calc(var(--bl)) 0;
+}
+
+.db-stat-num {
+    font-size:      clamp(2.5rem, 4vw, 3.5rem);
+    font-weight:    900;
+    line-height:    1;
+    letter-spacing: -0.03em;
+    font-variant-numeric: tabular-nums;
+}
+.db-stat--blue  { color: #3B82F6; }
+.db-stat--amber { color: #D97706; }
+.db-stat--green { color: var(--cge-vert-moyen); }
+.db-stat--red   { color: var(--cge-danger); }
+
+.db-stat-lbl {
+    font-family:    monospace;
+    font-size:      10px;
+    font-weight:    700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color:          var(--text-color-secondary);
+}
+
+@media (max-width: 768px) {
+
+   
+    .db-wrap { padding: 0 !important; }
+    .db-wrap .mb-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 12px !important;
+        padding: 0 !important;
     }
+
+    .mb-band {
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 12px !important;
+        width: 100% !important;
+    }
+
+    .db-header-left  { grid-column: 1 / -1 !important; }
+    .db-header-right {
+        grid-column: 1 / -1 !important;
+        justify-content: flex-start !important;
+        padding-top: 0 !important;
+    }
+
+    .db-rule { grid-column: 1 / -1 !important; }
+
+    .kpi-card {
+        grid-column: auto !important;
+        min-width: 0;
+        padding: 1.25rem 1rem 1rem 1.25rem !important;
+    }
+    .kpi-value { font-size: 1.75rem; }
+    .kpi-label { font-size: 0.6rem; white-space: nowrap; }
+    .kpi-meta  { font-size: 0.7rem; }
+
+    .card:not(.kpi-card) {
+        grid-column: 1 / -1 !important;
+        overflow: hidden;
+    }
+
+    :host ::ng-deep .p-chart {
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    :host ::ng-deep .p-chart canvas {
+        max-width: 100% !important;
+        max-height: 220px !important;
+        height: 220px !important;
+    }
+
+    .db-stats-band {
+        grid-column: 1 / -1 !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 10px !important;
+        padding: calc(2 * var(--bl)) !important;
+    }
+    .db-stat { grid-column: auto !important; }
+    .db-stat-num { font-size: clamp(2rem, 6vw, 2.5rem); }
+
+    .db-title { font-size: clamp(1.4rem, 5vw, 2rem); }
+
+    .db-grid-toggle { display: none; }
+}
+
+:host ::ng-deep {
+    .p-chart canvas { max-height: 320px; }
 
     .p-datatable .p-datatable-tbody > tr {
-        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+        transition: background-color 0.15s ease;
     }
-
     .p-datatable .p-datatable-tbody > tr:hover {
         background: var(--surface-hover) !important;
-        transform: scale(1.01);
     }
 
-    .p-tag {
-        font-size: 0.7rem;
-        padding: 0.25rem 0.5rem;
-        font-weight: 600;
-    }
-
-    .p-button.p-button-sm {
-        padding: 0.375rem;
-    }
-
-    .card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-
-    .card.hover\:shadow-lg:hover {
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-
-    .cursor-pointer {
-        cursor: pointer;
-    }
+    .p-tag { font-size: 0.7rem; padding: 0.25rem 0.5rem; font-weight: 600; }
+    .cursor-pointer { cursor: pointer; }
 }

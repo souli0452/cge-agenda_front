@@ -2,8 +2,6 @@
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
-
-// PrimeNG
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { TableModule, TableLazyLoadEvent } from 'primeng/table';
@@ -14,8 +12,6 @@ import { Select } from 'primeng/select';
 import { IconField } from 'primeng/iconfield';
 import { InputIcon } from 'primeng/inputicon';
 import { MessageService, ConfirmationService } from 'primeng/api';
-
-// Services & Models
 import { ParticipantService } from '../../service/participant.service';
 import { Participant } from '../../models';
 

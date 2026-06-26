@@ -54,9 +54,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
     addParticipantDialogVisible = false;
     selectedParticipantToAdd: any;
 
-    // ==========================================
-    // OPTIONS — Types événement
-    // ==========================================
+   
     eventTypes = [
         { label: 'Réunion',    value: 'REUNION'    },
         { label: 'Conférence', value: 'CONFERENCE' },
@@ -67,9 +65,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         { label: 'Autre',      value: 'AUTRE'      }
     ];
 
-    // ==========================================
-    // ✅ OPTIONS — Types de lieu
-    // ==========================================
+   
     lieuTypes = [
         { label: '🏛️ Interne — Dans le bâtiment ASCELC', value: 'INTERNE'       },
         { label: '🇧🇫 National — Burkina Faso',           value: 'NATIONAL'      },
@@ -77,7 +73,6 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         { label: '💻 Virtuel — Réunion en ligne',          value: 'VIRTUEL'       }
     ];
 
-    // ✅ Salles internes ASCELC
    sallesDisponibles = [
     { label: 'Bureau CGE',                  value: 'Bureau CGE'                  },
     { label: 'Bureau CGEA',                 value: 'Bureau CGEA'                 },
@@ -90,7 +85,6 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
     { label: 'Autre',                       value: 'Autre'                       }
 ];
 
-    // ✅ Villes Burkina Faso
     villesBurkina = [
         'Ouagadougou', 'Bobo-Dioulasso', 'Koudougou',
         'Banfora', 'Ouahigouya', 'Kaya', 'Dédougou',
@@ -123,9 +117,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         }
     }
 
-    // ==========================================
-    // INITIALISATION DU FORMULAIRE
-    // ==========================================
+   
     initForm(): void {
         this.eventForm = this.fb.group({
             title:       ['', Validators.required],
@@ -133,8 +125,6 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
             description: [''],
             startDate:   ['', Validators.required],
             endDate:     ['', Validators.required],
-
-            // ✅ Champs lieu enrichis
             lieuType:    [''],
             salle:       [''],       // INTERNE
             ville:       [''],       // NATIONAL + INTERNATIONAL
@@ -143,7 +133,6 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
             meetingLink: ['']        // VIRTUEL + tous
         }, { validators: endDateAfterStart });
 
-        // ✅ Réinitialiser les champs lieu quand lieuType change
         this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
             this.eventForm.patchValue({
                 salle:       '',
@@ -155,16 +144,10 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         });
     }
 
-    // ==========================================
-    // GETTER — type de lieu courant
-    // ==========================================
     get currentLieuType(): string {
         return this.eventForm.get('lieuType')?.value || '';
     }
 
-    // ==========================================
-    // CHARGEMENT
-    // ==========================================
     loadEvent(): void {
         if (!this.eventId) return;
         this.loading = true;
@@ -179,7 +162,6 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
                     description: event.description || '',
                     startDate:   event.startDate   || '',
                     endDate:     event.endDate     || '',
-                    // ✅ Champs lieu
                     lieuType:    (event as any).lieuType    || '',
                     salle:       (event as any).salle       || '',
                     ville:       event.ville       || '',
@@ -218,11 +200,6 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         });
     }
 
-
-
-    // ==========================================
-    // SOUMISSION
-    // ==========================================
     onSubmit(): void {
         if (this.eventForm.invalid) {
             this.eventForm.markAllAsTouched();
@@ -246,14 +223,12 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
             startDate:   fv.startDate,
             endDate:     fv.endDate,
             status:      this.currentStatus,
-            // ✅ Champs lieu
             lieuType:    fv.lieuType    || null,
             salle:       fv.salle?.trim()    || null,
             ville:       fv.ville?.trim()    || null,
             pays:        fv.pays?.trim()     || null,
             nomLieu:     fv.nomLieu?.trim()  || null,
             meetingLink: fv.meetingLink?.trim() || null,
-            // Champs requis par le backend
             globalStartTime: undefined,
             globalEndTime:   undefined,
             schedules:       [],
@@ -286,9 +261,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         });
     }
 
-    // ==========================================
-    // PARTICIPANTS
-    // ==========================================
+
     showAddParticipantDialog(): void {
         this.selectedParticipantToAdd    = null;
         this.participantSuggestions      = [];
@@ -359,9 +332,6 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         });
     }
 
-    // ==========================================
-    // FICHIERS
-    // ==========================================
     onFileSelected(event: any): void {
         if (!this.eventId) return;
         const files = event.target.files;
@@ -429,9 +399,6 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         });
     }
 
-    // ==========================================
-    // HELPERS
-    // ==========================================
     getFileIcon(fileName: string): string {
         const ext = fileName.split('.').pop()?.toLowerCase();
         const icons: Record<string, string> = {

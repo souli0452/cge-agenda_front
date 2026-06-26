@@ -104,3 +104,31 @@
     }
     .p-datatable .p-datatable-tbody > tr > td { padding: 10px 12px; }
 }
+
+@media (max-width: 768px) {
+    .audit-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 18px 16px;
+    }
+    .audit-header h2 { font-size: 18px; }
+
+    .active-users-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-bar {
+        flex-direction: column;
+        padding: 12px;
+    }
+    .filters-bar > * {
+        flex: 1 1 100%;
+        min-width: unset;
+        width: 100%;
+    }
+
+    :host ::ng-deep .p-datatable-wrapper {
+        overflow-x: auto !important;
+    }
+}

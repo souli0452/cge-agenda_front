@@ -1,10 +1,6 @@
 <p-toast position="top-right"></p-toast>
 
 <div class="cal-page">
-
-    <!-- ================================================
-         EN-TÊTE
-         ================================================ -->
     <div class="cal-header">
         <div class="cal-header-left">
             <div class="cal-header-icon" aria-hidden="true">
@@ -16,7 +12,6 @@
             </div>
         </div>
 
-        <!-- Mini-stats -->
         <div class="cal-stats">
             <div class="cal-stat-chip">
                 <i class="pi pi-calendar-clock" aria-hidden="true"></i>
@@ -34,8 +29,6 @@
                 <span class="stat-label">total</span>
             </div>
         </div>
-
-        <!-- Actions -->
         <div class="cal-header-actions">
             <div class="export-group">
                 <p-button
@@ -78,9 +71,6 @@
         </div>
     </div>
 
-    <!-- ================================================
-         BARRE DE FILTRES
-         ================================================ -->
     <div class="cal-filters">
         <label for="cal-search" class="sr-only">Rechercher un événement</label>
         <p-iconfield iconPosition="left" class="cal-search">
@@ -122,13 +112,7 @@
             (onClick)="resetFilters()">
         </p-button>
     </div>
-
-    <!-- ================================================
-         CALENDRIER + LÉGENDE
-         ================================================ -->
     <div class="cal-card">
-
-        <!-- Légende intégrée -->
         <div class="cal-legend">
             <span class="legend-title-sm">Légende :</span>
             <div *ngFor="let item of legendItems" class="legend-pill"
@@ -141,18 +125,12 @@
         </div>
 
         <div class="cal-divider"></div>
-
-        <!-- FullCalendar -->
         <div class="fc-wrapper">
             <div #calendarEl></div>
         </div>
     </div>
 
 </div>
-
-<!-- ================================================
-     DIALOG : DÉTAIL ÉVÉNEMENT
-     ================================================ -->
 <p-dialog
     [(visible)]="eventDetailDialogVisible"
     [modal]="true"
@@ -163,7 +141,6 @@
 
     <div *ngIf="selectedEvent" class="detail-dialog">
 
-        <!-- Bannière colorée -->
         <div class="detail-banner"
              [style.background]="'linear-gradient(135deg, ' + darkenColor(getEventColor(selectedEvent.type)) + ', ' + getEventColor(selectedEvent.type) + ')'">
             <div class="detail-banner-type">
@@ -184,10 +161,7 @@
             </button>
         </div>
 
-        <!-- Corps -->
         <div class="detail-body">
-
-            <!-- Description -->
             <div class="detail-row" *ngIf="selectedEvent.description">
                 <div class="detail-icon-wrap" style="background:#e8f5e9" aria-hidden="true">
                     <i class="pi pi-align-left" style="color:#228B22" aria-hidden="true"></i>
@@ -197,8 +171,6 @@
                     <div class="detail-field-value">{{ selectedEvent.description }}</div>
                 </div>
             </div>
-
-            <!-- Période -->
             <div class="detail-row">
                 <div class="detail-icon-wrap" style="background:#e3f2fd" aria-hidden="true">
                     <i class="pi pi-calendar" style="color:#2196F3" aria-hidden="true"></i>
@@ -217,8 +189,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Lieu -->
             <div class="detail-row" *ngIf="selectedEvent.ville || selectedEvent.pays">
                 <div class="detail-icon-wrap" style="background:#fff3e0" aria-hidden="true">
                     <i class="pi pi-map-marker" style="color:#ff9800" aria-hidden="true"></i>
@@ -230,8 +200,6 @@
                     </div>
                 </div>
             </div>
-
-            <!-- Lien visio -->
             <div class="detail-row" *ngIf="selectedEvent.meetingLink">
                 <div class="detail-icon-wrap" style="background:#f3e5f5" aria-hidden="true">
                     <i class="pi pi-video" style="color:#9c27b0" aria-hidden="true"></i>
@@ -244,8 +212,6 @@
                     </a>
                 </div>
             </div>
-
-            <!-- Compteurs -->
             <div class="detail-counters">
                 <div class="counter-card">
                     <i class="pi pi-users counter-icon" style="color:#228B22" aria-hidden="true"></i>
@@ -260,8 +226,6 @@
             </div>
 
         </div>
-
-        <!-- Footer -->
         <div class="detail-footer">
             <p-button
                 label="Fermer"

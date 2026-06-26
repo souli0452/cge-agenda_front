@@ -1,8 +1,6 @@
 <div class="event-edit-container">
   <p-toast />
   <p-confirmDialog />
-
-  <!-- En-tête -->
   <div class="page-header">
     <div class="header-left">
       <h1>
@@ -12,7 +10,6 @@
     </div>
   </div>
 
-  <!-- Contenu principal -->
   <div class="step-content">
     <div class="phase-intro">
       <i class="pi pi-info-circle"></i>
@@ -28,10 +25,6 @@
       <p-skeleton width="100%" height="50px" />
     } @else {
       <form [formGroup]="eventForm" (ngSubmit)="onSubmit()">
-
-        <!-- ============================================ -->
-        <!-- INFORMATIONS GÉNÉRALES                       -->
-        <!-- ============================================ -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-info-circle"></i>
@@ -71,10 +64,6 @@
             }
           </div>
         </div>
-
-        <!-- ============================================ -->
-        <!-- DATES                                        -->
-        <!-- ============================================ -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-calendar"></i>
@@ -109,17 +98,12 @@
             </div>
           </div>
         </div>
-
-        <!-- ============================================ -->
-        <!-- ✅ LIEU ENRICHI                               -->
-        <!-- ============================================ -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-map-marker"></i>
             Lieu de l'événement
           </h3>
 
-          <!-- TYPE DE LIEU -->
           <div class="form-field">
             <label class="field-label">Type de lieu</label>
             <div class="lieu-type-grid">
@@ -159,7 +143,6 @@
             </div>
           </div>
 
-          <!-- ✅ INTERNE → salle -->
           @if (currentLieuType === 'INTERNE') {
             <div class="form-field">
               <label class="field-label">
@@ -177,7 +160,6 @@
             </div>
           }
 
-          <!-- ✅ NATIONAL → ville Burkina + nom du lieu -->
           @if (currentLieuType === 'NATIONAL') {
             <div class="grid-2-cols">
               <div class="form-field">
@@ -199,7 +181,6 @@
             </div>
           }
 
-          <!-- ✅ INTERNATIONAL → pays + ville + nom du lieu -->
           @if (currentLieuType === 'INTERNATIONAL') {
             <div class="form-field">
               <label class="field-label">
@@ -227,7 +208,6 @@
             </div>
           }
 
-          <!-- ✅ VIRTUEL → lien meeting obligatoire -->
           @if (currentLieuType === 'VIRTUEL') {
             <div class="form-field">
               <label class="field-label">
@@ -243,7 +223,6 @@
             </div>
           }
 
-          <!-- ✅ Lien visio optionnel pour INTERNE/NATIONAL/INTERNATIONAL -->
           @if (currentLieuType && currentLieuType !== 'VIRTUEL') {
             <div class="form-field">
               <label class="field-label">
@@ -260,10 +239,6 @@
           }
 
         </div>
-
-        <!-- ============================================ -->
-        <!-- PARTICIPANTS                                  -->
-        <!-- ============================================ -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-users"></i>
@@ -289,19 +264,19 @@
                   </div>
                   <div class="grid-2-cols">
                     <div>
-                      <strong>📧 Email</strong>
+                      <strong>Email</strong>
                       <p class="field-value">{{ participant.email }}</p>
                     </div>
                     <div>
-                      <strong>📞 Téléphone</strong>
+                      <strong>Téléphone</strong>
                       <p class="field-value">{{ participant.phoneNumber || '—' }}</p>
                     </div>
                     <div>
-                      <strong>🏢 Structure</strong>
+                      <strong>Structure</strong>
                       <p class="field-value">{{ participant.structure || 'Non renseignée' }}</p>
                     </div>
                     <div>
-                      <strong>💼 Fonction</strong>
+                      <strong>Fonction</strong>
                       <p class="field-value">{{ participant.jobTitle || '—' }}</p>
                     </div>
                   </div>
@@ -322,10 +297,6 @@
                     class="mt-3" styleClass="btn-ascelc"
                     (onClick)="showAddParticipantDialog()" />
         </div>
-
-        <!-- ============================================ -->
-        <!-- FICHIERS                                     -->
-        <!-- ============================================ -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-paperclip"></i>
@@ -368,10 +339,6 @@
                     class="mt-3" styleClass="btn-ascelc"
                     (onClick)="fileInput.click()" />
         </div>
-
-        <!-- ============================================ -->
-        <!-- ACTIONS                                      -->
-        <!-- ============================================ -->
         <div class="step-actions">
           <p-button icon="pi pi-arrow-left" label="Retour"
                     severity="secondary" [outlined]="true"
@@ -385,7 +352,6 @@
     }
   </div>
 
-  <!-- Dialog Ajouter Participant -->
   <p-dialog [(visible)]="addParticipantDialogVisible"
             [modal]="true" [style]="{ width: '500px' }"
             header="Sélectionner un participant">

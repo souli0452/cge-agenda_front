@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, ViewChild, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -23,6 +23,8 @@ import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
+import JSZip from 'jszip';
+import { forkJoin, of } from 'rxjs';
 
 import { EventService }       from '../../service/event.service';
 import { ParticipantService } from '../../service/participant.service';
@@ -43,6 +45,8 @@ import {
 } from '../../models';
 import { EventFiltersComponent, EventFilters } from './components/event-filters/event-filters';
 import { EventRowActionsComponent } from './components/event-row-actions/event-row-actions';
+import { environments } from '../../../environments/environments';
+import { AgendaYearService } from '../../service/agenda-year.service';
 
 @Component({
     selector: 'app-event-list',
@@ -116,6 +120,23 @@ import { EventRowActionsComponent } from './components/event-row-actions/event-r
                     severity="secondary"
                     pTooltip="Exporter en Excel"
                     (onClick)="exportToExcel()">
+                </p-button>
+                <p-button
+                    icon="pi pi-download"
+                    label="Fichiers (.zip)"
+                    [outlined]="true"
+                    severity="secondary"
+                    pTooltip="Télécharger toutes les pièces jointes"
+                    [loading]="zippingFiles"
+                    (onClick)="exportFilesAsZip()">
+                </p-button>
+                <p-button
+                    icon="pi pi-print"
+                    label="Rapport"
+                    [outlined]="true"
+                    severity="secondary"
+                    pTooltip="Ouvrir le rapport imprimable"
+                    (onClick)="openReport()">
                 </p-button>
             </div>
             <p-button
@@ -508,7 +529,8 @@ export class EventListComponent implements OnInit, OnDestroy {
 
     @ViewChild('eventMenu') eventMenu!: Menu;
 
-    loading = false;
+    loading      = false;
+    zippingFiles = false;
     events:         Event[] = [];
     filteredEvents: Event[] = [];
 
@@ -555,8 +577,16 @@ export class EventListComponent implements OnInit, OnDestroy {
         private router:              Router,
         private route:               ActivatedRoute,
         private confirmationService: ConfirmationService,
-        private messageService:      MessageService
-    ) {}
+        private messageService:      MessageService,
+        private agendaYearService:   AgendaYearService
+    ) {
+        effect(() => {
+            const _year = this.agendaYearService.year();
+            if (this.eventsLoaded) this.loadEvents();
+        });
+    }
+
+    private eventsLoaded = false;
 
     ngOnInit(): void {
         this.loadEvents();
@@ -638,11 +668,16 @@ export class EventListComponent implements OnInit, OnDestroy {
 
     loadEvents(): void {
         this.loading = true;
+        const year = this.agendaYearService.year();
         this.eventService.getAllEvents().subscribe({
             next: (events: Event[]) => {
-                this.events         = events;
-                this.filteredEvents = events;
+                const filtered = events.filter(e =>
+                    new Date(e.startDate).getFullYear() === year
+                );
+                this.events         = filtered;
+                this.filteredEvents = filtered;
                 this.loading        = false;
+                this.eventsLoaded   = true;
                 this.updateEventStatuses();
             },
             error: () => {
@@ -666,9 +701,7 @@ export class EventListComponent implements OnInit, OnDestroy {
         });
     }
 
-    // ==========================================
-    // LIEU ENRICHI
-    // ==========================================
+
     getEventLieu(event: any): string {
         if (event.lieuType === 'INTERNE')
             return event.salle ? 'ASCELC — ' + event.salle : 'ASCELC';
@@ -695,9 +728,7 @@ export class EventListComponent implements OnInit, OnDestroy {
         return 'pi pi-map-marker';
     }
 
-    // ==========================================
-    // MENU CONTEXTUEL
-    // ==========================================
+
     showEventMenu(event: any, eventData: Event): void {
         this.selectedEvent = eventData;
         const status    = eventData.status as string;
@@ -724,9 +755,6 @@ export class EventListComponent implements OnInit, OnDestroy {
         this.eventMenu.toggle(event);
     }
 
-    // ==========================================
-    // PARTICIPANTS
-    // ==========================================
     openManageParticipants(): void {
         if (!this.selectedEvent?.id) return;
         this.loadingParticipants      = true;
@@ -847,9 +875,6 @@ export class EventListComponent implements OnInit, OnDestroy {
         });
     }
 
-    // ==========================================
-    // FICHIERS
-    // ==========================================
     openManageFiles(): void {
         if (!this.selectedEvent?.id) return;
         this.loadingFiles = true;
@@ -926,9 +951,6 @@ export class EventListComponent implements OnInit, OnDestroy {
         });
     }
 
-    // ==========================================
-    // ANNULER / REPORTER
-    // ==========================================
     showCancelDialog(): void { this.cancelReason = ''; this.cancelDialogVisible = true; }
 
     cancelEvent(): void {
@@ -960,9 +982,6 @@ export class EventListComponent implements OnInit, OnDestroy {
         });
     }
 
-    // ==========================================
-    // FILTRES
-    // ==========================================
     applyFilters(): void {
         this.filteredEvents = this.events.filter(event => {
             const kw = this.searchKeyword?.toLowerCase();
@@ -987,9 +1006,6 @@ export class EventListComponent implements OnInit, OnDestroy {
         this.applyFilters();
     }
 
-    // ==========================================
-    // PERMISSION HELPERS (pour EventRowActionsComponent)
-    // ==========================================
     canEditEvent(event: Event): boolean {
         const status = event.status as string;
         return status !== 'ANNULER' && status !== 'TERMINE';
@@ -1003,10 +1019,6 @@ export class EventListComponent implements OnInit, OnDestroy {
     canDeleteEvent(_event: Event): boolean {
         return true;
     }
-
-    // ==========================================
-    // WRAPPERS POUR EventRowActionsComponent
-    // ==========================================
     viewEventObj(event: Event): void  { this.viewEvent(event.id); }
     editEventObj(event: Event): void  { this.editEvent(event.id); }
 
@@ -1019,10 +1031,6 @@ export class EventListComponent implements OnInit, OnDestroy {
         this.selectedEvent = event;
         this.showPostponeDialog();
     }
-
-    // ==========================================
-    // HELPERS
-    // ==========================================
     getTypeLabel(type: string):        string     { return EventTypeLabels[type]    || type; }
     getStatusLabel(status: string):    string     { return EventStatusLabels[status] || status; }
     getTypeSeverity(type: string):     TagSeverity { return getEventTypeSeverity(type); }
@@ -1171,11 +1179,9 @@ export class EventListComponent implements OnInit, OnDestroy {
         this.messageService.add({ severity: 'success', summary: 'Export PDF', detail: `${this.filteredEvents.length} événement(s) exporté(s)` });
     }
 
-    // ==========================================
-    // EXPORT EXCEL (client-side)
-    // ==========================================
+ 
     exportToExcel(): void {
-        const data = this.filteredEvents.map(ev => ({
+        const evData = this.filteredEvents.map(ev => ({
             'Titre':        ev.title,
             'Type':         this.getTypeLabel(ev.type),
             'Statut':       this.getStatusLabel(ev.status),
@@ -1188,18 +1194,106 @@ export class EventListComponent implements OnInit, OnDestroy {
             'Créateur':     ev.creatorUsername || ''
         }));
 
-        const ws = XLSX.utils.json_to_sheet(data.length ? data : [{}]);
-        if (data.length) {
-            const keys = Object.keys(data[0]);
-            ws['!cols'] = keys.map(k => ({
-                wch: Math.max(k.length + 2, ...data.map(r => String((r as any)[k] ?? '').length))
+        const ws1 = XLSX.utils.json_to_sheet(evData.length ? evData : [{}]);
+        if (evData.length) {
+            const keys1 = Object.keys(evData[0]);
+            ws1['!cols'] = keys1.map(k => ({
+                wch: Math.max(k.length + 2, ...evData.map(r => String((r as any)[k] ?? '').length))
             }));
         }
+
+        const filesData: { 'Événement': string; 'Fichier': string; 'Type': string; 'Taille (Ko)': number | string; 'Description': string; 'Lien de téléchargement': string }[] = [];
+
+        for (const ev of this.filteredEvents) {
+            for (const f of (ev.files || [])) {
+                filesData.push({
+                    'Événement':              ev.title,
+                    'Fichier':                f.fileName,
+                    'Type':                   f.fileType  || '—',
+                    'Taille (Ko)':            f.fileSize  ? Math.round(f.fileSize / 1024) : '—',
+                    'Description':            f.description || '—',
+                    'Lien de téléchargement': f.id ? `${environments.apiUrl}/file/download/${f.id}` : '—'
+                });
+            }
+        }
+
+        const ws2 = XLSX.utils.json_to_sheet(
+            filesData.length ? filesData : [{ 'Info': 'Aucune pièce jointe pour les événements sélectionnés' }]
+        );
+
+        if (filesData.length) {
+            const keys2 = Object.keys(filesData[0]);
+            ws2['!cols'] = keys2.map(k => ({
+                wch: Math.max(k.length + 2, ...filesData.map(r => String((r as any)[k] ?? '').length))
+            }));
+
+            const lienColIdx    = keys2.indexOf('Lien de téléchargement');
+            const lienColLetter = XLSX.utils.encode_col(lienColIdx);
+            filesData.forEach((row, i) => {
+                const cellRef = `${lienColLetter}${i + 2}`;
+                if (ws2[cellRef] && row['Lien de téléchargement'] !== '—') {
+                    ws2[cellRef].l = { Target: row['Lien de téléchargement'], Tooltip: 'Télécharger le fichier' };
+                }
+            });
+        }
+
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Événements');
+        XLSX.utils.book_append_sheet(wb, ws1, 'Événements');
+        XLSX.utils.book_append_sheet(wb, ws2, 'Pièces jointes');
 
         XLSX.writeFile(wb, `evenements_${new Date().toISOString().split('T')[0]}.xlsx`);
-        this.messageService.add({ severity: 'success', summary: 'Export Excel', detail: `${this.filteredEvents.length} événement(s) exporté(s)` });
+
+        const totalFichiers = this.filteredEvents.reduce((sum, ev) => sum + (ev.files?.length ?? 0), 0);
+        this.messageService.add({
+            severity: 'success',
+            summary:  'Export Excel',
+            detail:   `${this.filteredEvents.length} événement(s) — ${totalFichiers} pièce(s) jointe(s)`
+        });
+    }
+
+    exportFilesAsZip(): void {
+        const eventsWithFiles = this.filteredEvents.filter(ev => ev.files && ev.files.length > 0);
+
+        if (!eventsWithFiles.length) {
+            this.messageService.add({ severity: 'warn', summary: 'Pièces jointes', detail: 'Aucun fichier joint dans les événements affichés' });
+            return;
+        }
+
+        this.zippingFiles = true;
+        const zip = new JSZip();
+
+        const downloads$ = eventsWithFiles.flatMap(ev =>
+            (ev.files || []).filter(f => !!f.id).map(f =>
+                new Promise<void>((resolve) => {
+                    this.fileService.downloadFile(f.id!).subscribe({
+                        next: (blob) => {
+                            const folderName = ev.title.replace(/[\/\\:*?"<>|]/g, '_').substring(0, 60);
+                            zip.folder(folderName)!.file(f.fileName, blob);
+                            resolve();
+                        },
+                        error: () => resolve() 
+                    });
+                })
+            )
+        );
+
+        Promise.all(downloads$).then(() => {
+            zip.generateAsync({ type: 'blob' }).then(content => {
+                const url = URL.createObjectURL(content);
+                const a   = document.createElement('a');
+                a.href     = url;
+                a.download = `pieces_jointes_${new Date().toISOString().split('T')[0]}.zip`;
+                a.click();
+                URL.revokeObjectURL(url);
+                this.zippingFiles = false;
+                const total = eventsWithFiles.reduce((s, ev) => s + (ev.files?.length ?? 0), 0);
+                this.messageService.add({ severity: 'success', summary: 'Téléchargement', detail: `${total} fichier(s) compressé(s) dans le ZIP` });
+            });
+        });
+    }
+
+    openReport(): void {
+        this.router.navigate(['/events/report']);
     }
 
     downloadAttendance(id?: string): void {

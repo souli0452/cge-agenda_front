@@ -15,7 +15,7 @@ import {
     getEventTypeSeverity,
     getEventStatusSeverity,
     TagSeverity
-} from '../../models';
+} from '../../models'
 
 @Component({
     selector: 'app-cge-dashboard',

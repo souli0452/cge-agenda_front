@@ -205,15 +205,28 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-    .statistics-container {
-        padding: 16px;
-    }
+    .statistics-container { padding: 12px 8px; }
 
-    .charts-grid {
-        grid-template-columns: 1fr;
-    }
+    /* En-tête */
+    .stats-header { padding: 1.25rem; border-radius: 12px; margin-bottom: 1rem; }
+    .header-content { flex-direction: column; gap: 1rem; }
+    .header-left h1 { font-size: 22px; }
+    .header-left h1 i { font-size: 24px; }
+    .subtitle { font-size: 14px; }
+    .header-actions { width: 100%; flex-direction: row; gap: 8px; flex-wrap: wrap; }
+    .header-actions .p-button { flex: 1; }
 
-    .kpi-grid {
-        grid-template-columns: 1fr;
-    }
+    /* KPI cards : 2 par ligne */
+    .kpi-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+    .kpi-card { padding: 16px 12px; gap: 12px; border-radius: 10px; }
+    .kpi-icon { width: 46px; height: 46px; font-size: 22px; border-radius: 10px; flex-shrink: 0; }
+    .kpi-value { font-size: 22px; font-weight: 800; }
+    .kpi-label { font-size: 12px; }
+
+    /* Graphiques */
+    .charts-grid { grid-template-columns: 1fr; gap: 14px; }
+
+    /* Participants */
+    .participant-item { padding: 12px; gap: 10px; }
+    .participant-rank { width: 34px; height: 34px; font-size: 15px; }
 }

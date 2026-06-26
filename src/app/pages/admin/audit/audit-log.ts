@@ -294,10 +294,6 @@ export class AuditLogComponent implements OnInit, OnDestroy {
         this.loadLogs();
     }
 
-    // ==========================================
-    // HELPERS
-    // ==========================================
-
     getActionLabel(action: string): string {
         return ACTION_LABELS[action] || action;
     }

@@ -1,14 +1,8 @@
-/* ================================================
-   PAGE
-   ================================================ */
 .cal-page {
     padding: 0;
     max-width: 100%;
 }
 
-/* ================================================
-   EN-TÊTE
-   ================================================ */
 .cal-header {
     display: flex;
     align-items: center;
@@ -55,7 +49,6 @@
     color: var(--text-color-secondary);
 }
 
-/* Mini-stats */
 .cal-stats {
     display: flex;
     gap: 10px;
@@ -103,9 +96,6 @@
     gap: 4px;
 }
 
-/* ================================================
-   FILTRES
-   ================================================ */
 .cal-filters {
     display: flex;
     align-items: center;
@@ -127,9 +117,6 @@
     min-width: 190px;
 }
 
-/* ================================================
-   CARTE CALENDRIER
-   ================================================ */
 .cal-card {
     background: var(--surface-card);
     border-radius: 16px;
@@ -389,9 +376,6 @@
     margin-top: 8px;
 }
 
-/* ================================================
-   FULLCALENDAR OVERRIDES
-   ================================================ */
 :host ::ng-deep {
 
     .fc { font-family: var(--font-family); }
@@ -534,4 +518,43 @@
     .cal-search, .cal-select { width: 100%; min-width: unset; }
     .detail-banner-title { font-size: 18px; }
     .detail-counters { flex-direction: column; }
+}
+
+@media (max-width: 768px) {
+    .cal-header { padding: 14px 16px; gap: 10px; }
+
+    /* Icon + titre : compact et lisible */
+    .cal-header-left { gap: 12px; width: 100%; }
+    .cal-header-icon { width: 42px; height: 42px; font-size: 20px; border-radius: 10px; flex-shrink: 0; }
+    .cal-title    { font-size: 17px; line-height: 1.3; }
+    .cal-subtitle { font-size: 12px; }
+
+    .cal-header-actions { flex-wrap: wrap; gap: 8px; }
+    .cal-header-actions > * { flex: 1 1 auto; }
+
+    .cal-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .cal-filters { padding: 10px 12px; }
+
+    /* Dialogues en pleine largeur */
+    :host ::ng-deep .p-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+    }
+    :host ::ng-deep .p-dialog .p-dialog-content {
+        padding: 12px !important;
+    }
+
+    /* Calendrier FullCalendar sur mobile */
+    :host ::ng-deep .fc-toolbar.fc-header-toolbar {
+        flex-direction: column;
+        gap: 8px;
+    }
+    :host ::ng-deep .fc-toolbar-title { font-size: 16px !important; }
+    :host ::ng-deep .fc-event-title { font-size: 10px !important; }
 }

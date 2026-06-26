@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -24,6 +24,7 @@ import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
 import { EventService } from '../../service/event.service';
+import { AgendaYearService } from '../../service/agenda-year.service';
 import {
     Event,
     EventType,
@@ -83,10 +84,21 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
     ];
 
     constructor(
-        private eventService:   EventService,
-        private messageService: MessageService,
-        private router:         Router
-    ) {}
+        private eventService:       EventService,
+        private messageService:     MessageService,
+        private router:             Router,
+        private agendaYearService:  AgendaYearService
+    ) {
+        effect(() => {
+            const year = this.agendaYearService.year();
+            if (this.calendarReady) {
+                this.loadEvents();
+                this.calendar.gotoDate(new Date(year, 0, 1));
+            }
+        });
+    }
+
+    private calendarReady = false;
 
     ngOnInit(): void {
         this.loadEvents();
@@ -139,6 +151,7 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
         });
 
         this.calendar.render();
+        this.calendarReady = true;
     }
 
     updateCurrentViewInfo(dateInfo: any): void {
@@ -160,10 +173,12 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
 
     loadEvents(): void {
         this.loading = true;
+        const year = this.agendaYearService.year();
         this.eventService.getAllEvents().subscribe({
             next: (events: Event[]) => {
-                this.events = events.filter(
-                    e => !STATUTS_EXCLUS_CALENDRIER.includes(e.status as string)
+                this.events = events.filter(e =>
+                    !STATUTS_EXCLUS_CALENDRIER.includes(e.status as string) &&
+                    new Date(e.startDate).getFullYear() === year
                 );
                 this.applyFilters();
                 this.loading = false;
@@ -305,10 +320,6 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
 
     createEvent():   void { this.router.navigate(['/events/create']); }
     goToListView():  void { this.router.navigate(['/events']); }
-
-    // ==========================================
-    // EXPORT PDF
-    // ==========================================
     exportToPDF(): void {
         const exportDate = this.calendar ? this.calendar.getDate() : this.currentDate;
 
@@ -477,10 +488,6 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
             detail: `Export PDF ${viewLabel} réussi (${events.length} événement(s))`
         });
     }
-
-    // ==========================================
-    // EXPORT EXCEL
-    // ==========================================
     exportToExcel(): void {
         const exportDate     = this.calendar ? this.calendar.getDate() : this.currentDate;
         const filteredEvents = this.events.filter(e => {

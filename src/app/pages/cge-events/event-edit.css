@@ -1,7 +1,3 @@
-/* ============================================ */
-/* LIEU — SÉLECTION TYPE                        */
-/* ============================================ */
-
 .lieu-type-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -316,10 +312,62 @@
 }
 
 @media (max-width: 768px) {
-  .event-edit-container { padding: 16px; }
-  .step-content { padding: 20px; }
-  .grid-2-cols { grid-template-columns: 1fr; }
-  .lieu-type-grid { grid-template-columns: repeat(2, 1fr); }
-  .step-actions { flex-direction: column; gap: 12px; }
-  .files-grid { grid-template-columns: 1fr; }
+  /* ── Conteneur ── */
+  .event-edit-container { padding: 12px 8px; }
+
+  /* ── En-tête ── */
+  .page-header { padding: 16px; }
+  .header-left { flex-wrap: wrap; gap: 10px; }
+  .header-left h1 { font-size: 20px; }
+  .header-left h1 i { font-size: 22px; }
+
+  /* ── Contenu étape ── */
+  .step-content { padding: 16px; }
+  .phase-intro { padding: 12px 14px; gap: 10px; margin-bottom: 20px; }
+  .phase-intro i { font-size: 18px; }
+  .phase-intro p { font-size: 13px; }
+  .form-group { margin-bottom: 24px; }
+  .group-title { font-size: 16px; margin-bottom: 14px; padding-bottom: 10px; }
+  .group-title i { font-size: 18px; }
+
+  /* ── Grilles → colonne unique ── */
+  .grid-2-cols { grid-template-columns: 1fr; gap: 14px; }
+
+  /* ── Lieu : 2 colonnes compactes ── */
+  .lieu-type-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .lieu-option { padding: 14px 10px; }
+  .lieu-icon { font-size: 24px; margin-bottom: 6px; }
+  .lieu-label { font-size: 12px; }
+  .lieu-desc { font-size: 10px; }
+
+  /* ── Participants ── */
+  .participant-card { padding: 14px; }
+  .participant-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+  }
+
+  /* ── Fichiers ── */
+  .files-grid { grid-template-columns: 1fr; gap: 10px; }
+
+  /* ── Empty state ── */
+  .empty-state { padding: 32px 16px; }
+  .empty-state-icon { font-size: 44px; }
+
+  /* ── Actions (boutons bas de page) ── */
+  .step-actions {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 18px;
+  }
+  .step-actions > *,
+  .step-actions .p-button,
+  .step-actions .btn-ascelc { width: 100% !important; justify-content: center !important; }
+
+  /* ── Bouton principal ── */
+  .btn-ascelc { padding: 12px 20px !important; font-size: 14px !important; }
 }

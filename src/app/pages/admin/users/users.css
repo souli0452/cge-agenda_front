@@ -1,14 +1,7 @@
-/* ==========================================
-   CONTAINER
-   ========================================== */
 .admin-users-container {
     padding: 0;
     max-width: 100%;
 }
-
-/* ==========================================
-   PAGE HEADER
-   ========================================== */
 .page-header {
     display: flex;
     justify-content: space-between;
@@ -61,9 +54,6 @@
     flex-wrap: wrap;
 }
 
-/* ==========================================
-   ROLE STATS
-   ========================================== */
 .role-stats-grid {
     display: grid;
     grid-template-columns: repeat(6, 1fr);
@@ -111,9 +101,6 @@
     letter-spacing: 0.8px;
 }
 
-/* ==========================================
-   FILTRES
-   ========================================== */
 .filters-bar {
     display: flex;
     gap: 12px;
@@ -128,9 +115,7 @@
 
 .filter-search { flex: 1; min-width: 220px; }
 
-/* ==========================================
-   TABLE
-   ========================================== */
+
 .table-card {
     background: var(--surface-card);
     border-radius: 14px;
@@ -142,7 +127,6 @@
 
 .user-row:hover { background: var(--surface-50) !important; }
 
-/* Identifiant */
 .user-identity {
     display: flex;
     align-items: center;
@@ -508,31 +492,50 @@
    RESPONSIVE
    ========================================== */
 @media (max-width: 768px) {
+    /* Stats cards : 3 par ligne sur mobile */
     .role-stats-grid {
         grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
     }
+    .role-stat-card { padding: 12px 8px; }
+    .role-stat-count { font-size: 22px; }
+    .role-stat-label { font-size: 9px; }
 
-    .filters-bar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .filter-search { min-width: auto; }
-
-    .form-row-2 {
-        grid-template-columns: 1fr;
-    }
-
+    /* En-tête */
     .page-header {
         flex-direction: column;
         align-items: flex-start;
+        padding: 16px;
+        gap: 12px;
     }
+    .header-left { gap: 10px; }
+    .header-icon { width: 42px; height: 42px; font-size: 20px; border-radius: 10px; }
+    .page-title { font-size: 18px; }
+    .header-actions { width: 100%; flex-wrap: wrap; gap: 8px; }
+    .header-actions .p-button { flex: 1 1 auto; }
+
+    /* Filtres */
+    .filters-bar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 12px;
+        gap: 8px;
+    }
+    .filter-search { min-width: auto; width: 100%; }
+
+    /* Formulaire dialog */
+    .form-row-2 { grid-template-columns: 1fr; }
+
+    /* Status toggle : vertical sur mobile */
+    .status-toggle { flex-direction: column; }
+    .status-option { justify-content: flex-start; padding: 10px 14px; }
+
+    /* Table */
+    :host ::ng-deep .p-datatable-wrapper { overflow-x: auto !important; }
 }
 
 @media (max-width: 480px) {
-    .role-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+    .role-stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* Multi-role cell */

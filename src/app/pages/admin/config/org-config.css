@@ -86,8 +86,133 @@
 
 .skeleton-form { padding: 8px 0; }
 
+/* ── Scheduler rappels ──────────────────────────────────────────────── */
+.scheduler-form     { padding: 8px 0; }
+
+.scheduler-toggle-row {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    gap:             16px;
+    padding:         8px 0;
+}
+
+.scheduler-disabled {
+    opacity:        0.45;
+    pointer-events: none;
+    user-select:    none;
+}
+
+.days-grid {
+    display:   flex;
+    flex-wrap: wrap;
+    gap:       12px;
+}
+
+.day-option {
+    display:         flex;
+    flex-direction:  column;
+    align-items:     center;
+    justify-content: center;
+    width:           88px;
+    height:          72px;
+    border:          2px solid var(--surface-border, #e4e4e7);
+    border-radius:   10px;
+    cursor:          pointer;
+    transition:      border-color 0.15s, background 0.15s, color 0.15s;
+    background:      var(--surface-card, #fff);
+    user-select:     none;
+}
+.day-option:hover     { border-color: #228B22; background: #f0f7f1; }
+.day-selected         { border-color: #228B22 !important; background: #e8f4ec !important; }
+
+.day-num {
+    font-size:   1.25rem;
+    font-weight: 800;
+    color:       var(--text-color, #111);
+    line-height: 1;
+}
+.day-selected .day-num { color: #228B22; }
+
+.day-lbl {
+    font-size:  10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color:      var(--text-color-secondary, #6b7280);
+    margin-top: 4px;
+}
+.day-selected .day-lbl { color: #228B22; }
+
+.scheduler-status-row {
+    display:         flex;
+    align-items:     center;
+    justify-content: space-between;
+    flex-wrap:       wrap;
+    gap:             12px;
+    padding:         8px 0;
+}
+
+.scheduler-status-info {
+    display:     flex;
+    align-items: center;
+    gap:         8px;
+    font-size:   14px;
+    color:       var(--text-color, #111);
+}
+
+.update-meta {
+    font-size: 12px;
+    color:     var(--text-color-secondary, #6b7280);
+}
+
+.scheduler-actions {
+    display: flex;
+    gap:     8px;
+}
+
 @media (max-width: 768px) {
+    :host ::ng-deep .p-tablist {
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none;
+        flex-wrap: nowrap !important;
+    }
+    :host ::ng-deep .p-tablist::-webkit-scrollbar { display: none; }
+    :host ::ng-deep .p-tab {
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+        font-size: 13px !important;
+        padding: 10px 14px !important;
+    }
+
+    /* En-tête */
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 16px;
+        gap: 12px;
+    }
+    .header-left { gap: 10px; }
+    .header-icon { width: 42px; height: 42px; font-size: 20px; border-radius: 10px; }
+    .page-title { font-size: 18px; }
+
+    /* Formulaire */
     .form-grid-2 { grid-template-columns: 1fr; }
-    .template-row { flex-direction: column; align-items: flex-start; }
+
+    /* Templates email */
+    .template-row { flex-direction: column; align-items: flex-start; gap: 10px; }
     .template-subject-wrap { width: 100%; }
+
+    /* Scheduler */
+    .scheduler-toggle-row  { flex-direction: column; align-items: flex-start; }
+    .scheduler-status-row  { flex-direction: column; align-items: flex-start; }
+    .scheduler-actions { width: 100%; }
+    .scheduler-actions .p-button { flex: 1; }
+
+    /* Jours de la semaine */
+    .days-grid { gap: 8px; flex-wrap: wrap; }
+    .day-option { width: 68px; height: 56px; }
+    .day-num { font-size: 1.1rem; }
 }

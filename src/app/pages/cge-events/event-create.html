@@ -1,8 +1,6 @@
 <p-toast position="top-right"></p-toast>
 
 <div class="event-create-container">
-
-  <!-- Header -->
   <div class="page-header">
     <div class="header-left">
       <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true"
@@ -15,7 +13,6 @@
     </div>
   </div>
 
-  <!-- PROGRESSION -->
   <div class="horizontal-stepper">
     <div class="stepper-track"></div>
     <div class="stepper-steps">
@@ -37,10 +34,6 @@
   </div>
 
   <div class="step-wrapper">
-
-    <!-- ============================================ -->
-    <!-- ÉTAPE 0 : INFORMATIONS GÉNÉRALES             -->
-    <!-- ============================================ -->
     <div *ngIf="currentStep === 0" class="step-content">
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
@@ -105,10 +98,6 @@
                   [disabled]="!canProceedFromStep(0)" />
       </div>
     </div>
-
-    <!-- ============================================ -->
-    <!-- ÉTAPE 1 : DATES ET LIEU                      -->
-    <!-- ============================================ -->
     <div *ngIf="currentStep === 1" class="step-content">
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
@@ -163,7 +152,6 @@
 
       <p-divider></p-divider>
 
-      <!-- ✅ LIEU ENRICHI -->
       <div class="form-group">
         <h3 class="group-title">
           <i class="pi pi-map-marker"></i>
@@ -172,7 +160,6 @@
 
         <form [formGroup]="eventForm">
 
-          <!-- TYPE DE LIEU -->
           <div class="form-field">
             <label class="field-label">Type de lieu</label>
             <div class="lieu-type-grid">
@@ -212,7 +199,6 @@
             </div>
           </div>
 
-          <!-- ✅ INTERNE → salle -->
           <ng-container *ngIf="currentLieuType === 'INTERNE'">
             <div class="form-field">
               <label class="field-label">
@@ -230,7 +216,6 @@
             </div>
           </ng-container>
 
-          <!-- ✅ NATIONAL → ville Burkina + nom du lieu -->
           <ng-container *ngIf="currentLieuType === 'NATIONAL'">
             <div class="grid-2-cols">
               <div class="form-field">
@@ -256,7 +241,6 @@
             </div>
           </ng-container>
 
-          <!-- ✅ INTERNATIONAL → pays + ville + nom du lieu -->
           <ng-container *ngIf="currentLieuType === 'INTERNATIONAL'">
             <div class="grid-2-cols">
               <div class="form-field">
@@ -299,7 +283,6 @@
             </div>
           </ng-container>
 
-          <!-- ✅ VIRTUEL → lien obligatoire -->
           <ng-container *ngIf="currentLieuType === 'VIRTUEL'">
             <div class="form-field">
               <label class="field-label">
@@ -318,7 +301,6 @@
             </div>
           </ng-container>
 
-          <!-- ✅ Lien visio optionnel pour INTERNE/NATIONAL/INTERNATIONAL -->
           <ng-container *ngIf="currentLieuType && currentLieuType !== 'VIRTUEL'">
             <div class="form-field">
               <label class="field-label">
@@ -336,7 +318,6 @@
             </div>
           </ng-container>
 
-          <!-- Aucun type sélectionné → invitation à choisir -->
 <ng-container *ngIf="!currentLieuType">
     <div class="field-hint" style="padding:16px;background:#f0fdf4;border-radius:8px;
                                    border-left:4px solid #228B22;margin-top:8px;">
@@ -360,10 +341,6 @@
                   [disabled]="!canProceedFromStep(1)" />
       </div>
     </div>
-
-    <!-- ============================================ -->
-    <!-- ÉTAPE 2 : HORAIRES                           -->
-    <!-- ============================================ -->
     <div *ngIf="currentStep === 2" class="step-content">
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
@@ -502,10 +479,6 @@
                   [disabled]="!canProceedFromStep(2)" />
       </div>
     </div>
-
-    <!-- ============================================ -->
-    <!-- ÉTAPE 3 : PARTICIPANTS                       -->
-    <!-- ============================================ -->
     <div *ngIf="currentStep === 3" class="step-content">
       <div class="info-banner">
         <i class="pi pi-shield"></i>
@@ -688,9 +661,7 @@
       </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- ÉTAPE 4 : DOCUMENTS                          -->
-    <!-- ============================================ -->
+
     <div *ngIf="currentStep === 4" class="step-content">
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
@@ -741,9 +712,7 @@
       </div>
     </div>
 
-    <!-- ============================================ -->
-    <!-- ÉTAPE 5 : RÉCAPITULATIF                      -->
-    <!-- ============================================ -->
+
     <div *ngIf="currentStep === 5" class="step-content">
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
@@ -805,7 +774,6 @@
         </div>
       </div>
 
-      <!-- ✅ Lieu enrichi -->
       <div class="summary-section">
         <div class="summary-title">
           <i class="pi pi-map-marker"></i>

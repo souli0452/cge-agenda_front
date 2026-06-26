@@ -1,23 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-// PrimeNG
 import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { Select } from 'primeng/select';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-
-// Services
 import { StatsService } from '../../service/stats.service';
 import { DashboardStats } from '../../models';
 import { EventService } from '../../service/event.service';
 import { ParticipantService } from '../../service/participant.service';
 import { Event, Participant, EventTypeLabels, EventStatusLabels } from '../../models';
-
-// PDF
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -54,17 +48,12 @@ export class CgeStatisticsComponent implements OnInit {
         totalGlobal: 0
     };
     
-    // Données locales
     events: Event[] = [];
     participants: Participant[] = [];
-    
-    // Charts
     typeChartData: any;
     statusChartData: any;
     monthlyChartData: any;
     chartOptions: any;
-
-    // Filtres
     selectedYear: number = new Date().getFullYear();
     yearOptions: { label: string; value: number }[] = [];
 
@@ -120,7 +109,7 @@ export class CgeStatisticsComponent implements OnInit {
             this.events = events || [];
             this.participants = participants || [];
             
-            console.log(`📊 Chargé: ${this.events.length} événements totaux`);
+            console.log(`Chargé: ${this.events.length} événements totaux`);
             
             this.calculateLocalStats();
             this.prepareCharts();
@@ -138,7 +127,7 @@ export class CgeStatisticsComponent implements OnInit {
 
     
     calculateLocalStats(): void {
-        console.log(`🔍 Calcul stats pour l'année ${this.selectedYear}`);
+        console.log(`Calcul stats pour l'année ${this.selectedYear}`);
         
         
         const filteredEvents = this.events.filter(e => {
@@ -146,7 +135,7 @@ export class CgeStatisticsComponent implements OnInit {
             return eventYear === this.selectedYear;
         });
 
-        console.log(`📋 ${filteredEvents.length} événements trouvés pour ${this.selectedYear}`);
+        console.log(`${filteredEvents.length} événements trouvés pour ${this.selectedYear}`);
 
         this.yearStats.totalEvents = filteredEvents.length;
         
@@ -184,7 +173,7 @@ export class CgeStatisticsComponent implements OnInit {
             .sort((a, b) => b.count - a.count)
             .slice(0, 10);
         
-        console.log(`📊 Stats ${this.selectedYear}:`, {
+        console.log(`Stats ${this.selectedYear}:`, {
             événements: this.yearStats.totalEvents,
             participants: this.yearStats.totalParticipants,
             àVenir: this.yearStats.upcomingEvents,
@@ -251,7 +240,7 @@ export class CgeStatisticsComponent implements OnInit {
             monthlyData[month]++;
         });
 
-        console.log(`📊 Données mensuelles ${this.selectedYear}:`, monthlyData);
+        console.log(`Données mensuelles ${this.selectedYear}:`, monthlyData);
 
         this.monthlyChartData = {
             labels: [
@@ -271,7 +260,7 @@ export class CgeStatisticsComponent implements OnInit {
     }
 
     onYearChange(): void {
-        console.log(`🔄 Changement d'année vers: ${this.selectedYear}`);
+        console.log(`Changement d'année vers: ${this.selectedYear}`);
         this.calculateLocalStats();
         this.prepareCharts();
     }

@@ -41,3 +41,11 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+.superpowers/
+
+# Claude Code (assistant IA local — configuration personnelle, ne pas versionner)
+.claude/
+
+# Fichiers utilitaires générés localement
+public/icons/icon-source.svg

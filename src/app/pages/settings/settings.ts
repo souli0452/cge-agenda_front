@@ -262,9 +262,6 @@ export class SettingsComponent implements OnInit {
         this.keycloak.login({ action: 'UPDATE_PASSWORD' });
     }
 
-    // ==========================================
-    // PROFIL (depuis le JWT Keycloak)
-    // ==========================================
     get fullName():  string { return this.authService.fullName; }
     get username():  string { return this.authService.username; }
     get email():     string { return this.authService.email; }

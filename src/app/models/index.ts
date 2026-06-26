@@ -1,7 +1,5 @@
 // Enums
 export * from './enums';
-
-// Models
 export * from './event.model';
 export * from './participant.model';
 export * from './schedule.model';

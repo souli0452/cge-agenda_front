@@ -13,9 +13,12 @@ import { DialogModule }      from 'primeng/dialog';
 import { SkeletonModule }    from 'primeng/skeleton';
 import { TooltipModule }     from 'primeng/tooltip';
 import { ColorPickerModule } from 'primeng/colorpicker';
+import { ToggleSwitch }      from 'primeng/toggleswitch';
+import { Select }            from 'primeng/select';
 import { MessageService }    from 'primeng/api';
 
-import { environments }      from '../../../../environments/environments';
+import { environments }             from '../../../../environments/environments';
+import { SchedulerConfigService, SchedulerConfig } from '../../../service/scheduler-config.service';
 
 interface OrgConfig {
     id?:                       string;
@@ -56,7 +59,8 @@ interface EmailTemplate {
         CommonModule, FormsModule,
         ButtonModule, InputTextModule, TabsModule,
         DividerModule, ToastModule, DialogModule,
-        SkeletonModule, TooltipModule, ColorPickerModule
+        SkeletonModule, TooltipModule, ColorPickerModule,
+        ToggleSwitch, Select
     ],
     providers: [MessageService],
     styleUrls: ['./org-config.css'],
@@ -87,13 +91,14 @@ interface EmailTemplate {
     <!-- TABS -->
     <p-tabs [(value)]="activeTab">
 
-        <!-- ==============================
-             ONGLET 1 : ORGANISATION
-             ============================== -->
+        <p-tablist>
+            <p-tab value="0"><i class="pi pi-building" style="margin-right:6px"></i>Organisation</p-tab>
+            <p-tab value="1"><i class="pi pi-envelope" style="margin-right:6px"></i>Sujets des emails</p-tab>
+            <p-tab value="2"><i class="pi pi-bell" style="margin-right:6px"></i>Rappels automatiques</p-tab>
+        </p-tablist>
+
+        <p-tabpanels>
         <p-tabpanel value="0">
-            <ng-template #header>
-                <span><i class="pi pi-building" style="margin-right:6px"></i>Organisation</span>
-            </ng-template>
 
             <div *ngIf="loading" class="skeleton-form">
                 <p-skeleton height="44px" styleClass="mb-3" *ngFor="let i of [1,2,3,4,5,6]" />
@@ -184,13 +189,7 @@ interface EmailTemplate {
             </div>
         </p-tabpanel>
 
-        <!-- ==============================
-             ONGLET 2 : SUJETS EMAIL
-             ============================== -->
         <p-tabpanel value="1">
-            <ng-template #header>
-                <span><i class="pi pi-envelope" style="margin-right:6px"></i>Sujets des emails</span>
-            </ng-template>
 
             <div class="subjects-hint">
                 <i class="pi pi-info-circle"></i>
@@ -230,7 +229,102 @@ interface EmailTemplate {
                 </div>
             </div>
         </p-tabpanel>
+        <p-tabpanel value="2">
 
+            <div *ngIf="loadingScheduler" class="skeleton-form">
+                <p-skeleton height="44px" styleClass="mb-3" *ngFor="let i of [1,2,3]" />
+            </div>
+
+            <div *ngIf="!loadingScheduler" class="scheduler-form">
+
+                <!-- Activer / Désactiver -->
+                <div class="scheduler-toggle-row">
+                    <div>
+                        <h3 class="section-title" style="margin:0">Rappels par email</h3>
+                        <p class="field-hint" style="margin-top:4px">
+                            Envoi automatique d'emails de rappel aux participants avant chaque événement planifié
+                        </p>
+                    </div>
+                    <p-toggleswitch [(ngModel)]="schedulerConfig.reminderEnabled" />
+                </div>
+
+                <p-divider />
+
+                <div [class.scheduler-disabled]="!schedulerConfig.reminderEnabled">
+
+                    <!-- Heure d'envoi -->
+                    <div class="form-section">
+                        <h3 class="section-title">Heure d'envoi quotidien</h3>
+                        <div class="form-field" style="max-width:220px">
+                            <p-select
+                                [(ngModel)]="schedulerConfig.sendHour"
+                                [options]="hourOptions"
+                                optionLabel="label"
+                                optionValue="value"
+                                placeholder="Sélectionner une heure"
+                                class="w-full" />
+                            <small class="field-hint">Le scheduler s'exécute chaque jour à cette heure</small>
+                        </div>
+                    </div>
+
+                    <p-divider />
+
+                    <!-- Jours de rappel -->
+                    <div class="form-section">
+                        <h3 class="section-title">Jours de rappel avant l'événement</h3>
+                        <p class="field-hint" style="margin-bottom:16px">
+                            Sélectionnez les jours pour lesquels un rappel est envoyé aux participants (au moins 1)
+                        </p>
+                        <div class="days-grid">
+                            <div *ngFor="let day of availableDays"
+                                 class="day-option"
+                                 [class.day-selected]="isDaySelected(day.value)"
+                                 (click)="toggleDay(day.value)"
+                                 [attr.aria-pressed]="isDaySelected(day.value)"
+                                 role="button"
+                                 [attr.aria-label]="'J-' + day.value + ' : ' + day.label">
+                                <span class="day-num">J-{{ day.value }}</span>
+                                <span class="day-lbl">{{ day.label }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <p-divider />
+
+                <!-- Statut + Actions -->
+                <div class="scheduler-status-row">
+                    <div class="scheduler-status-info" *ngIf="schedulerConfig.nextScheduledRun">
+                        <i class="pi pi-clock" style="color:#228B22"></i>
+                        <span>{{ schedulerConfig.nextScheduledRun }}</span>
+                        <span *ngIf="schedulerConfig.updatedAt" class="update-meta">
+                            · Modifié le {{ schedulerConfig.updatedAt | date:'dd/MM/yyyy HH:mm' }}
+                            <span *ngIf="schedulerConfig.updatedBy"> par {{ schedulerConfig.updatedBy }}</span>
+                        </span>
+                    </div>
+                    <div class="scheduler-actions">
+                        <p-button
+                            label="Tester maintenant"
+                            icon="pi pi-play"
+                            severity="secondary"
+                            [outlined]="true"
+                            [loading]="runningNow"
+                            pTooltip="Déclenche l'envoi des rappels immédiatement (pour tester)"
+                            (onClick)="runSchedulerNow()" />
+                        <p-button
+                            label="Enregistrer"
+                            icon="pi pi-save"
+                            severity="success"
+                            [loading]="savingScheduler"
+                            (onClick)="saveSchedulerConfig()" />
+                    </div>
+                </div>
+
+            </div>
+        </p-tabpanel>
+
+        </p-tabpanels>
     </p-tabs>
 </div>
 
@@ -296,16 +390,95 @@ export class OrgConfigComponent implements OnInit {
         { key: 'delegation',          field: 'subjectDelegation',          label: 'Délégation',               icon: 'pi pi-user-edit',       iconColor: '#00bcd4', description: 'Notification de délégation de participation' },
     ];
 
+    loadingScheduler  = true;
+    savingScheduler   = false;
+    runningNow        = false;
+
+    schedulerConfig: SchedulerConfig = {
+        reminderEnabled: true,
+        sendHour:        7,
+        reminderDays:    [1, 7]
+    };
+
+    readonly hourOptions = Array.from({ length: 24 }, (_, i) => ({
+        value: i,
+        label: `${i.toString().padStart(2, '0')}:00`
+    }));
+
+    readonly availableDays = [
+        { value: 1,  label: 'Veille'     },
+        { value: 3,  label: '3 jours'    },
+        { value: 5,  label: '5 jours'    },
+        { value: 7,  label: '1 semaine'  },
+        { value: 14, label: '2 semaines' },
+        { value: 30, label: '1 mois'     }
+    ];
+
+    isDaySelected(day: number): boolean {
+        return this.schedulerConfig.reminderDays.includes(day);
+    }
+
+    toggleDay(day: number): void {
+        const selected = this.schedulerConfig.reminderDays;
+        if (selected.includes(day)) {
+            if (selected.length > 1) {
+                this.schedulerConfig.reminderDays = selected.filter(d => d !== day);
+            }
+        } else {
+            this.schedulerConfig.reminderDays = [...selected, day].sort((a, b) => a - b);
+        }
+    }
+
+    saveSchedulerConfig(): void {
+        this.savingScheduler = true;
+        this.schedulerConfigService.updateConfig(this.schedulerConfig).subscribe({
+            next: (c) => {
+                this.schedulerConfig  = c;
+                this.savingScheduler  = false;
+                this.messageService.add({
+                    severity: 'success', summary: 'Enregistré',
+                    detail: 'Configuration des rappels mise à jour et reprogrammée', life: 3000
+                });
+            },
+            error: () => {
+                this.savingScheduler = false;
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de sauvegarder' });
+            }
+        });
+    }
+
+    runSchedulerNow(): void {
+        this.runningNow = true;
+        this.schedulerConfigService.runNow().subscribe({
+            next: (r) => {
+                this.runningNow = false;
+                this.messageService.add({
+                    severity: 'success', summary: 'Rappels envoyés',
+                    detail: r.message, life: 5000
+                });
+            },
+            error: () => {
+                this.runningNow = false;
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de déclencher les rappels' });
+            }
+        });
+    }
+
     constructor(
-        private http:           HttpClient,
-        private messageService: MessageService,
-        private sanitizer:      DomSanitizer
+        private http:                   HttpClient,
+        private messageService:         MessageService,
+        private sanitizer:              DomSanitizer,
+        private schedulerConfigService: SchedulerConfigService
     ) {}
 
     ngOnInit(): void {
         this.http.get<OrgConfig>(`${environments.apiUrl}/admin/config`).subscribe({
             next:  (c) => { this.config = c; this.loading = false; },
             error: ()  => { this.loading = false; }
+        });
+        this.schedulerConfigService.getConfig().subscribe({
+            next:  (c) => { this.schedulerConfig = c; this.loadingScheduler = false; },
+            error: ()  => { this.loadingScheduler = false; }
         });
     }
 

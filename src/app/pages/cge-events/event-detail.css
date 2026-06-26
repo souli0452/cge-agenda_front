@@ -202,6 +202,75 @@
     .ed-hero-title { font-size: 20px; }
 }
 
+@media (max-width: 768px) {
+    .ed-hero {
+        padding: 20px 16px 24px;
+        border-radius: 14px;
+    }
+
+    .ed-hero-inner {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .ed-hero-left {
+        flex-direction: row;
+        gap: 14px;
+        width: 100%;
+    }
+
+    .ed-hero-type-icon {
+        width: 52px; height: 52px;
+        font-size: 22px;
+        border-radius: 14px;
+        flex-shrink: 0;
+    }
+
+    .ed-hero-title {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+
+    .ed-hero-meta {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
+        width: 100%;
+    }
+
+    .ed-meta-chip {
+        min-width: unset;
+        flex: 1 1 calc(50% - 4px);
+        padding: 8px 12px;
+    }
+
+    .ed-actions-bar {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .ed-actions-right {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .ed-stats-row {
+        grid-template-columns: repeat(3, 1fr);
+    }
+
+    .ed-stat-num { font-size: 18px; }
+
+    .ed-grid { grid-template-columns: 1fr; }
+
+    .ed-card { padding: 16px; }
+
+    :host ::ng-deep .p-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+    }
+}
+
 /* ================================================
    CARTES
    ================================================ */
@@ -481,4 +550,38 @@
 
 :host ::ng-deep {
     .p-dialog .p-dialog-content { padding: 16px 24px !important; }
+}
+
+/* ================================================
+   RESPONSIVE MOBILE
+   ================================================ */
+@media (max-width: 900px) {
+    .ed-hero { padding: 20px 20px 24px; border-radius: 14px; }
+    .ed-body { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .ed-hero { padding: 16px 16px 20px; border-radius: 12px; margin-bottom: 12px; }
+    .ed-hero-title { font-size: 18px; padding-right: 36px; }
+
+    .ed-body { grid-template-columns: 1fr !important; gap: 12px; }
+
+    .ed-card { padding: 16px !important; border-radius: 12px !important; }
+
+    .ed-meta-grid {
+        grid-template-columns: 1fr !important;
+        gap: 10px !important;
+    }
+
+    .ed-actions {
+        flex-direction: column !important;
+        gap: 8px !important;
+    }
+    .ed-actions .p-button { width: 100% !important; justify-content: center !important; }
+
+    :host ::ng-deep .p-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+    }
+    :host ::ng-deep .p-dialog .p-dialog-content { padding: 12px 14px !important; }
 }

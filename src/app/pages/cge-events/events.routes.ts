@@ -12,6 +12,10 @@ export const EVENTS_ROUTES: Routes = [
         canDeactivate: [unsavedChangesGuard]
     },
     {
+        path: 'report',
+        loadComponent: () => import('./event-report').then(m => m.EventReportComponent)
+    },
+    {
         path: ':id',
         loadComponent: () => import('./event-detail').then(m => m.EventDetailComponent)
     },

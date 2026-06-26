@@ -11,11 +11,13 @@ export function initializeKeycloak(keycloak: KeycloakService, http: HttpClient) 
                 clientId: environments.keycloak.clientId,
             },
             initOptions: {
-                onLoad:                    'login-required',
-                pkceMethod:                'S256',
-                checkLoginIframe:          false,
-                silentCheckSsoRedirectUri: `${environments.appUrl}/assets/silent-check-sso.html`,
-                adapter:                   'default'
+                onLoad:                   'login-required',
+                pkceMethod:               'S256',
+                checkLoginIframe:         false,
+                checkLoginIframeInterval: 0,
+                enableLogging:            false,
+                adapter:                  'default',
+                flow:                     'standard'
             },
             enableBearerInterceptor: true,
             bearerPrefix:            'Bearer',
@@ -25,7 +27,6 @@ export function initializeKeycloak(keycloak: KeycloakService, http: HttpClient) 
             ]
         }).then(authenticated => {
             if (authenticated) {
-                // Fire-and-forget : ne bloque pas l'init si le serveur est indisponible
                 http.post(`${environments.apiUrl}/auth/track-login`, null)
                     .subscribe({ error: () => {} });
             }

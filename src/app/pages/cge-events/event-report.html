@@ -1,0 +1,186 @@
+<button class="rp-grid-toggle no-print"
+        (click)="toggleGrid()" [attr.aria-pressed]="gridVisible">
+    <span class="rp-toggle-dot"></span>
+    {{ gridVisible ? 'Masquer grille' : 'Grille MB' }} <kbd>Alt+G</kbd>
+</button>
+
+<div class="rp-controls no-print">
+    <div class="rp-controls-inner">
+        <div class="rp-filter-group">
+            <label for="rp-year">Année</label>
+            <select id="rp-year" [(ngModel)]="filterYear" (change)="applyFilters()">
+                <option [value]="null">Toutes</option>
+                <option *ngFor="let y of availableYears" [value]="y">{{ y }}</option>
+            </select>
+        </div>
+        <div class="rp-filter-group">
+            <label for="rp-status">Statut</label>
+            <select id="rp-status" [(ngModel)]="filterStatus" (change)="applyFilters()">
+                <option value="">Tous</option>
+                <option *ngFor="let s of statusOptions" [value]="s.value">{{ s.label }}</option>
+            </select>
+        </div>
+        <div class="rp-filter-group">
+            <label for="rp-type">Type</label>
+            <select id="rp-type" [(ngModel)]="filterType" (change)="applyFilters()">
+                <option value="">Tous</option>
+                <option *ngFor="let t of typeOptions" [value]="t.value">{{ t.label }}</option>
+            </select>
+        </div>
+        <div class="rp-controls-actions">
+            <button class="rp-btn rp-btn-print" (click)="print()">
+                <i class="pi pi-print" aria-hidden="true"></i> Imprimer / PDF
+            </button>
+            <button class="rp-btn rp-btn-back" (click)="back()">
+                <i class="pi pi-arrow-left" aria-hidden="true"></i> Retour
+            </button>
+        </div>
+    </div>
+</div>
+<div class="rp-page">
+    <div class="rp-wrap">
+        <div class="mb-grid rp-grid">
+
+            <div class="mb-band">
+                <div style="grid-column: 1 / 9" class="rp-header-left">
+                    <p class="rp-eyebrow">RAPPORT INSTITUTIONNEL — CGE / ASCE-LC</p>
+                    <h1 class="rp-masthead">Agenda des Événements</h1>
+                    <p class="rp-header-sub">
+                        {{ filteredEvents.length }} événement{{ filteredEvents.length > 1 ? 's' : '' }}
+                        <span *ngIf="filterYear"> · {{ filterYear }}</span>
+                        <span *ngIf="filterStatus"> · {{ getStatusLabel(filterStatus) }}</span>
+                        <span *ngIf="filterType"> · {{ getTypeLabel(filterType) }}</span>
+                    </p>
+                </div>
+                <div style="grid-column: 9 / 13" class="rp-header-right">
+                    <p class="rp-date-label">Généré le</p>
+                    <p class="rp-date-val">{{ today | date:'dd MMMM yyyy':'':'fr' }}</p>
+                    <p class="rp-org-name">Burkina Faso</p>
+                </div>
+            </div>
+
+            <div class="mb-band">
+                <div style="grid-column: 1 / 13" class="rp-rule-thick"></div>
+            </div>
+
+            <div class="mb-band rp-stats-band">
+                <div style="grid-column: 1 / 4" class="rp-stat">
+                    <span class="rp-stat-num">{{ totalEvents }}</span>
+                    <span class="rp-stat-lbl">Total</span>
+                </div>
+                <div style="grid-column: 4 / 7" class="rp-stat rp-stat--border">
+                    <span class="rp-stat-num rp-num--green">{{ countByStatus('VALIDE') + countByStatus('TERMINE') }}</span>
+                    <span class="rp-stat-lbl">Validés / Terminés</span>
+                </div>
+                <div style="grid-column: 7 / 10" class="rp-stat rp-stat--border">
+                    <span class="rp-stat-num rp-num--amber">{{ countByStatus('EN_COURS') + countByStatus('PLANIFIE') }}</span>
+                    <span class="rp-stat-lbl">En cours / Planifiés</span>
+                </div>
+                <div style="grid-column: 10 / 13" class="rp-stat rp-stat--border">
+                    <span class="rp-stat-num rp-num--red">{{ countByStatus('ANNULER') + countByStatus('REPORTER') }}</span>
+                    <span class="rp-stat-lbl">Annulés / Reportés</span>
+                </div>
+            </div>
+
+            <div class="mb-band">
+                <div style="grid-column: 1 / 13" class="rp-rule-thin"></div>
+            </div>
+
+            @if (loading) {
+                <div class="mb-band">
+                    <div style="grid-column: 1 / 13" class="rp-loading">
+                        <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
+                        Chargement des événements…
+                    </div>
+                </div>
+            } @else if (filteredEvents.length === 0) {
+                <div class="mb-band">
+                    <div style="grid-column: 1 / 13" class="rp-empty">
+                        Aucun événement pour les filtres sélectionnés.
+                    </div>
+                </div>
+            } @else {
+                <div class="mb-band">
+                    <div style="grid-column: 1 / 13">
+                        <table class="rp-table">
+                            <colgroup>
+                                <col style="width: 3%">     <!-- # -->
+                                <col style="width: 28%">    <!-- Titre -->
+                                <col style="width: 10%">    <!-- Type -->
+                                <col style="width: 11%">    <!-- Statut -->
+                                <col style="width: 13%">    <!-- Date début -->
+                                <col style="width: 13%">    <!-- Date fin -->
+                                <col style="width: 14%">    <!-- Lieu -->
+                                <col style="width: 8%">     <!-- Participants -->
+                            </colgroup>
+                            <thead>
+                                <tr class="rp-thead-row">
+                                    <th scope="col" class="rp-th rp-th--num">#</th>
+                                    <th scope="col" class="rp-th">Titre</th>
+                                    <th scope="col" class="rp-th">Type</th>
+                                    <th scope="col" class="rp-th">Statut</th>
+                                    <th scope="col" class="rp-th">Début</th>
+                                    <th scope="col" class="rp-th">Fin</th>
+                                    <th scope="col" class="rp-th">Lieu</th>
+                                    <th scope="col" class="rp-th rp-th--num">Part.</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngFor="let ev of filteredEvents; let i = index"
+                                    class="rp-row"
+                                    [class.rp-row--alt]="i % 2 === 1">
+                                    <td class="rp-td rp-td--num rp-folio">{{ i + 1 }}</td>
+                                    <td class="rp-td">
+                                        <span class="rp-event-title">{{ ev.title }}</span>
+                                        <span class="rp-event-desc" *ngIf="ev.description">
+                                            {{ ev.description | slice:0:80 }}{{ ev.description.length > 80 ? '…' : '' }}
+                                        </span>
+                                    </td>
+                                    <td class="rp-td">
+                                        <span class="rp-badge" [class]="'rp-badge--' + ev.type.toLowerCase()">
+                                            {{ getTypeLabel(ev.type) }}
+                                        </span>
+                                    </td>
+                                    <td class="rp-td">
+                                        <span class="rp-status" [class]="'rp-status--' + ev.status.toLowerCase()">
+                                            {{ getStatusLabel(ev.status) }}
+                                        </span>
+                                    </td>
+                                    <td class="rp-td rp-td--date">{{ ev.startDate | date:'dd/MM/yyyy' }}</td>
+                                    <td class="rp-td rp-td--date">{{ ev.endDate | date:'dd/MM/yyyy' }}</td>
+                                    <td class="rp-td rp-td--lieu">{{ getLieu(ev) }}</td>
+                                    <td class="rp-td rp-td--num">{{ ev.participants?.length ?? 0 }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <div class="mb-band">
+                <div style="grid-column: 1 / 13" class="rp-rule-thin"></div>
+            </div>
+            <div class="mb-band">
+                <div style="grid-column: 1 / 7" class="rp-footer-left">
+                    <span class="rp-footer-text">
+                        CGE Agenda — Conseil du Gouvernement et des États / ASCE-LC
+                    </span>
+                </div>
+                <div style="grid-column: 7 / 13" class="rp-footer-right">
+                    <span class="rp-footer-text">
+                        Rapport généré le {{ today | date:'dd/MM/yyyy à HH:mm':'':'fr' }}
+                    </span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mb-guides no-print" aria-hidden="true">
+            <div class="mb-cols" id="mb-cols-rp"></div>
+            <div class="mb-rows"></div>
+            <div class="mb-mline l"></div>
+            <div class="mb-mline r"></div>
+        </div>
+
+    </div>
+</div>

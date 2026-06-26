@@ -1,8 +1,6 @@
 ﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-
-// PrimeNG
 import { Button } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
@@ -10,8 +8,6 @@ import { Table, TableModule } from 'primeng/table';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
-
-// Services
 import { ParticipantService } from '../../service/participant.service';
 
 @Component({

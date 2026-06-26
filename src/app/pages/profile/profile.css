@@ -99,6 +99,37 @@
     .pf-hero-actions { flex-direction: row; margin-left: 0; }
 }
 
+@media (max-width: 768px) {
+    .pf-hero { padding: 24px 16px; border-radius: 14px; }
+
+    .pf-hero-content {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .pf-avatar { width: 72px; height: 72px; font-size: 26px; }
+
+    .pf-hero-name { font-size: 22px; }
+
+    .pf-hero-actions {
+        flex-direction: row;
+        flex-wrap: wrap;
+        width: 100%;
+        margin-left: 0;
+        gap: 8px;
+    }
+    .pf-hero-actions > * { flex: 1 1 auto; }
+
+    .pf-card { padding: 16px; }
+
+    .pf-info-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+}
+
 /* ── CARTES ── */
 .pf-card {
     background: var(--surface-card);

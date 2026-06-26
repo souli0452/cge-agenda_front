@@ -6,11 +6,6 @@ import { environments } from '../../environments/environments';
 export class AuthService {
 
     constructor(private keycloak: KeycloakService) {}
-
-    // ==========================================
-    // VÉRIFICATION DES RÔLES
-    // ==========================================
-
     hasRole(role: string): boolean {
         return this.keycloak.isUserInRole(role);
     }
@@ -18,11 +13,6 @@ export class AuthService {
     hasAnyRole(...roles: string[]): boolean {
         return roles.some(role => this.keycloak.isUserInRole(role));
     }
-
-    // ==========================================
-    // GETTERS RÔLES
-    // ==========================================
-
     get isAdmin(): boolean { return this.hasRole('ADMIN'); }
     get isCGE():   boolean { return this.hasRole('CGE'); }
 
@@ -34,11 +24,6 @@ export class AuthService {
     get isSecretaire(): boolean { return this.hasRole('SECRETAIRE'); }
     get isDelegue():    boolean { return this.hasRole('DELEGUE'); }
     get isUser():       boolean { return this.hasRole('USER'); }
-
-    // ==========================================
-    // GETTERS PERMISSIONS
-    // ==========================================
-
     get canCreateEvent(): boolean {
         return this.hasAnyRole(
             'ADMIN', 'CGE',
@@ -76,10 +61,6 @@ export class AuthService {
     get isReadOnly(): boolean {
         return !this.canCreateEvent;
     }
-
-    // ==========================================
-    // INFOS UTILISATEUR
-    // ==========================================
 
     get username(): string {
         return this.keycloak.getKeycloakInstance()
@@ -120,11 +101,6 @@ export class AuthService {
     get isAuthenticated(): boolean {
         return !!this.keycloak.getKeycloakInstance().authenticated;
     }
-
-    // ==========================================
-    // LOGOUT
-    // ==========================================
-
     logout(): void {
         this.keycloak.logout(environments.appUrl);
     }

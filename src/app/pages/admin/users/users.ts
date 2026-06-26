@@ -22,9 +22,6 @@ import { environments } from '../../../../environments/environments';
 import { UserTableComponent } from './components/user-table/user-table';
 import { UserFormDialogComponent } from './components/user-form-dialog/user-form-dialog';
 
-// ==========================================
-// MODÈLES
-// ==========================================
 interface KeycloakUser {
     id:               string | undefined;
     username:         string;
@@ -72,10 +69,6 @@ interface KcRole {
 <p-confirmDialog></p-confirmDialog>
 
 <div class="admin-users-container">
-
-    <!-- ============================================ -->
-    <!-- EN-TÊTE                                      -->
-    <!-- ============================================ -->
     <div class="page-header">
         <div class="header-left">
             <div class="header-icon">
@@ -109,10 +102,6 @@ interface KcRole {
                 (onClick)="openCreateDialog()" />
         </div>
     </div>
-
-    <!-- ============================================ -->
-    <!-- STATS PAR RÔLE                               -->
-    <!-- ============================================ -->
     <div class="role-stats-grid">
         <div class="role-stat-card" *ngFor="let stat of roleStats">
             <div class="role-stat-bar" [style.background]="stat.color"></div>
@@ -120,10 +109,6 @@ interface KcRole {
             <div class="role-stat-label">{{ stat.label }}</div>
         </div>
     </div>
-
-    <!-- ============================================ -->
-    <!-- FILTRES                                      -->
-    <!-- ============================================ -->
     <div class="filters-bar">
         <p-iconfield iconPosition="left" class="filter-search">
             <p-inputicon styleClass="pi pi-search" />
@@ -159,10 +144,6 @@ interface KcRole {
             severity="secondary"
             (onClick)="resetFilters()" />
     </div>
-
-    <!-- ============================================ -->
-    <!-- TABLEAU                                      -->
-    <!-- ============================================ -->
     <div class="table-card">
         <app-user-table
             [users]="filteredUsers"
@@ -177,19 +158,12 @@ interface KcRole {
     </div>
 </div>
 
-<!-- ============================================ -->
-<!-- DIALOG : CRÉER / MODIFIER                    -->
-<!-- ============================================ -->
 <app-user-form-dialog
     [(visible)]="userDialogVisible"
     [user]="selectedUser"
     [editMode]="editMode"
     (save)="onUserFormSave($event)">
 </app-user-form-dialog>
-
-<!-- ============================================ -->
-<!-- DIALOG : RESET MOT DE PASSE                  -->
-<!-- ============================================ -->
 <p-dialog
     [(visible)]="resetPasswordDialogVisible"
     [modal]="true"
@@ -274,9 +248,6 @@ interface KcRole {
     </ng-template>
 </p-dialog>
 
-<!-- ============================================ -->
-<!-- DIALOG : GESTION DES RÔLES REALM             -->
-<!-- ============================================ -->
 <p-dialog
     [(visible)]="rolesMgmtVisible"
     [modal]="true"
@@ -317,7 +288,6 @@ interface KcRole {
                 [disabled]="!newRoleName.trim()"
                 (onClick)="createRole()" />
         </div>
-
         <p-divider />
 
         <!-- Liste des rôles existants -->
@@ -362,9 +332,6 @@ interface KcRole {
     </ng-template>
 </p-dialog>
 
-<!-- ============================================ -->
-<!-- DIALOG : RÔLES D'UN UTILISATEUR              -->
-<!-- ============================================ -->
 <p-dialog
     [(visible)]="rolesDialogVisible"
     [modal]="true"
@@ -472,10 +439,6 @@ export class AdminUsersComponent implements OnInit {
     confirmPassword  = '';
 
     userForm: UserFormData = this.emptyForm();
-
-    // ==========================================
-    // OPTIONS
-    // ==========================================
     roleOptions = [
         { label: 'Administrateur',        value: 'ADMIN'             },
         { label: 'CGE',                   value: 'CGE'               },
@@ -503,7 +466,6 @@ export class AdminUsersComponent implements OnInit {
 
     roleStats: any[] = [];
 
-    // Role management state
     availableRoles:       KcRole[]          = [];
     rolesDialogVisible:   boolean           = false;
     rolesMgmtVisible:     boolean           = false;
@@ -526,9 +488,6 @@ export class AdminUsersComponent implements OnInit {
         this.loadRoles();
     }
 
-    // ==========================================
-    // CHARGEMENT
-    // ==========================================
     loadUsers(): void {
         this.loading = true;
         this.http.get<KeycloakUser[]>(
@@ -634,9 +593,6 @@ export class AdminUsersComponent implements OnInit {
         })).filter(r => r.count > 0 || staticDefs.some(s => s.value === r.value));
     }
 
-    // ==========================================
-    // FILTRES
-    // ==========================================
     applyFilters(): void {
         this.filteredUsers = this.users.filter(user => {
             const kw = this.searchKeyword.toLowerCase();
@@ -660,9 +616,6 @@ export class AdminUsersComponent implements OnInit {
         this.filteredUsers        = [...this.users];
     }
 
-    // ==========================================
-    // DIALOGS
-    // ==========================================
     openCreateDialog(): void {
         this.editMode          = false;
         this.userForm          = this.emptyForm();
@@ -717,9 +670,6 @@ export class AdminUsersComponent implements OnInit {
         this.resetPasswordDialogVisible = true;
     }
 
-    // ==========================================
-    // ACTIONS
-    // ==========================================
     saveUser(): void {
         if (!this.isFormValid()) return;
         this.actionLoading = true;
@@ -749,7 +699,7 @@ export class AdminUsersComponent implements OnInit {
             next: () => {
                 this.messageService.add({
                     severity: 'success',
-                    summary:  this.editMode ? '✅ Modifié' : '✅ Créé',
+                    summary:  this.editMode ? 'Modifié' : 'Créé',
                     detail:   `Utilisateur "${this.userForm.username}" ${this.editMode ? 'modifié' : 'créé'} avec succès`,
                     life: 4000
                 });
@@ -778,7 +728,7 @@ export class AdminUsersComponent implements OnInit {
                 user.enabled = newStatus;
                 this.messageService.add({
                     severity: newStatus ? 'success' : 'warn',
-                    summary:  newStatus ? '✅ Activé' : '⚠️ Désactivé',
+                    summary:  newStatus ? 'Activé' : 'Désactivé',
                     detail:   `"${user.username}" ${newStatus ? 'activé' : 'désactivé'}`,
                     life: 3000
                 });
@@ -808,7 +758,7 @@ export class AdminUsersComponent implements OnInit {
             next: () => {
                 this.messageService.add({
                     severity: 'success',
-                    summary:  '✅ Mot de passe réinitialisé',
+                    summary:  'Mot de passe réinitialisé',
                     detail:   `Mot de passe de "${this.selectedUser?.username}" mis à jour`,
                     life: 4000
                 });
@@ -847,7 +797,7 @@ export class AdminUsersComponent implements OnInit {
             next: () => {
                 this.messageService.add({
                     severity: 'success',
-                    summary:  '✅ Supprimé',
+                    summary:  'Supprimé',
                     detail:   `"${user.username}" supprimé avec succès`,
                     life: 3000
                 });
@@ -863,9 +813,6 @@ export class AdminUsersComponent implements OnInit {
         });
     }
 
-    // ==========================================
-    // GESTION DES RÔLES REALM
-    // ==========================================
     openRolesMgmt(): void {
         this.newRoleName    = '';
         this.newRoleDesc    = '';
@@ -878,7 +825,7 @@ export class AdminUsersComponent implements OnInit {
         this.rolesLoading = true;
         this.http.post(`${environments.apiUrl}/admin/roles`, { name, description: this.newRoleDesc }).subscribe({
             next: () => {
-                this.messageService.add({ severity: 'success', summary: '✅ Rôle créé', detail: `Rôle "${name}" créé avec succès`, life: 3000 });
+                this.messageService.add({ severity: 'success', summary: 'Rôle créé', detail: `Rôle "${name}" créé avec succès`, life: 3000 });
                 this.newRoleName  = '';
                 this.newRoleDesc  = '';
                 this.rolesLoading = false;
@@ -907,7 +854,7 @@ export class AdminUsersComponent implements OnInit {
         this.rolesLoading = true;
         this.http.delete(`${environments.apiUrl}/admin/roles/${roleName}`).subscribe({
             next: () => {
-                this.messageService.add({ severity: 'success', summary: '✅ Supprimé', detail: `Rôle "${roleName}" supprimé`, life: 3000 });
+                this.messageService.add({ severity: 'success', summary: 'Supprimé', detail: `Rôle "${roleName}" supprimé`, life: 3000 });
                 this.rolesLoading = false;
                 this.loadRoles();
             },
@@ -918,9 +865,7 @@ export class AdminUsersComponent implements OnInit {
         });
     }
 
-    // ==========================================
-    // GESTION DES RÔLES PAR UTILISATEUR
-    // ==========================================
+   
     openRolesDialog(user: any): void {
         this.selectedUserForRoles = user;
         this.roleToAssign         = '';
@@ -959,7 +904,7 @@ export class AdminUsersComponent implements OnInit {
                 if (this.selectedUserForRoles) {
                     this.selectedUserForRoles.realmRoles = [...this.userCurrentRoles];
                 }
-                this.messageService.add({ severity: 'success', summary: '✅ Rôle assigné', detail: `Rôle "${this.roleToAssign}" assigné`, life: 3000 });
+                this.messageService.add({ severity: 'success', summary: 'Rôle assigné', detail: `Rôle "${this.roleToAssign}" assigné`, life: 3000 });
                 this.roleToAssign = '';
                 this.refreshAssignableRoles();
                 this.rolesLoading = false;
@@ -983,7 +928,7 @@ export class AdminUsersComponent implements OnInit {
                 if (this.selectedUserForRoles) {
                     this.selectedUserForRoles.realmRoles = [...this.userCurrentRoles];
                 }
-                this.messageService.add({ severity: 'success', summary: '✅ Rôle retiré', detail: `Rôle "${roleName}" retiré`, life: 3000 });
+                this.messageService.add({ severity: 'success', summary: 'Rôle retiré', detail: `Rôle "${roleName}" retiré`, life: 3000 });
                 this.refreshAssignableRoles();
                 this.rolesLoading = false;
                 this.computeRoleStats();
@@ -994,10 +939,7 @@ export class AdminUsersComponent implements OnInit {
             }
         });
     }
-
-    // ==========================================
-    // HELPERS
-    // ==========================================
+    
     emptyForm(): UserFormData {
         return {
             username: '', email: '',

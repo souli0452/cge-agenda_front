@@ -708,10 +708,6 @@ export class EventDetailComponent implements OnInit {
             error: ()      => { this.loadingFiles = false; }
         });
     }
-
-    // ==========================================
-    // PERMISSIONS
-    // ==========================================
     get isBrouillon():   boolean { return (this.event?.status as string) === 'BROUILLON'; }
     get isEnAttente():   boolean { return (this.event?.status as string) === 'EN_ATTENTE_VALIDATION'; }
     get isACorriger():   boolean { return (this.event?.status as string) === 'A_CORRIGER'; }
@@ -729,18 +725,13 @@ export class EventDetailComponent implements OnInit {
     getRejectionReason():  string { return (this.event as any)?.rejectionReason  || ''; }
     getChangeSuggestions():string { return (this.event as any)?.changeSuggestions || ''; }
 
-    // ==========================================
-    // HORAIRES
-    // ==========================================
     getVisibleSchedules(): any[] {
         if (!this.event?.schedules) return [];
         if (this.showAllSchedules || this.event.schedules.length <= 3) return this.event.schedules;
         return this.event.schedules.slice(0, 3);
     }
 
-    // ==========================================
-    // LIEU ENRICHI
-    // ==========================================
+
     getLieuFormate(): string {
         if (!this.event) return '';
         const e = this.event as any;
@@ -768,9 +759,7 @@ export class EventDetailComponent implements OnInit {
         return 'pi pi-map-marker';
     }
 
-    // ==========================================
-    // ACTIONS BROUILLON
-    // ==========================================
+
     submitDraft(): void {
         if (!this.eventId) return;
         this.actionLoading = true;
@@ -787,9 +776,6 @@ export class EventDetailComponent implements OnInit {
         });
     }
 
-    // ==========================================
-    // ACTIONS CGE
-    // ==========================================
     validateEvent(): void {
         if (!this.eventId) return;
         this.actionLoading = true;
@@ -877,9 +863,6 @@ export class EventDetailComponent implements OnInit {
         });
     }
 
-    // ==========================================
-    // FICHIERS
-    // ==========================================
     openFilePreview(file: FileUpload): void {
         this.selectedFile = file;
         this.fileService.downloadFile(file.id!).subscribe({
@@ -989,9 +972,6 @@ export class EventDetailComponent implements OnInit {
         event.target.value = '';
     }
 
-    // ==========================================
-    // HELPERS
-    // ==========================================
     isImage(fileName: string | undefined): boolean {
         if (!fileName) return false;
         return ['jpg','jpeg','png','gif','webp','bmp'].includes(fileName.split('.').pop()?.toLowerCase() || '');

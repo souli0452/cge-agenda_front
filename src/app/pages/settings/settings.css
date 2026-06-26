@@ -240,7 +240,28 @@
 }
 
 @media (max-width: 900px) {
-    .settings-grid {
-        grid-template-columns: 1fr;
+    .settings-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 768px) {
+    .settings-grid { grid-template-columns: 1fr; }
+
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .avatar-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 12px;
+    }
+
+    :host ::ng-deep .p-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
     }
 }

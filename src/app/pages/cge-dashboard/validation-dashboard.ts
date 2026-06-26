@@ -204,7 +204,6 @@ import {
             </ng-template>
 
             <ng-template pTemplate="body" let-rowEvent>
-                <!-- ✅ Clic sur ligne → détail avec stopPropagation sur Actions -->
                 <tr [class.row-urgent]="isUrgent(rowEvent)"
                     (click)="viewEvent(rowEvent)"
                     style="cursor:pointer">
@@ -268,7 +267,6 @@ import {
                         </span>
                     </td>
 
-                    <!-- ✅ stopPropagation sur colonne Actions -->
                     <td class="text-center" (click)="$event.stopPropagation()">
                         <div class="flex justify-center gap-1">
                             <p-button icon="pi pi-eye"
@@ -480,10 +478,6 @@ export class ValidationDashboardComponent implements OnInit {
             }
         });
     }
-
-    // ==========================================
-    // ✅ NAVIGATION — utilise l'objet complet
-    // ==========================================
     viewEvent(event: Event): void {
         if (!event?.id) {
             console.error('ID manquant:', event);
@@ -492,9 +486,6 @@ export class ValidationDashboardComponent implements OnInit {
         this.router.navigate(['/events', event.id]);
     }
 
-    // ==========================================
-    // DIALOGS
-    // ==========================================
     openValidateDialog(event: Event): void {
         this.selectedEvent         = event;
         this.validateComment       = '';
@@ -513,9 +504,7 @@ export class ValidationDashboardComponent implements OnInit {
         this.rejectDialogVisible = true;
     }
 
-    // ==========================================
-    // ACTIONS CGE
-    // ==========================================
+   
     validateEvent(): void {
         if (!this.selectedEvent?.id) return;
         this.actionLoading = true;
@@ -600,9 +589,6 @@ export class ValidationDashboardComponent implements OnInit {
         });
     }
 
-    // ==========================================
-    // HELPERS
-    // ==========================================
     getDaysUntilStart(event: Event): number {
         const now   = new Date(); now.setHours(0,0,0,0);
         const start = new Date(event.startDate); start.setHours(0,0,0,0);

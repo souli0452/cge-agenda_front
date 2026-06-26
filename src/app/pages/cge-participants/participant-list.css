@@ -122,7 +122,6 @@
   color: var(--orange-600);
 }
 
-/* Dialog Styles */
 .dialog-content {
   padding: 8px 0;
 }
@@ -155,7 +154,6 @@
   font-size: 18px;
 }
 
-/* Form Layout - 2 COLONNES */
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -198,30 +196,25 @@
   gap: 12px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
-  .filters-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .stats-grid {
-    grid-template-columns: 1fr;
-  }
-
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { padding: 14px 12px; }
+  .stat-value { font-size: 22px; }
   .page-header {
     flex-direction: column;
-    gap: 16px;
-    align-items: stretch;
-  }
-
-  .form-row {
-    grid-template-columns: 1fr;
     gap: 12px;
+    align-items: stretch;
+    padding: 16px;
   }
+  .page-header h1 { font-size: 20px; }
 
-  .form-col-full {
-    grid-column: 1;
-  }
+  .filters-grid { grid-template-columns: 1fr; gap: 10px; }
+  .filters-section { padding: 14px; }
+  .table-container { padding: 0; border-radius: 12px; overflow: hidden; }
+  :host ::ng-deep .p-datatable-wrapper { overflow-x: auto !important; }
+
+  .form-row { grid-template-columns: 1fr; gap: 12px; }
+  .form-col-full { grid-column: 1; }
 }
 
 :host ::ng-deep {
@@ -240,7 +233,6 @@
     background: var(--surface-hover);
   }
 
-  /* Dialog Styles */
   .p-dialog-header {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-600) 100%);
     border-bottom: none;
@@ -265,7 +257,6 @@
     border-top: 1px solid var(--surface-border);
   }
 
-  /* Input Styles */
   .p-inputtext {
     width: 100%;
     padding: 12px 14px;
@@ -292,7 +283,6 @@
     background: var(--red-50);
   }
 
-  /* Select Styles */
   .p-select {
     width: 100%;
     border-radius: 8px;
@@ -316,7 +306,6 @@
     background: white;
   }
 
-  /* Error Messages */
   .p-error {
     color: var(--red-500);
     font-size: 12px;

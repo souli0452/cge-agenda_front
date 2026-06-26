@@ -7,7 +7,7 @@ import {
     Validators, ReactiveFormsModule, FormsModule
 } from '@angular/forms';
 
-import { Country, City } from 'country-state-city';
+import { getAllCountries, getCitiesOfCountry } from '../../data/geo-data';
 
 import { ButtonModule }          from 'primeng/button';
 import { InputTextModule }       from 'primeng/inputtext';
@@ -183,25 +183,11 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
     }
 
     loadCountries(): void {
-        try {
-            this.countries = Country.getAllCountries()
-                .map(c => ({ label: c.name, value: c.name, code: c.isoCode }))
-                .sort((a, b) => a.label.localeCompare(b.label));
-        } catch (err) {
-            console.error('Erreur chargement pays:', err);
-        }
+        this.countries = getAllCountries();
     }
 
     loadCities(countryCode: string): void {
-        try {
-            const data = City.getCitiesOfCountry(countryCode);
-            this.cities = data && data.length > 0
-                ? data.map(c => ({ label: c.name, value: c.name }))
-                      .sort((a, b) => a.label.localeCompare(b.label))
-                : [];
-        } catch (err) {
-            this.cities = [];
-        }
+        this.cities = getCitiesOfCountry(countryCode);
     }
 
     onCountryChange(event: any): void {
@@ -593,9 +579,6 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         }
     }
 
-    // ==========================================
-    // ✅ SOUMISSION — sans status (backend décide)
-    // ==========================================
     async onSubmit(): Promise<void> {
         if (!this.canProceedFromStep(0) ||
             !this.canProceedFromStep(1) ||
@@ -614,7 +597,6 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         try {
             const fv = this.eventForm.value;
 
-            // ✅ PAS de status ici — le backend détermine selon le rôle
             const eventData: any = {
                 title:       fv.title?.trim(),
                 description: fv.description?.trim() || null,
