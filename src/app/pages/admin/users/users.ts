@@ -177,8 +177,8 @@ interface KcRole {
 <p-dialog
     [(visible)]="resetPasswordDialogVisible"
     [modal]="true"
-    [style]="{width: '440px'}"
-    header="🔑 Réinitialiser le mot de passe"
+    [style]="{width: '420px'}"
+    header="Réinitialiser le mot de passe"
     [draggable]="false">
 
     <div class="user-form">
@@ -198,42 +198,16 @@ interface KcRole {
             </div>
         </div>
 
-        <div class="form-field">
-            <label class="field-label">
-                Nouveau mot de passe <span class="required">*</span>
-            </label>
-            <input pInputText
-                   type="password"
-                   [(ngModel)]="newPassword"
-                   placeholder="Minimum 8 caractères"
-                   class="w-full" />
-            <small class="field-hint" *ngIf="newPassword && newPassword.length < 8">
-                <i class="pi pi-exclamation-triangle" style="color:#f44336"></i>
-                Minimum 8 caractères requis
-            </small>
-        </div>
-
-        <div class="form-field">
-            <label class="field-label">
-                Confirmer le mot de passe <span class="required">*</span>
-            </label>
-            <input pInputText
-                   type="password"
-                   [(ngModel)]="confirmPassword"
-                   placeholder="Répétez le mot de passe"
-                   class="w-full" />
-            <small class="field-error"
-                   *ngIf="confirmPassword && newPassword !== confirmPassword">
-                <i class="pi pi-times-circle"></i>
-                Les mots de passe ne correspondent pas
-            </small>
-            <small class="field-success"
-                   *ngIf="confirmPassword &&
-                          newPassword === confirmPassword &&
-                          newPassword.length >= 8">
-                <i class="pi pi-check-circle"></i>
-                Les mots de passe correspondent
-            </small>
+        <div class="reset-pwd-info">
+            <i class="pi pi-info-circle reset-pwd-icon"></i>
+            <div>
+                <div class="reset-pwd-title">Mot de passe par défaut</div>
+                <div class="reset-pwd-desc">
+                    Le compte sera réinitialisé avec le mot de passe temporaire
+                    <strong>Asce&#64;2026</strong>.<br>
+                    L'utilisateur devra le changer à sa prochaine connexion.
+                </div>
+            </div>
         </div>
 
     </div>
@@ -250,9 +224,6 @@ interface KcRole {
                 icon="pi pi-key"
                 severity="warn"
                 [loading]="actionLoading"
-                [disabled]="!newPassword ||
-                             newPassword !== confirmPassword ||
-                             newPassword.length < 8"
                 (onClick)="resetPassword()" />
         </div>
     </ng-template>
@@ -756,27 +727,22 @@ export class AdminUsersComponent implements OnInit {
     }
 
     resetPassword(): void {
-        if (!this.selectedUser ||
-            !this.newPassword  ||
-            this.newPassword !== this.confirmPassword ||
-            this.newPassword.length < 8) return;
+        if (!this.selectedUser) return;
 
         this.actionLoading = true;
         this.http.patch(
             `${environments.apiUrl}/admin/users/${this.selectedUser.id}/reset-password`,
-            { password: this.newPassword }
+            {}
         ).subscribe({
             next: () => {
                 this.messageService.add({
                     severity: 'success',
                     summary:  'Mot de passe réinitialisé',
-                    detail:   `Mot de passe de "${this.selectedUser?.username}" mis à jour`,
-                    life: 4000
+                    detail:   `Le compte "${this.selectedUser?.username}" utilisera Asce@2026 à la prochaine connexion`,
+                    life: 5000
                 });
                 this.resetPasswordDialogVisible = false;
                 this.actionLoading              = false;
-                this.newPassword                = '';
-                this.confirmPassword            = '';
             },
             error: (err) => {
                 this.messageService.add({

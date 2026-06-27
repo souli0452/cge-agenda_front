@@ -681,3 +681,32 @@
     :host ::ng-deep .ut-mobile-cards { display: flex !important; flex-direction: column !important; }
     :host ::ng-deep .ut-desktop-table { display: none !important; }
 }
+
+/* ── Dialog reset mot de passe ───────────────────────────── */
+.reset-pwd-info {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    background: #e8f5e9;
+    border: 1px solid #a5d6a7;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 8px;
+}
+.reset-pwd-icon {
+    font-size: 22px;
+    color: #228B22;
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+.reset-pwd-title {
+    font-weight: 700;
+    font-size: 14px;
+    color: #145214;
+    margin-bottom: 6px;
+}
+.reset-pwd-desc {
+    font-size: 13px;
+    color: #2e7d32;
+    line-height: 1.5;
+}

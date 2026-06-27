@@ -30,6 +30,7 @@
     "@tailwindcss/postcss": "^4.1.11",
     "chart.js": "4.4.2",
     "country-state-city": "^3.2.1",
+    "i18n-iso-countries": "^7.14.0",
     "jspdf": "^4.0.0",
     "jspdf-autotable": "^5.0.7",
     "jszip": "^3.10.1",

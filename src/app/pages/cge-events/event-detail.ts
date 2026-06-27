@@ -19,9 +19,10 @@ import { TextareaModule }      from 'primeng/textarea';
 import { InputTextModule }     from 'primeng/inputtext';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
-import { EventService } from '../../service/event.service';
-import { FileService }  from '../../service/file.service';
-import { AuthService }  from '../../service/auth.service';
+import { EventService }  from '../../service/event.service';
+import { FileService }   from '../../service/file.service';
+import { AuthService }   from '../../service/auth.service';
+import { environments }  from '../../../environments/environments';
 import {
     Event,
     FileUpload,
@@ -982,7 +983,7 @@ export class EventDetailComponent implements OnInit {
     }
 
     getFileUrl(fileId: string): string {
-        return `http://localhost:8081/api/v1/cge-agenda/file/download/${fileId}`;
+        return `${environments.apiUrl}/file/download/${fileId}`;
     }
 
     getFileIcon(fileName: string): string {
