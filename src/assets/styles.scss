@@ -297,10 +297,21 @@ html, body {
     /* ── Autocomplete ───────────────────────────────────── */
     .p-autocomplete-overlay { max-height: 50vh !important; overflow-y: auto !important; }
 
+    /* ── Texte conditionnel mobile ──────────────────────── */
+    .hidden-mobile  { display: none !important; }
+    .visible-mobile { display: inline !important; }
+
+    /* Badges rejet/amendement : autoriser le retour à la ligne */
+    .rejection-badge, .amendment-badge { white-space: normal !important; }
+
 }
 
+/* Sur desktop : texte complet visible, version courte cachée */
+.visible-mobile { display: none; }
+.hidden-mobile  { display: inline; }
+
 .layout-menu {
-    font-size: 1.125rem !important; 
+    font-size: 1.125rem !important;
 }
 
 .layout-menu .layout-menuitem-text {

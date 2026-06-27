@@ -26,6 +26,7 @@ export class UserTableComponent {
     @Input() loading       = false;
     @Input() totalRecords  = 0;
     @Input() rows          = 20;
+    @Input() viewMode: 'list' | 'card' = 'list';
 
     @Output() edit       = new EventEmitter<any>();
     @Output() delete     = new EventEmitter<any>();
@@ -33,6 +34,8 @@ export class UserTableComponent {
     @Output() resetPwd   = new EventEmitter<any>();
 
     search = '';
+    mobileUserPage = 0;
+    readonly Math = Math;
 
     getRoleLabel = getRoleLabel;
 

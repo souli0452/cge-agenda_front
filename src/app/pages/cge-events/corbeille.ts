@@ -62,10 +62,19 @@ import {
                     </p>
                 </div>
             </div>
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 flex-wrap">
                 <span class="last-refresh" *ngIf="lastRefresh">
                     <i class="pi pi-sync"></i> {{ lastRefresh | date:'HH:mm:ss' }}
                 </span>
+                <!-- Toggle vue liste / cartes -->
+                <div class="view-toggle">
+                    <button class="vt-btn" [class.vt-active]="viewMode === 'list'" (click)="viewMode = 'list'" title="Vue liste">
+                        <i class="pi pi-list"></i>
+                    </button>
+                    <button class="vt-btn" [class.vt-active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Vue cartes">
+                        <i class="pi pi-th-large"></i>
+                    </button>
+                </div>
                 <p-button label="Rafraîchir" icon="pi pi-refresh"
                           [outlined]="true" (onClick)="loadAll()"
                           [loading]="loadingEvents || loadingParticipants" />
@@ -115,48 +124,67 @@ import {
                                   [outlined]="true" (onClick)="router.navigate(['/events'])" />
                     </div>
 
-                    <p-table *ngIf="!loadingEvents && events.length > 0"
-                             [value]="events" responsiveLayout="scroll"
-                             styleClass="p-datatable-sm p-datatable-hoverable-rows"
-                             [paginator]="events.length > 10" [rows]="10">
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <th style="width:30%">Événement</th>
-                                <th>Type</th><th>Statut</th><th>Dates</th>
-                                <th>Créateur</th><th>Supprimé le</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-ev>
-                            <tr>
-                                <td>
-                                    <div class="flex flex-col gap-1">
-                                        <span class="font-semibold">{{ ev.title }}</span>
-                                        <span class="text-xs text-muted-color" *ngIf="ev.description">
-                                            {{ ev.description | slice:0:60 }}{{ ev.description?.length > 60 ? '...' : '' }}
-                                        </span>
+                    <ng-container *ngIf="!loadingEvents && events.length > 0">
+
+                        <!-- Vue CARTES -->
+                        <div class="cb-cards" [class.cb-cards-desktop]="viewMode === 'card'">
+                            <div *ngFor="let ev of events | slice:0:evPage*10+10" class="cb-event-card">
+                                <div class="cbc-header">
+                                    <div class="cbc-title">{{ ev.title }}</div>
+                                    <div class="cbc-badges">
+                                        <p-tag [value]="getTypeLabel(ev.type)" [severity]="getTypeSeverity(ev.type)" [rounded]="true" />
+                                        <p-tag [value]="getStatusLabel(ev.status)" [severity]="getStatusSeverity(ev.status)" [rounded]="true" />
                                     </div>
-                                </td>
-                                <td><p-tag [value]="getTypeLabel(ev.type)" [severity]="getTypeSeverity(ev.type)" [rounded]="true" /></td>
-                                <td><p-tag [value]="getStatusLabel(ev.status)" [severity]="getStatusSeverity(ev.status)" [rounded]="true" /></td>
-                                <td>
-                                    <div class="flex flex-col gap-1">
-                                        <span class="text-sm font-medium">{{ ev.startDate | date:'dd/MM/yyyy' }}</span>
-                                        <span class="text-xs text-muted-color" *ngIf="ev.endDate !== ev.startDate">→ {{ ev.endDate | date:'dd/MM/yyyy' }}</span>
-                                    </div>
-                                </td>
-                                <td><span class="text-sm">{{ ev.creatorUsername || '—' }}</span></td>
-                                <td><span class="text-sm text-muted-color">{{ ev.updatedAt | date:'dd/MM/yyyy' }}</span></td>
-                                <td class="text-center">
-                                    <div class="flex justify-center gap-1">
+                                </div>
+                                <div class="cbc-body">
+                                    <div class="cbc-row"><i class="pi pi-calendar cbc-icon"></i><span>{{ ev.startDate | date:'dd/MM/yyyy' }}<span *ngIf="ev.endDate !== ev.startDate"> → {{ ev.endDate | date:'dd/MM/yyyy' }}</span></span></div>
+                                    <div class="cbc-row"><i class="pi pi-user cbc-icon"></i><span>{{ ev.creatorUsername || '—' }}</span></div>
+                                    <div class="cbc-row cbc-deleted"><i class="pi pi-trash cbc-icon"></i><span>Supprimé le {{ ev.updatedAt | date:'dd/MM/yyyy' }}</span></div>
+                                </div>
+                                <div class="cbc-footer">
+                                    <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="secondary" size="small" pTooltip="Voir" (onClick)="router.navigate(['/events', ev.id])" />
+                                    <p-button icon="pi pi-undo" label="Restaurer" [rounded]="true" [text]="true" severity="success" size="small" (onClick)="restoreEvent(ev)" />
+                                    <p-button *ngIf="canDeletePermanently" icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" size="small" pTooltip="Supprimer définitivement" (onClick)="confirmDeleteEvent(ev)" />
+                                </div>
+                            </div>
+                            <!-- Pagination cartes -->
+                            <div class="cb-pag" *ngIf="events.length > 10">
+                                <button class="mob-pag-btn" [disabled]="evPage === 0" (click)="evPage = evPage - 1"><i class="pi pi-chevron-left"></i></button>
+                                <span class="mob-pag-info">Page {{ evPage + 1 }} / {{ Math.ceil(events.length / 10) }} · {{ events.length }} événement(s)</span>
+                                <button class="mob-pag-btn" [disabled]="(evPage + 1) * 10 >= events.length" (click)="evPage = evPage + 1"><i class="pi pi-chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Vue TABLEAU (desktop) -->
+                        <p-table class="cb-desktop-table" [class.cb-table-hidden]="viewMode === 'card'"
+                                 [value]="events" responsiveLayout="scroll"
+                                 styleClass="p-datatable-sm p-datatable-hoverable-rows"
+                                 [paginator]="events.length > 10" [rows]="10">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th style="width:30%">Événement</th>
+                                    <th>Type</th><th>Statut</th><th>Dates</th>
+                                    <th>Créateur</th><th>Supprimé le</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-ev>
+                                <tr>
+                                    <td><div class="flex flex-col gap-1"><span class="font-semibold">{{ ev.title }}</span><span class="text-xs text-muted-color" *ngIf="ev.description">{{ ev.description | slice:0:60 }}{{ ev.description?.length > 60 ? '...' : '' }}</span></div></td>
+                                    <td><p-tag [value]="getTypeLabel(ev.type)" [severity]="getTypeSeverity(ev.type)" [rounded]="true" /></td>
+                                    <td><p-tag [value]="getStatusLabel(ev.status)" [severity]="getStatusSeverity(ev.status)" [rounded]="true" /></td>
+                                    <td><div class="flex flex-col gap-1"><span class="text-sm font-medium">{{ ev.startDate | date:'dd/MM/yyyy' }}</span><span class="text-xs text-muted-color" *ngIf="ev.endDate !== ev.startDate">→ {{ ev.endDate | date:'dd/MM/yyyy' }}</span></div></td>
+                                    <td><span class="text-sm">{{ ev.creatorUsername || '—' }}</span></td>
+                                    <td><span class="text-sm text-muted-color">{{ ev.updatedAt | date:'dd/MM/yyyy' }}</span></td>
+                                    <td class="text-center"><div class="flex justify-center gap-1">
                                         <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="secondary" size="small" pTooltip="Voir" (onClick)="router.navigate(['/events', ev.id])" />
                                         <p-button icon="pi pi-undo" [rounded]="true" [text]="true" severity="success" size="small" pTooltip="Restaurer" (onClick)="restoreEvent(ev)" />
                                         <p-button *ngIf="canDeletePermanently" icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" size="small" pTooltip="Supprimer définitivement" (onClick)="confirmDeleteEvent(ev)" />
-                                    </div>
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
+                                    </div></td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </ng-container>
                 </div>
             </p-tabpanel>
 
@@ -174,37 +202,65 @@ import {
                                   [outlined]="true" (onClick)="router.navigate(['/participants'])" />
                     </div>
 
-                    <p-table *ngIf="!loadingParticipants && participants.length > 0"
-                             [value]="participants" responsiveLayout="scroll"
-                             styleClass="p-datatable-sm p-datatable-hoverable-rows"
-                             [paginator]="participants.length > 10" [rows]="10">
-                        <ng-template pTemplate="header">
-                            <tr>
-                                <th>Nom</th><th>Email</th><th>Structure</th>
-                                <th>Type</th><th>Supprimé le</th><th>Supprimé par</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </ng-template>
-                        <ng-template pTemplate="body" let-p>
-                            <tr>
-                                <td class="font-semibold">{{ p.lastName }} {{ p.firstName }}</td>
-                                <td>{{ p.email }}</td>
-                                <td>{{ p.structure || '—' }}</td>
-                                <td>
-                                    <p-tag [value]="p.participantType === 'INTERNE' ? 'Interne' : 'Externe'"
-                                           [severity]="p.participantType === 'INTERNE' ? 'info' : 'warn'" [rounded]="true" />
-                                </td>
-                                <td><span class="text-sm text-muted-color">{{ p.deletedAt | date:'dd/MM/yyyy HH:mm' }}</span></td>
-                                <td><span class="text-sm">{{ p.deletedBy || '—' }}</span></td>
-                                <td class="text-center">
-                                    <div class="flex justify-center gap-1">
+                    <ng-container *ngIf="!loadingParticipants && participants.length > 0">
+
+                        <!-- Vue CARTES -->
+                        <div class="cb-cards" [class.cb-cards-desktop]="viewMode === 'card'">
+                            <div *ngFor="let p of participants | slice:0:ptPage*10+10" class="cb-part-card">
+                                <div class="cbc-header">
+                                    <div class="cbc-avatar">{{ p.firstName?.charAt(0) }}{{ p.lastName?.charAt(0) }}</div>
+                                    <div class="cbc-name-block">
+                                        <div class="cbc-title">{{ p.lastName }} {{ p.firstName }}</div>
+                                        <p-tag [value]="p.participantType === 'INTERNE' ? 'Interne' : 'Externe'"
+                                               [severity]="p.participantType === 'INTERNE' ? 'info' : 'warn'" [rounded]="true" />
+                                    </div>
+                                </div>
+                                <div class="cbc-body">
+                                    <div class="cbc-row"><i class="pi pi-envelope cbc-icon"></i><span>{{ p.email }}</span></div>
+                                    <div class="cbc-row" *ngIf="p.structure"><i class="pi pi-building cbc-icon"></i><span>{{ p.structure }}</span></div>
+                                    <div class="cbc-row cbc-deleted"><i class="pi pi-trash cbc-icon"></i><span>Supprimé le {{ p.deletedAt | date:'dd/MM/yyyy HH:mm' }}<span *ngIf="p.deletedBy"> par {{ p.deletedBy }}</span></span></div>
+                                </div>
+                                <div class="cbc-footer">
+                                    <p-button icon="pi pi-undo" label="Restaurer" [rounded]="true" [text]="true" severity="success" size="small" (onClick)="restoreParticipant(p)" />
+                                    <p-button *ngIf="canDeletePermanently" icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" size="small" pTooltip="Supprimer définitivement" (onClick)="confirmDeleteParticipant(p)" />
+                                </div>
+                            </div>
+                            <!-- Pagination cartes -->
+                            <div class="cb-pag" *ngIf="participants.length > 10">
+                                <button class="mob-pag-btn" [disabled]="ptPage === 0" (click)="ptPage = ptPage - 1"><i class="pi pi-chevron-left"></i></button>
+                                <span class="mob-pag-info">Page {{ ptPage + 1 }} / {{ Math.ceil(participants.length / 10) }} · {{ participants.length }} participant(s)</span>
+                                <button class="mob-pag-btn" [disabled]="(ptPage + 1) * 10 >= participants.length" (click)="ptPage = ptPage + 1"><i class="pi pi-chevron-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Vue TABLEAU (desktop) -->
+                        <p-table class="cb-desktop-table" [class.cb-table-hidden]="viewMode === 'card'"
+                                 [value]="participants" responsiveLayout="scroll"
+                                 styleClass="p-datatable-sm p-datatable-hoverable-rows"
+                                 [paginator]="participants.length > 10" [rows]="10">
+                            <ng-template pTemplate="header">
+                                <tr>
+                                    <th>Nom</th><th>Email</th><th>Structure</th>
+                                    <th>Type</th><th>Supprimé le</th><th>Supprimé par</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </ng-template>
+                            <ng-template pTemplate="body" let-p>
+                                <tr>
+                                    <td class="font-semibold">{{ p.lastName }} {{ p.firstName }}</td>
+                                    <td>{{ p.email }}</td>
+                                    <td>{{ p.structure || '—' }}</td>
+                                    <td><p-tag [value]="p.participantType === 'INTERNE' ? 'Interne' : 'Externe'" [severity]="p.participantType === 'INTERNE' ? 'info' : 'warn'" [rounded]="true" /></td>
+                                    <td><span class="text-sm text-muted-color">{{ p.deletedAt | date:'dd/MM/yyyy HH:mm' }}</span></td>
+                                    <td><span class="text-sm">{{ p.deletedBy || '—' }}</span></td>
+                                    <td class="text-center"><div class="flex justify-center gap-1">
                                         <p-button icon="pi pi-undo" [rounded]="true" [text]="true" severity="success" size="small" pTooltip="Restaurer" (onClick)="restoreParticipant(p)" />
                                         <p-button *ngIf="canDeletePermanently" icon="pi pi-times" [rounded]="true" [text]="true" severity="danger" size="small" pTooltip="Supprimer définitivement" (onClick)="confirmDeleteParticipant(p)" />
-                                    </div>
-                                </td>
-                            </tr>
-                        </ng-template>
-                    </p-table>
+                                    </div></td>
+                                </tr>
+                            </ng-template>
+                        </p-table>
+                    </ng-container>
                 </div>
             </p-tabpanel>
 
@@ -218,11 +274,15 @@ import {
 })
 export class CorbeilleComponent implements OnInit {
 
+    readonly Math = Math;
     activeTab           = 'events';
+    viewMode: 'list' | 'card' = 'card';
+    evPage  = 0;
+    ptPage  = 0;
     loadingEvents       = false;
     loadingParticipants = false;
-    events:       Event[]       = [];
-    participants: Participant[]  = [];
+    events:       any[] = [];
+    participants: any[] = [];
     lastRefresh: Date | null = null;
 
     readonly router = inject(Router);

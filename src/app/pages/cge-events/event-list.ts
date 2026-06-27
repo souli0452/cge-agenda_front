@@ -103,6 +103,16 @@ import { AgendaYearService } from '../../service/agenda-year.service';
             </div>
         </div>
 
+        <!-- Toggle vue liste / cartes -->
+        <div class="view-toggle">
+            <button class="vt-btn" [class.vt-active]="viewMode === 'list'" (click)="viewMode = 'list'" title="Vue liste">
+                <i class="pi pi-list"></i>
+            </button>
+            <button class="vt-btn" [class.vt-active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Vue cartes">
+                <i class="pi pi-th-large"></i>
+            </button>
+        </div>
+
         <div class="el-header-actions">
             <div class="export-btn-group">
                 <p-button
@@ -154,9 +164,103 @@ import { AgendaYearService } from '../../service/agenda-year.service';
     <app-event-filters (filtersChange)="onFiltersChange($event)"></app-event-filters>
 
     <!-- ================================================
-         TABLEAU
+         VUE CARTE MOBILE
          ================================================ -->
-    <div class="el-card">
+    <div class="el-cards-section" [class.el-cards-desktop]="viewMode === 'card'">
+        <div *ngFor="let event of mobileEvents" class="el-event-card"
+             [style]="{'border-left-color': getEventTypeColor(event.type)}"
+             (click)="viewEvent(event.id)">
+
+            <!-- En-tête carte -->
+            <div class="elc-header">
+                <div class="elc-type-dot" [style.background]="getEventTypeColor(event.type)"></div>
+                <div class="elc-title-block">
+                    <div class="elc-title">{{ event.title }}</div>
+                    <span class="el-type-pill"
+                          [style.background]="getEventTypeColor(event.type) + '18'"
+                          [style.color]="getEventTypeColor(event.type)"
+                          [style.border]="'1px solid ' + getEventTypeColor(event.type) + '40'">
+                        {{ getTypeLabel(event.type) }}
+                    </span>
+                </div>
+                <p-tag [value]="getStatusLabel(event.status)"
+                       [severity]="getStatusSeverity(event.status)"
+                       [rounded]="true" class="elc-status">
+                </p-tag>
+            </div>
+
+            <!-- Infos -->
+            <div class="elc-body">
+                <div class="elc-row">
+                    <i class="pi pi-calendar elc-icon"></i>
+                    <span>{{ event.startDate | date:'dd MMM yyyy' }}
+                        <span *ngIf="event.endDate !== event.startDate"> → {{ event.endDate | date:'dd MMM yyyy' }}</span>
+                    </span>
+                </div>
+                <div class="elc-row" *ngIf="getEventLieu(event)">
+                    <i [class]="getLieuIcon(event)" class="elc-icon"></i>
+                    <span>{{ getEventLieu(event) }}</span>
+                </div>
+                <div class="elc-row">
+                    <i class="pi pi-users elc-icon"></i>
+                    <span>{{ event.participants?.length || 0 }} participant(s)</span>
+                    <span class="elc-sep">·</span>
+                    <i class="pi pi-paperclip elc-icon"></i>
+                    <span>{{ event.files?.length || 0 }} fichier(s)</span>
+                </div>
+            </div>
+
+            <!-- Badges alerte -->
+            <div class="elc-alerts" *ngIf="event.status === 'REJETE' || hasAmendments(event)">
+                <div *ngIf="event.status === 'REJETE'" class="rejection-badge">
+                    <i class="pi pi-times-circle"></i> Rejeté par CGE
+                </div>
+                <div *ngIf="hasAmendments(event)" class="amendment-badge">
+                    <i class="pi pi-wrench"></i> Modif. demandées
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="elc-footer" (click)="$event.stopPropagation()">
+                <app-event-row-actions
+                    [event]="event"
+                    [canEdit]="canEditEvent(event)"
+                    [canDelete]="canDeleteEvent(event)"
+                    [canCancel]="canCancelEvent(event)"
+                    [canPostpone]="canCancelEvent(event)"
+                    (view)="viewEventObj($event)"
+                    (edit)="editEventObj($event)"
+                    (cancel)="openCancelDialog($event)"
+                    (postpone)="openPostponeDialog($event)"
+                    (delete)="confirmDelete($event)">
+                </app-event-row-actions>
+            </div>
+        </div>
+
+        <div *ngIf="filteredEvents.length === 0" class="el-empty">
+            <div class="el-empty-icon-wrap"><i class="pi pi-calendar-times"></i></div>
+            <p class="el-empty-title">Aucun événement trouvé</p>
+        </div>
+
+        <!-- Pagination mobile événements -->
+        <div class="el-mobile-pag" *ngIf="filteredEvents.length > 0">
+            <button class="mob-pag-btn" [disabled]="mobilePage === 0" (click)="mobilePage = mobilePage - 1">
+                <i class="pi pi-chevron-left"></i>
+            </button>
+            <span class="mob-pag-info">
+                Page {{ mobilePage + 1 }} / {{ mobileTotalPages }}
+                &nbsp;·&nbsp; {{ filteredEvents.length }} événement(s)
+            </span>
+            <button class="mob-pag-btn" [disabled]="mobilePage >= mobileTotalPages - 1" (click)="mobilePage = mobilePage + 1">
+                <i class="pi pi-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- ================================================
+         TABLEAU (desktop uniquement)
+         ================================================ -->
+    <div class="el-card el-desktop-table" [class.el-table-hidden]="viewMode === 'card'">
         <p-table
             #dt
             [value]="filteredEvents"
@@ -218,7 +322,8 @@ import { AgendaYearService } from '../../service/agenda-year.service';
                         </div>
                         <div *ngIf="hasAmendments(event)" class="amendment-badge">
                             <i class="pi pi-wrench"></i>
-                            Modifications demandées par CGE
+                            <span class="hidden-mobile">Modifications demandées par CGE</span>
+                            <span class="visible-mobile">Modif. CGE</span>
                         </div>
                         <div class="el-event-desc" *ngIf="event.description">
                             {{ event.description | slice:0:65 }}{{ event.description?.length > 65 ? '…' : '' }}
@@ -531,8 +636,11 @@ export class EventListComponent implements OnInit, OnDestroy {
 
     loading      = false;
     zippingFiles = false;
+    viewMode: 'list' | 'card' = 'card';
     events:         Event[] = [];
     filteredEvents: Event[] = [];
+    mobilePage     = 0;
+    mobilePageSize = 10;
 
     searchKeyword  = '';
     selectedType:   EventType   | null = null;
@@ -983,6 +1091,7 @@ export class EventListComponent implements OnInit, OnDestroy {
     }
 
     applyFilters(): void {
+        this.mobilePage = 0;
         this.filteredEvents = this.events.filter(event => {
             const kw = this.searchKeyword?.toLowerCase();
             const matchesKeyword = !kw || event.title.toLowerCase().includes(kw) || event.description?.toLowerCase().includes(kw);
@@ -993,10 +1102,19 @@ export class EventListComponent implements OnInit, OnDestroy {
     }
 
     resetFilters(): void {
+        this.mobilePage     = 0;
         this.searchKeyword  = '';
         this.selectedType   = null;
         this.selectedStatus = null;
         this.filteredEvents = this.events;
+    }
+
+    get mobileEvents(): Event[] {
+        const start = this.mobilePage * this.mobilePageSize;
+        return this.filteredEvents.slice(start, start + this.mobilePageSize);
+    }
+    get mobileTotalPages(): number {
+        return Math.ceil(this.filteredEvents.length / this.mobilePageSize);
     }
 
     onFiltersChange(filters: EventFilters): void {

@@ -196,23 +196,82 @@
   gap: 12px;
 }
 
+/* ── Toggle vue ──────────────────────────────────────── */
+.view-toggle { display: flex; border: 1px solid var(--surface-border); border-radius: 10px; overflow: hidden; }
+.vt-btn { padding: 9px 14px; border: none; cursor: pointer; background: var(--surface-card); color: var(--text-color-secondary); font-size: 15px; transition: all 0.15s; }
+.vt-btn.vt-active { background: var(--primary-color); color: white; }
+.vt-btn:hover:not(.vt-active) { background: var(--surface-hover); color: var(--text-color); }
+
+/* ── Vue cartes ──────────────────────────────────────── */
+.mobile-cards-list { display: none; flex-direction: column; gap: 12px; padding: 12px; }
+
+/* Desktop mode carte : grille 2 colonnes */
+.mobile-cards-list.cards-desktop-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px; padding: 16px;
+}
+.mobile-cards-list.cards-desktop-grid .mobile-pagination { grid-column: 1 / -1; }
+
+/* Tableau caché en mode carte (desktop) */
+:host ::ng-deep .table-hidden-by-toggle { display: none !important; }
+
+.participant-card-mobile {
+    background: var(--surface-card);
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    overflow: hidden;
+    border: 1px solid var(--surface-border);
+}
+.pcm-header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--surface-border);
+}
+.pcm-avatar {
+    width: 42px; height: 42px; border-radius: 50%;
+    background: linear-gradient(135deg, #228B22, #0B5C2E);
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 800; flex-shrink: 0; text-transform: uppercase;
+}
+.pcm-name-block { flex: 1; min-width: 0; }
+.pcm-name { font-size: 15px; font-weight: 700; color: var(--text-color); margin-bottom: 5px; }
+.pcm-actions { display: flex; gap: 2px; flex-shrink: 0; }
+.pcm-body { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
+.pcm-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13px; color: var(--text-color); line-height: 1.4;
+}
+.pcm-icon { font-size: 14px; color: var(--primary-color); margin-top: 2px; flex-shrink: 0; width: 16px; }
+.mobile-pagination {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 12px 8px;
+    border-top: 1px solid var(--surface-border);
+}
+.mob-pag-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card); color: var(--text-color);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; transition: all 0.15s;
+}
+.mob-pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.mob-pag-btn:not(:disabled):hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+.mob-pag-info { font-size: 13px; color: var(--text-color-secondary); text-align: center; }
+
 @media (max-width: 768px) {
+  /* Mobile : cartes toujours visibles, tableau toujours caché */
+  .mobile-cards-list { display: flex !important; flex-direction: column !important; }
+  :host ::ng-deep .desktop-table { display: none !important; }
+
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
   .stat-card { padding: 14px 12px; }
   .stat-value { font-size: 22px; }
-  .page-header {
-    flex-direction: column;
-    gap: 12px;
-    align-items: stretch;
-    padding: 16px;
-  }
+  .page-header { flex-direction: column; gap: 12px; align-items: stretch; padding: 16px; }
   .page-header h1 { font-size: 20px; }
-
   .filters-grid { grid-template-columns: 1fr; gap: 10px; }
   .filters-section { padding: 14px; }
   .table-container { padding: 0; border-radius: 12px; overflow: hidden; }
-  :host ::ng-deep .p-datatable-wrapper { overflow-x: auto !important; }
-
   .form-row { grid-template-columns: 1fr; gap: 12px; }
   .form-col-full { grid-column: 1; }
 }

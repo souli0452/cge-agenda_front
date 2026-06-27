@@ -58,8 +58,19 @@ const ACTION_LABELS: Record<string, string> = {
             <h2><i class="pi pi-shield mr-2" aria-hidden="true"></i>Journal d'audit</h2>
             <p>Traçabilité complète — actions, utilisateurs, adresses IP</p>
         </div>
-        <p-button label="Rafraîchir" icon="pi pi-refresh" severity="secondary"
-                  [outlined]="true" (onClick)="loadAll()" [loading]="loading" />
+        <div class="audit-header-actions">
+            <!-- Toggle vue liste / cartes -->
+            <div class="view-toggle">
+                <button class="vt-btn" [class.vt-active]="auditViewMode === 'list'" (click)="auditViewMode = 'list'" title="Vue liste">
+                    <i class="pi pi-list"></i>
+                </button>
+                <button class="vt-btn" [class.vt-active]="auditViewMode === 'card'" (click)="auditViewMode = 'card'" title="Vue cartes">
+                    <i class="pi pi-th-large"></i>
+                </button>
+            </div>
+            <p-button label="Rafraîchir" icon="pi pi-refresh" severity="secondary"
+                      [outlined]="true" (onClick)="loadAll()" [loading]="loading" />
+        </div>
     </div>
 
     <!-- UTILISATEURS ACTIFS (24h) -->
@@ -114,8 +125,77 @@ const ACTION_LABELS: Record<string, string> = {
         </div>
     </div>
 
-    <!-- TABLEAU -->
-    <div class="card">
+    <!-- ── Vue CARTE (mobile + desktop toggle) ── -->
+    <div class="audit-mobile-cards" [class.audit-cards-desktop]="auditViewMode === 'card'">
+        @for (log of logs; track log.id) {
+            <div class="audit-card">
+                <div class="auc-header">
+                    <span class="action-tag" [ngStyle]="getActionStyle(log.action)">
+                        <i [class]="getActionIcon(log.action)"></i>
+                        {{ getActionLabel(log.action) }}
+                    </span>
+                    <div class="auc-date">
+                        <div style="font-size:13px;font-weight:600;">{{ log.timestamp | date:'dd/MM/yyyy' }}</div>
+                        <div style="font-size:11px;color:var(--text-color-secondary)">{{ log.timestamp | date:'HH:mm:ss' }}</div>
+                    </div>
+                </div>
+                <div class="auc-body">
+                    @if (log.entityTitle) {
+                        <div class="auc-row">
+                            <i class="pi pi-calendar auc-icon"></i>
+                            <span style="font-weight:600;">{{ log.entityTitle }}</span>
+                        </div>
+                    }
+                    <div class="auc-row">
+                        <i class="pi pi-user auc-icon"></i>
+                        <span>{{ log.userFullName || log.userId }}</span>
+                        @if (log.userRole) {
+                            <span class="auc-role">{{ formatRole(log.userRole) }}</span>
+                        }
+                    </div>
+                    @if (log.ipAddress) {
+                        <div class="auc-row">
+                            <i class="pi pi-desktop auc-icon"></i>
+                            <span class="ip-chip">{{ log.ipAddress }}</span>
+                        </div>
+                    }
+                    @if (log.details) {
+                        <div class="auc-row auc-details">
+                            <i class="pi pi-info-circle auc-icon"></i>
+                            <span>{{ log.details }}</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+        @if (logs.length === 0 && !loading) {
+            <div style="text-align:center;padding:40px;color:var(--text-color-secondary)">
+                <i class="pi pi-inbox" style="font-size:2rem;display:block;margin-bottom:8px;"></i>
+                Aucune entrée d'audit
+            </div>
+        }
+        <!-- Pagination mobile audit -->
+        @if (totalRecords > 0) {
+            <div class="audit-mobile-pag">
+                <button class="mob-pag-btn" [disabled]="currentPage === 0"
+                        (click)="currentPage = currentPage - 1; loadLogs()">
+                    <i class="pi pi-chevron-left"></i>
+                </button>
+                <span class="mob-pag-info">
+                    Page {{ currentPage + 1 }} / {{ Math.ceil(totalRecords / pageSize) }}
+                    &nbsp;·&nbsp; {{ totalRecords }} entrée(s)
+                </span>
+                <button class="mob-pag-btn"
+                        [disabled]="(currentPage + 1) >= Math.ceil(totalRecords / pageSize)"
+                        (click)="currentPage = currentPage + 1; loadLogs()">
+                    <i class="pi pi-chevron-right"></i>
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- ── TABLEAU desktop ── -->
+    <div class="card audit-desktop-table" [class.audit-table-hidden]="auditViewMode === 'card'">
         <p-table
             [value]="logs"
             [lazy]="true"
@@ -208,6 +288,8 @@ const ACTION_LABELS: Record<string, string> = {
 })
 export class AuditLogComponent implements OnInit, OnDestroy {
 
+    readonly Math = Math;
+    auditViewMode: 'list' | 'card' = 'card';
     logs: AuditLog[]      = [];
     activeUsers: ActiveUser[] = [];
     totalRecords = 0;

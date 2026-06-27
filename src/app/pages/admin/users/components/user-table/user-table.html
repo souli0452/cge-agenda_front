@@ -17,7 +17,73 @@
         }
     </div>
 } @else {
-    <p-table [value]="filteredUsers"
+
+    <!-- ── Vue CARTE (mobile + desktop toggle) ── -->
+    <div class="ut-mobile-cards" [class.ut-cards-desktop]="viewMode === 'card'">
+        @for (user of filteredUsers | slice:(mobileUserPage*rows):((mobileUserPage+1)*rows); track user.id) {
+            <div class="ut-card">
+                <div class="ut-card-header">
+                    <div class="user-avatar"
+                         [style.background]="getRoleColor(user.realmRoles?.[0] || user.roles?.[0])">
+                        {{ getInitials(user) }}
+                    </div>
+                    <div class="ut-card-info">
+                        <div class="fullname-text">{{ user.lastName }} {{ user.firstName }}</div>
+                        <div class="username-text">&#64;{{ user.username }}</div>
+                    </div>
+                    <span class="status-badge"
+                          [class.status-active]="user.enabled"
+                          [class.status-inactive]="!user.enabled">
+                        <span class="status-dot"></span>
+                        {{ user.enabled ? 'Actif' : 'Inactif' }}
+                    </span>
+                </div>
+                <div class="ut-card-body">
+                    <div class="ut-card-row">
+                        <i class="pi pi-envelope ut-card-icon"></i>
+                        <span>{{ user.email }}</span>
+                    </div>
+                    <div class="ut-card-row">
+                        <i class="pi pi-shield ut-card-icon"></i>
+                        <span class="role-badge"
+                              [style.color]="getRoleColor(user.realmRoles?.[0] || user.roles?.[0])"
+                              [style.background]="getRoleBg(user.realmRoles?.[0] || user.roles?.[0])">
+                            {{ getRoleLabel(user.realmRoles?.[0] || user.roles?.[0] || 'USER') }}
+                        </span>
+                    </div>
+                </div>
+                <div class="ut-card-footer">
+                    <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Modifier" (onClick)="edit.emit(user)" />
+                    <p-button icon="pi pi-id-card" [rounded]="true" [text]="true" severity="help" pTooltip="Rôles" (onClick)="roleEdit.emit(user)" />
+                    <p-button icon="pi pi-key" [rounded]="true" [text]="true" severity="warn" pTooltip="Reset MDP" (onClick)="resetPwd.emit(user)" />
+                    <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Supprimer" (onClick)="delete.emit(user)" />
+                </div>
+            </div>
+        }
+        @if (filteredUsers.length === 0) {
+            <div class="empty-state"><i class="pi pi-users empty-icon"></i><p class="empty-title">Aucun utilisateur</p></div>
+        }
+        <!-- Pagination -->
+        @if (filteredUsers.length > rows) {
+            <div class="ut-mobile-pag">
+                <button class="mob-pag-btn" [disabled]="mobileUserPage === 0" (click)="mobileUserPage = mobileUserPage - 1">
+                    <i class="pi pi-chevron-left"></i>
+                </button>
+                <span class="mob-pag-info">
+                    Page {{ mobileUserPage + 1 }} / {{ Math.ceil(filteredUsers.length / rows) }}
+                    &nbsp;·&nbsp; {{ filteredUsers.length }} utilisateur(s)
+                </span>
+                <button class="mob-pag-btn"
+                        [disabled]="(mobileUserPage + 1) >= Math.ceil(filteredUsers.length / rows)"
+                        (click)="mobileUserPage = mobileUserPage + 1">
+                    <i class="pi pi-chevron-right"></i>
+                </button>
+            </div>
+        }
+    </div>
+
+    <!-- ── Vue TABLEAU desktop ── -->
+    <p-table class="ut-desktop-table" [class.ut-table-hidden]="viewMode === 'card'" [value]="filteredUsers"
              [rows]="rows"
              [paginator]="true"
              [rowsPerPageOptions]="[10, 20, 50]"

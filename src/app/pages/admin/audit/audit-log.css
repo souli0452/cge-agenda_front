@@ -128,7 +128,81 @@
         width: 100%;
     }
 
-    :host ::ng-deep .p-datatable-wrapper {
-        overflow-x: auto !important;
-    }
+    :host ::ng-deep .p-datatable-wrapper { overflow-x: auto !important; }
+
+    /* Mobile : cartes toujours visibles, tableau toujours caché */
+    .audit-mobile-cards { display: flex !important; flex-direction: column !important; }
+    .audit-desktop-table { display: none !important; }
 }
+
+/* ── Toggle vue ──────────────────────────────────────── */
+.view-toggle { display: flex; border: 1px solid var(--surface-border); border-radius: 10px; overflow: hidden; }
+.vt-btn { padding: 9px 14px; border: none; cursor: pointer; background: var(--surface-card); color: var(--text-color-secondary); font-size: 15px; transition: all 0.15s; }
+.vt-btn.vt-active { background: var(--primary-color); color: white; }
+.vt-btn:hover:not(.vt-active) { background: var(--surface-hover); color: var(--text-color); }
+
+/* Conteneur boutons header audit — fond blanc */
+.audit-header-actions {
+    display: flex; align-items: center; gap: 10px;
+    background: white;
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.audit-header-actions .view-toggle { border-color: var(--surface-border); }
+.audit-header-actions .vt-btn { background: var(--surface-card); color: var(--text-color-secondary); }
+.audit-header-actions .vt-btn.vt-active { background: var(--primary-color); color: white; }
+.audit-header-actions .vt-btn:hover:not(.vt-active) { background: var(--surface-hover); color: var(--text-color); }
+
+/* ── Cartes audit (mobile + desktop toggle) ────────────── */
+.audit-mobile-cards { display: none; flex-direction: column; gap: 12px; margin-top: 12px; }
+
+/* Desktop mode carte → grille 2 colonnes */
+.audit-mobile-cards.audit-cards-desktop {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.audit-mobile-cards.audit-cards-desktop .audit-mobile-pag { grid-column: 1 / -1; }
+
+/* Tableau caché en mode carte */
+.audit-table-hidden { display: none !important; }
+
+.audit-card {
+    background: var(--surface-card);
+    border-radius: 14px;
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+.auc-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--surface-border);
+    gap: 12px;
+}
+.auc-date { text-align: right; flex-shrink: 0; }
+.auc-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.auc-row { display: flex; align-items: center; gap: 8px; font-size: 13px; flex-wrap: wrap; }
+.auc-icon { font-size: 13px; color: var(--primary-color); flex-shrink: 0; width: 14px; }
+.auc-role {
+    font-size: 11px; padding: 2px 8px; border-radius: 8px;
+    background: var(--surface-100); color: var(--text-color-secondary);
+}
+.auc-details { color: var(--text-color-secondary); font-size: 12px; }
+
+.audit-mobile-pag {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 12px 8px;
+    border-top: 1px solid var(--surface-border); margin-top: 4px;
+}
+.mob-pag-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card); color: var(--text-color);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; transition: all 0.15s;
+}
+.mob-pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.mob-pag-btn:not(:disabled):hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+.mob-pag-info { font-size: 13px; color: var(--text-color-secondary); text-align: center; }

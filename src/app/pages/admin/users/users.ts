@@ -101,6 +101,15 @@ interface KcRole {
                 severity="success"
                 (onClick)="openCreateDialog()" />
         </div>
+        <!-- Toggle isolé à l'extrémité droite -->
+        <div class="view-toggle header-isolated-toggle">
+            <button class="vt-btn" [class.vt-active]="userViewMode === 'list'" (click)="userViewMode = 'list'" title="Vue liste">
+                <i class="pi pi-list"></i>
+            </button>
+            <button class="vt-btn" [class.vt-active]="userViewMode === 'card'" (click)="userViewMode = 'card'" title="Vue cartes">
+                <i class="pi pi-th-large"></i>
+            </button>
+        </div>
     </div>
     <div class="role-stats-grid">
         <div class="role-stat-card" *ngFor="let stat of roleStats">
@@ -150,6 +159,7 @@ interface KcRole {
             [loading]="loading"
             [totalRecords]="filteredUsers.length"
             [rows]="20"
+            [viewMode]="userViewMode"
             (edit)="openEditDialog($event)"
             (delete)="confirmDelete($event)"
             (roleEdit)="openRolesDialog($event)"
@@ -422,6 +432,7 @@ export class AdminUsersComponent implements OnInit {
 
     loading       = false;
     actionLoading = false;
+    userViewMode: 'list' | 'card' = 'card';
 
     users:         KeycloakUser[] = [];
     filteredUsers: KeycloakUser[] = [];

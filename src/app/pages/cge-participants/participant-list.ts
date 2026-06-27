@@ -47,12 +47,23 @@ import { Participant } from '../../models';
             Gestion des Participants
           </h1>
         </div>
-        <p-button
-          icon="pi pi-plus"
-          label="Nouveau Participant"
-          severity="success"
-          (onClick)="showCreateDialog()"
-        />
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <!-- Toggle vue liste / cartes -->
+          <div class="view-toggle">
+            <button class="vt-btn" [class.vt-active]="viewMode === 'list'" (click)="viewMode = 'list'" title="Vue liste">
+              <i class="pi pi-list"></i>
+            </button>
+            <button class="vt-btn" [class.vt-active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Vue cartes">
+              <i class="pi pi-th-large"></i>
+            </button>
+          </div>
+          <p-button
+            icon="pi pi-plus"
+            label="Nouveau Participant"
+            severity="success"
+            (onClick)="showCreateDialog()"
+          />
+        </div>
       </div>
 
       <!-- Statistiques -->
@@ -120,7 +131,75 @@ import { Participant } from '../../models';
             </p>
           </div>
         } @else {
+
+          <!-- ── Vue CARTE (mobile + desktop toggle) ────────── -->
+          <div class="mobile-cards-list" [class.cards-desktop-grid]="viewMode === 'card'">
+            @for (participant of participants; track participant.id) {
+              <div class="participant-card-mobile">
+                <div class="pcm-header">
+                  <div class="pcm-avatar">
+                    {{ participant.firstName?.charAt(0) }}{{ participant.lastName?.charAt(0) }}
+                  </div>
+                  <div class="pcm-name-block">
+                    <div class="pcm-name">{{ participant.firstName }} {{ participant.lastName }}</div>
+                    <span [class]="'participant-badge ' + (participant.participantType === 'INTERNE' ? 'badge-interne' : 'badge-externe')">
+                      <i [class]="participant.participantType === 'INTERNE' ? 'pi pi-building' : 'pi pi-users'" aria-hidden="true"></i>
+                      {{ participant.participantType === 'INTERNE' ? 'Interne' : 'Externe' }}
+                    </span>
+                  </div>
+                  <div class="pcm-actions">
+                    <p-button icon="pi pi-pencil" severity="info" [text]="true" [rounded]="true" (onClick)="editParticipant(participant)" />
+                    <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="confirmDelete(participant)" />
+                  </div>
+                </div>
+                <div class="pcm-body">
+                  <div class="pcm-row">
+                    <i class="pi pi-envelope pcm-icon"></i>
+                    <span>{{ participant.email }}</span>
+                  </div>
+                  @if (participant.phoneNumber) {
+                    <div class="pcm-row">
+                      <i class="pi pi-phone pcm-icon"></i>
+                      <span>{{ participant.phoneNumber }}</span>
+                    </div>
+                  }
+                  @if (participant.structure) {
+                    <div class="pcm-row">
+                      <i class="pi pi-building pcm-icon"></i>
+                      <span>{{ participant.structure }}</span>
+                    </div>
+                  }
+                  @if (participant.jobTitle) {
+                    <div class="pcm-row">
+                      <i class="pi pi-briefcase pcm-icon"></i>
+                      <span>{{ participant.jobTitle }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+            <!-- Pagination mobile -->
+            <div class="mobile-pagination" *ngIf="totalRecords > 0">
+              <button class="mob-pag-btn" [disabled]="currentPage === 0"
+                      (click)="currentPage = currentPage - 1; loadPaged()">
+                <i class="pi pi-chevron-left"></i>
+              </button>
+              <span class="mob-pag-info">
+                Page {{ currentPage + 1 }} / {{ Math.ceil(totalRecords / pageSize) }}
+                &nbsp;·&nbsp; {{ totalRecords }} participant(s)
+              </span>
+              <button class="mob-pag-btn"
+                      [disabled]="(currentPage + 1) >= Math.ceil(totalRecords / pageSize)"
+                      (click)="currentPage = currentPage + 1; loadPaged()">
+                <i class="pi pi-chevron-right"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Vue TABLEAU (desktop) ──────────────────────── -->
           <p-table
+            class="desktop-table"
+            [class.table-hidden-by-toggle]="viewMode === 'card'"
             [value]="participants"
             [lazy]="true"
             [totalRecords]="totalRecords"
@@ -143,59 +222,24 @@ import { Participant } from '../../models';
                 <th style="width: 150px;">Actions</th>
               </tr>
             </ng-template>
-
             <ng-template pTemplate="body" let-participant>
               <tr>
-                <td>
-                  <strong>{{ participant.firstName }} {{ participant.lastName }}</strong>
-                </td>
-                <td>
-                  <i class="pi pi-envelope mr-2" style="color: var(--text-color-secondary);" aria-hidden="true"></i>
-                  {{ participant.email }}
-                </td>
-                <td>
-                  <i class="pi pi-phone mr-2" style="color: var(--text-color-secondary);" aria-hidden="true"></i>
-                  {{ participant.phoneNumber || '-' }}
-                </td>
+                <td><strong>{{ participant.firstName }} {{ participant.lastName }}</strong></td>
+                <td><i class="pi pi-envelope mr-2" style="color:var(--text-color-secondary)"></i>{{ participant.email }}</td>
+                <td><i class="pi pi-phone mr-2" style="color:var(--text-color-secondary)"></i>{{ participant.phoneNumber || '-' }}</td>
                 <td>{{ participant.structure || '-' }}</td>
                 <td>{{ participant.jobTitle || '-' }}</td>
                 <td>
-                  <span
-                    [class]="'participant-badge ' + (participant.participantType === 'INTERNE' ? 'badge-interne' : 'badge-externe')"
-                  >
+                  <span [class]="'participant-badge ' + (participant.participantType === 'INTERNE' ? 'badge-interne' : 'badge-externe')">
                     <i [class]="participant.participantType === 'INTERNE' ? 'pi pi-building' : 'pi pi-users'" aria-hidden="true"></i>
                     {{ participant.participantType === 'INTERNE' ? 'Interne' : 'Externe' }}
                   </span>
                 </td>
                 <td>
                   <div class="flex gap-2">
-                    <p-button
-                      icon="pi pi-pencil"
-                      severity="info"
-                      [text]="true"
-                      [rounded]="true"
-                      ariaLabel="Modifier le participant"
-                      (onClick)="editParticipant(participant)"
-                      pTooltip="Modifier"
-                    />
-                    <p-button
-                      icon="pi pi-eye"
-                      severity="secondary"
-                      [text]="true"
-                      [rounded]="true"
-                      ariaLabel="Voir les détails du participant"
-                      (onClick)="viewParticipant(participant)"
-                      pTooltip="Détails"
-                    />
-                    <p-button
-                      icon="pi pi-trash"
-                      severity="danger"
-                      [text]="true"
-                      [rounded]="true"
-                      ariaLabel="Supprimer le participant"
-                      (onClick)="confirmDelete(participant)"
-                      pTooltip="Supprimer"
-                    />
+                    <p-button icon="pi pi-pencil" severity="info" [text]="true" [rounded]="true" (onClick)="editParticipant(participant)" pTooltip="Modifier" />
+                    <p-button icon="pi pi-eye" severity="secondary" [text]="true" [rounded]="true" (onClick)="viewParticipant(participant)" pTooltip="Détails" />
+                    <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="confirmDelete(participant)" pTooltip="Supprimer" />
                   </div>
                 </td>
               </tr>
@@ -374,6 +418,8 @@ import { Participant } from '../../models';
   `
 })
 export class ParticipantListComponent implements OnInit, OnDestroy {
+  readonly Math = Math;
+  viewMode: 'list' | 'card' = 'card';
   participants: any[] = [];
   totalRecords = 0;
   pageSize = 10;
