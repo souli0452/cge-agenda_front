@@ -197,8 +197,8 @@ export class CgeStatisticsComponent implements OnInit {
         );
         const typeData = Object.values(typeCount);
         const typeColors = [
-            '#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', 
-            '#EF4444', '#EC4899', '#6B7280'
+            '#1AAF1A', '#178f17', '#136f13', '#0e5010',
+            '#42bf42', '#6fcc6f', '#9bdc9b'
         ];
 
         this.typeChartData = {
@@ -221,7 +221,7 @@ export class CgeStatisticsComponent implements OnInit {
             status => EventStatusLabels[status] || status
         );
         const statusData = Object.values(statusCount);
-        const statusColors = ['#3B82F6', '#F59E0B', '#10B981', '#EF4444', '#6B7280'];
+        const statusColors = ['#1AAF1A', '#178f17', '#136f13', '#42bf42', '#9bdc9b'];
 
         this.statusChartData = {
             labels: statusLabels,
@@ -250,8 +250,8 @@ export class CgeStatisticsComponent implements OnInit {
             datasets: [{
                 label: `Événements ${this.selectedYear}`,
                 data: monthlyData,
-                backgroundColor: 'rgba(34, 139, 34, 0.2)',
-                borderColor: '#228B22',
+                backgroundColor: 'rgba(26, 175, 26, 0.15)',
+                borderColor: '#1AAF1A',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4

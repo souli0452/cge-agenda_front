@@ -8,11 +8,11 @@
 
 /* Header */
 .stats-header {
-    background: linear-gradient(135deg, #228B22 0%, #1a6b1a 100%);
+    background: linear-gradient(135deg, #1AAF1A 0%, #136f13 100%);
     border-radius: 16px;
     padding: 2rem;
     margin-bottom: 2rem;
-    box-shadow: 0 4px 20px rgba(34, 139, 34, 0.3);
+    box-shadow: 0 4px 20px rgba(26, 175, 26, 0.30);
 }
 
 .header-content {
@@ -83,22 +83,22 @@
 }
 
 .kpi-primary .kpi-icon {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #1AAF1A 0%, #178f17 100%);
     color: white;
 }
 
 .kpi-success .kpi-icon {
-    background: linear-gradient(135deg, #228B22 0%, #1a6b1a 100%);
+    background: linear-gradient(135deg, #1AAF1A 0%, #136f13 100%);
     color: white;
 }
 
 .kpi-info .kpi-icon {
-    background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+    background: linear-gradient(135deg, #178f17 0%, #1AAF1A 100%);
     color: white;
 }
 
 .kpi-warning .kpi-icon {
-    background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    background: linear-gradient(135deg, #136f13 0%, #178f17 100%);
     color: white;
 }
 
