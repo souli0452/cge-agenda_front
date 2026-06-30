@@ -371,7 +371,18 @@
         [forceSelection]="true"
         styleClass="w-full"
         [style]="{'width': '100%'}"
-    />
+        appendTo="body"
+    >
+      <ng-template #item let-p>
+        <div style="display:flex;flex-direction:column;padding:4px 2px;gap:2px">
+          <span style="font-weight:600;font-size:14px;color:#145214">{{ p.firstName }} {{ p.lastName }}</span>
+          <span style="font-size:12px;color:#666">{{ p.email }} · {{ p.structure }}</span>
+        </div>
+      </ng-template>
+      <ng-template #selectedItem let-p>
+        {{ p.displayName }}
+      </ng-template>
+    </p-autoComplete>
     <ng-template pTemplate="footer">
       <p-button label="Annuler" severity="secondary" [text]="true"
                 (onClick)="addParticipantDialogVisible = false" />

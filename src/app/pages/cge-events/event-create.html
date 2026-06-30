@@ -86,6 +86,22 @@
             </small>
           </div>
 
+          <div class="form-field" *ngIf="isAutreType">
+            <label class="field-label">
+              Précisez le type d'événement <span class="required">*</span>
+            </label>
+            <p-iconfield iconPosition="left" class="w-full">
+              <p-inputicon styleClass="pi pi-tag" />
+              <input pInputText formControlName="typeAutreLabel"
+                     placeholder="Ex : Cérémonie, Inauguration, Visite officielle..."
+                     autocomplete="off"
+                     class="w-full p-inputtext-lg" />
+            </p-iconfield>
+            <small class="field-error" *ngIf="isFieldInvalid('typeAutreLabel')">
+              Veuillez préciser le type d'événement
+            </small>
+          </div>
+
         </form>
       </div>
 
@@ -212,6 +228,21 @@
               <small class="field-hint">
                 <i class="pi pi-building"></i>
                 Sélectionnez la salle dans le bâtiment ASCELC
+              </small>
+            </div>
+            <div class="form-field" *ngIf="isAutreSalle">
+              <label class="field-label">
+                Nom de la salle <span class="required">*</span>
+              </label>
+              <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon styleClass="pi pi-building" />
+                <input pInputText formControlName="nomLieu"
+                       placeholder="Ex : Salle de formation externe, Hôtel Laïco..."
+                       class="w-full p-inputtext-lg" />
+              </p-iconfield>
+              <small class="field-hint">
+                <i class="pi pi-info-circle"></i>
+                Précisez le nom exact de la salle
               </small>
             </div>
           </ng-container>
@@ -513,7 +544,18 @@
                   [forceSelection]="true"
                   styleClass="w-full"
                   [style]="{'width': '100%'}"
-              />
+                  appendTo="body"
+              >
+                <ng-template #item let-p>
+                  <div style="display:flex;flex-direction:column;padding:4px 2px;gap:2px">
+                    <span style="font-weight:600;font-size:14px;color:#145214">{{ p.firstName }} {{ p.lastName }}</span>
+                    <span style="font-size:12px;color:#666">{{ p.email }} · {{ p.structure }}</span>
+                  </div>
+                </ng-template>
+                <ng-template #selectedItem let-p>
+                  {{ p.displayName }}
+                </ng-template>
+              </p-autoComplete>
             </div>
             <div class="form-field" style="display:flex; align-items:flex-end;">
               <p-button label="Ajouter" icon="pi pi-plus" severity="success"
@@ -742,6 +784,9 @@
           <span class="summary-label">Type d'événement</span>
           <span class="summary-value">
             {{ getTypeLabel(eventForm.get('type')?.value) }}
+            <span *ngIf="isAutreType && eventForm.get('typeAutreLabel')?.value">
+              — {{ eventForm.get('typeAutreLabel')?.value }}
+            </span>
           </span>
         </div>
       </div>
