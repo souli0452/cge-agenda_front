@@ -371,7 +371,7 @@ import { Participant } from '../../models';
               </div>
 
               <div class="form-row">
-                <div class="form-col">
+                <div class="form-col-full">
                   <label for="participantType" class="field-label">
                     Type de participant <span class="required">*</span>
                   </label>
@@ -380,13 +380,14 @@ import { Participant } from '../../models';
                     [options]="typeOptions"
                     formControlName="participantType"
                     placeholder="Sélectionnez un type"
+                    styleClass="w-full"
+                    appendTo="body"
+                    optionLabel="label"
+                    optionValue="value"
                   />
                   @if (participantForm.get('participantType')?.invalid && participantForm.get('participantType')?.touched) {
                     <small class="p-error">Le type est obligatoire</small>
                   }
-                </div>
-                <div class="form-col">
-                  <!-- Colonne vide pour alignement -->
                 </div>
               </div>
             </div>
