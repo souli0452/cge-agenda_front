@@ -4,6 +4,30 @@
 @use 'primeicons/primeicons.css';
 @use './demo/demo.scss';
 :root {
+    /* ================================================================
+       THEME ASCE-LC — Couleur primaire verte du logo (#1AAF1A)
+       500 base  → #1AAF1A
+       600 hover → #178f17
+       700 actif → #136f13
+       50 clair  → #e8f7e8
+       ================================================================ */
+    --p-primary-50:  #e8f7e8;
+    --p-primary-100: #c3eac3;
+    --p-primary-200: #9bdc9b;
+    --p-primary-300: #6fcc6f;
+    --p-primary-400: #42bf42;
+    --p-primary-500: #1AAF1A;
+    --p-primary-600: #178f17;
+    --p-primary-700: #136f13;
+    --p-primary-800: #0e5010;
+    --p-primary-900: #09350a;
+    --p-primary-950: #051f05;
+    --p-primary-color:          #1AAF1A;
+    --p-primary-contrast-color: #ffffff;
+    --primary-color:            #1AAF1A;
+    --primary-contrast-color:   #ffffff;
+    --p-focus-ring-color:       rgba(26, 175, 26, 0.25);
+
     /* ---- Couleurs de marque ASCE-LC ---- */
     --cge-vert:        #1AAF1A;
     --cge-vert-moyen:  #1AAF1A;
@@ -442,3 +466,117 @@ body.mb-grid-on .mb-guides { opacity: 1; }
     .layout-topbar-actions { gap: 4px !important; }
     .layout-topbar-action { width: 36px !important; height: 36px !important; }
 }
+
+/* ================================================================
+   OVERRIDES THEME ASCE-LC — PrimeNG green primary #1AAF1A
+   Couvre : boutons, inputs, toggles, checkboxes, radio, pagination,
+            select, autocomplete, liens actifs, topbar accent
+   ================================================================ */
+
+/* --- Boutons primary --- */
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not([severity]) {
+    background: #1AAF1A !important;
+    border-color: #1AAF1A !important;
+    color: #ffffff !important;
+    &:hover  { background: #178f17 !important; border-color: #178f17 !important; }
+    &:active { background: #136f13 !important; border-color: #136f13 !important; }
+    &:disabled, &.p-disabled { background: #9bdc9b !important; border-color: #9bdc9b !important; opacity: 0.65; }
+}
+
+/* --- Bouton custom btn-ascelc --- */
+.btn-ascelc.p-button {
+    background: #1AAF1A !important;
+    border-color: #1AAF1A !important;
+    color: #ffffff !important;
+    &:hover  { background: #178f17 !important; border-color: #178f17 !important; }
+    &:active { background: #136f13 !important; border-color: #136f13 !important; }
+}
+
+/* --- Input focus --- */
+.p-inputtext:focus,
+.p-textarea:focus,
+.p-autocomplete-input:focus {
+    border-color: #1AAF1A !important;
+    box-shadow: 0 0 0 3px rgba(26, 175, 26, 0.20) !important;
+    outline: none !important;
+}
+
+/* --- Select / Dropdown focus --- */
+.p-select:focus-within,
+.p-select.p-focus {
+    border-color: #1AAF1A !important;
+    box-shadow: 0 0 0 3px rgba(26, 175, 26, 0.20) !important;
+}
+
+/* --- Checkbox actif --- */
+.p-checkbox .p-checkbox-box.p-highlight {
+    background: #1AAF1A !important;
+    border-color: #1AAF1A !important;
+}
+.p-checkbox:not(.p-disabled):has(.p-checkbox-input:hover) .p-checkbox-box {
+    border-color: #1AAF1A !important;
+}
+
+/* --- Radio actif --- */
+.p-radiobutton .p-radiobutton-box.p-highlight {
+    background: #1AAF1A !important;
+    border-color: #1AAF1A !important;
+}
+
+/* --- Toggle / InputSwitch actif --- */
+.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider {
+    background: #1AAF1A !important;
+}
+.p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+    background: #1AAF1A !important;
+}
+
+/* --- Pagination active --- */
+.p-paginator .p-paginator-page.p-highlight {
+    background: #1AAF1A !important;
+    border-color: #1AAF1A !important;
+    color: #ffffff !important;
+}
+
+/* --- Tabs actif --- */
+.p-tablist .p-tab.p-tab-active {
+    color: #1AAF1A !important;
+    border-color: #1AAF1A !important;
+}
+
+/* --- Badge / Tag primary --- */
+.p-badge:not([severity]),
+.p-tag:not([severity]) {
+    background: #1AAF1A !important;
+    color: #ffffff !important;
+}
+
+/* --- Lien actif dans le menu principal --- */
+.layout-menu ul a.active-route {
+    color: #1AAF1A !important;
+}
+
+/* --- Topbar : logo texte en vert --- */
+.layout-topbar .layout-topbar-logo { color: #1AAF1A !important; }
+
+/* --- Barre de progression --- */
+.p-progressbar .p-progressbar-value { background: #1AAF1A !important; }
+
+/* --- Steps actif --- */
+.p-steps .p-steps-item.p-steps-current .p-steps-number {
+    background: #1AAF1A !important;
+    border-color: #1AAF1A !important;
+    color: #ffffff !important;
+}
+.p-steps .p-steps-item.p-steps-completed .p-steps-number {
+    background: #178f17 !important;
+    border-color: #178f17 !important;
+    color: #ffffff !important;
+}
+
+/* --- Timeline point --- */
+.p-timeline-event-marker { background: #1AAF1A !important; border-color: #1AAF1A !important; }
+
+/* --- Chip actif / sélectionné --- */
+.p-chip { border-color: #1AAF1A; }
+.p-chip:hover { background: #e8f7e8; }
