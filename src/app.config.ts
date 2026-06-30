@@ -5,9 +5,28 @@ import { APP_INITIALIZER, ApplicationConfig, ErrorHandler,
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
 import { provideServiceWorker } from '@angular/service-worker';
+import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 import { ConfirmationService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
+
+const AscelcTheme = definePreset(Aura, {
+    semantic: {
+        primary: {
+            50:  '#e8f7e8',
+            100: '#c3eac3',
+            200: '#9bdc9b',
+            300: '#6fcc6f',
+            400: '#42bf42',
+            500: '#1AAF1A',
+            600: '#178f17',
+            700: '#136f13',
+            800: '#0e5010',
+            900: '#09350a',
+            950: '#051f05'
+        }
+    }
+});
 import { KeycloakService, KeycloakBearerInterceptor } from 'keycloak-angular';
 import { appRoutes } from './app.routes';
 import { initializeKeycloak } from '@/init/keycloak-init.factory';
@@ -33,7 +52,7 @@ export const appConfig: ApplicationConfig = {
         provideAnimationsAsync(),
         providePrimeNG({
             theme: {
-                preset: Aura,
+                preset: AscelcTheme,
                 options: { darkModeSelector: '.app-dark' }
             }
         }),
