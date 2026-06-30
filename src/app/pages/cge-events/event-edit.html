@@ -356,12 +356,13 @@
             [modal]="true" [style]="{ width: '500px' }"
             header="Sélectionner un participant">
     <p class="mb-3" style="color: #666; font-size: 13px;">
-      Tapez un nom, prénom ou email pour rechercher — les participants déjà ajoutés sont exclus.
+      Tapez un nom ou email — le participant est ajouté dès la sélection.
     </p>
     <p-autoComplete
         [(ngModel)]="selectedParticipantToAdd"
         [suggestions]="participantSuggestions"
         (completeMethod)="onParticipantSearch($event)"
+        (onSelect)="addParticipant()"
         optionLabel="label"
         placeholder="Tapez le nom, prénom ou email..."
         [minLength]="1"
@@ -381,11 +382,8 @@
       </ng-template>
     </p-autoComplete>
     <ng-template pTemplate="footer">
-      <p-button label="Annuler" severity="secondary" [text]="true"
+      <p-button label="Fermer" severity="secondary" [text]="true"
                 (onClick)="addParticipantDialogVisible = false" />
-      <p-button label="Ajouter" styleClass="btn-ascelc"
-                (onClick)="addParticipant()"
-                [disabled]="!selectedParticipantToAdd" />
     </ng-template>
   </p-dialog>
 

@@ -529,12 +529,12 @@
             <span>Rechercher un participant existant</span>
           </div>
 
-          <div class="grid-2-cols">
-            <div class="form-field">
+          <div class="form-field">
               <p-autoComplete
                   [(ngModel)]="selectedExistingParticipant"
                   [suggestions]="participantSuggestions"
                   (completeMethod)="onParticipantSearch($event)"
+                  (onSelect)="addExistingParticipant()"
                   optionLabel="label"
                   placeholder="Tapez le nom, prénom ou email..."
                   [minLength]="1"
@@ -553,13 +553,6 @@
                   </div>
                 </ng-template>
               </p-autoComplete>
-            </div>
-            <div class="form-field" style="display:flex; align-items:flex-end;">
-              <p-button label="Ajouter" icon="pi pi-plus" severity="success"
-                        [disabled]="!selectedExistingParticipant"
-                        (onClick)="addExistingParticipant()"
-                        styleClass="w-full" />
-            </div>
           </div>
 
           <div class="or-divider"><span>OU</span></div>
