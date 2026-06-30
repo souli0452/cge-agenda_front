@@ -125,6 +125,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             title:           ['', [Validators.required, Validators.minLength(3)]],
             description:     [''],
             type:            ['', Validators.required],
+            typeAutreLabel:  [''],
             startDate:       ['', Validators.required],
             endDate:         ['', Validators.required],
             pays:            ['Burkina Faso'],
@@ -138,6 +139,17 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             salle:           [''],
             nomLieu:         ['']
         }, { validators: endDateAfterStart });
+
+        this.eventForm.get('type')?.valueChanges.subscribe(val => {
+            const ctrl = this.eventForm.get('typeAutreLabel');
+            if (val === 'AUTRE') {
+                ctrl?.setValidators([Validators.required, Validators.minLength(2)]);
+            } else {
+                ctrl?.clearValidators();
+                ctrl?.setValue('', { emitEvent: false });
+            }
+            ctrl?.updateValueAndValidity();
+        });
 
         this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
             this.eventForm.patchValue({
@@ -158,6 +170,14 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         return this.eventForm.get('lieuType')?.value || '';
     }
 
+    get isAutreSalle(): boolean {
+        return this.eventForm.get('salle')?.value === 'Autre';
+    }
+
+    get isAutreType(): boolean {
+        return this.eventForm.get('type')?.value === 'AUTRE';
+    }
+
     get schedules(): FormArray {
         return this.eventForm.get('schedules') as FormArray;
     }
@@ -176,9 +196,15 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             next: (results: Participant[]) => {
                 this.participantSuggestions = results
                     .filter(p => !addedEmails.has(p.email))
-                    .map(p => ({ ...p, displayName: `${p.firstName} ${p.lastName} (${p.email})` }));
+                    .map(p => ({
+                        ...p,
+                        label: `${p.firstName ?? ''} ${p.lastName ?? ''} — ${p.email ?? ''}`.trim()
+                    }));
             },
-            error: () => { this.participantSuggestions = []; }
+            error: (err) => {
+                console.error('Autocomplete participant error:', err);
+                this.participantSuggestions = [];
+            }
         });
     }
 
@@ -265,7 +291,8 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         switch (stepIndex) {
             case 0:
                 return !!(this.eventForm.get('title')?.valid &&
-                          this.eventForm.get('type')?.valid);
+                          this.eventForm.get('type')?.valid &&
+                          (!this.isAutreType || this.eventForm.get('typeAutreLabel')?.valid));
             case 1: {
                 const s = this.eventForm.get('startDate')?.value;
                 const e = this.eventForm.get('endDate')?.value;
@@ -288,6 +315,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             case 0:
                 this.eventForm.get('title')?.markAsTouched();
                 this.eventForm.get('type')?.markAsTouched();
+                if (this.isAutreType) this.eventForm.get('typeAutreLabel')?.markAsTouched();
                 break;
             case 1:
                 this.eventForm.get('startDate')?.markAsTouched();
@@ -560,8 +588,10 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             return 'Non défini';
         }
         switch (type) {
-            case 'INTERNE':
-                return fv.salle ? `ASCELC — ${fv.salle}` : 'ASCELC';
+            case 'INTERNE': {
+                const salleName = fv.salle === 'Autre' ? fv.nomLieu : fv.salle;
+                return salleName ? `ASCELC — ${salleName}` : 'ASCELC';
+            }
             case 'NATIONAL': {
                 const parts = [fv.nomLieu, fv.ville].filter(Boolean);
                 return parts.join(' — ') || 'Burkina Faso';
@@ -598,17 +628,22 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             const fv = this.eventForm.value;
 
             const eventData: any = {
-                title:       fv.title?.trim(),
-                description: fv.description?.trim() || null,
-                type:        fv.type,
+                title:          fv.title?.trim(),
+                description:    fv.description?.trim() || null,
+                type:           fv.type,
+                typeAutreLabel: fv.type === 'AUTRE' ? (fv.typeAutreLabel?.trim() || null) : null,
                 startDate:   this.formatDate(fv.startDate),
                 endDate:     this.formatDate(fv.endDate),
                 pays:        fv.pays?.trim()        || null,
                 ville:       fv.ville?.trim()       || null,
                 meetingLink: fv.meetingLink?.trim() || null,
                 lieuType:    fv.lieuType            || null,
-                salle:       fv.salle?.trim()       || null,
-                nomLieu:     fv.nomLieu?.trim()     || null,
+                salle: fv.salle === 'Autre'
+                    ? (fv.nomLieu?.trim() || null)
+                    : (fv.salle?.trim()   || null),
+                nomLieu: fv.lieuType === 'INTERNE'
+                    ? null
+                    : (fv.nomLieu?.trim() || null),
             };
 
             // Horaires

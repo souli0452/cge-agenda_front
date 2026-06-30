@@ -276,7 +276,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
             next: (results: Participant[]) => {
                 this.participantSuggestions = results
                     .filter(p => !addedIds.has(p.id))
-                    .map(p => ({ ...p, displayName: `${p.firstName} ${p.lastName} (${p.email})` }));
+                    .map(p => ({ ...p, label: `${p.firstName} ${p.lastName} — ${p.email}` }));
             },
             error: () => { this.participantSuggestions = []; }
         });
