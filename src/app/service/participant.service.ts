@@ -57,7 +57,9 @@ export class ParticipantService {
     }
 
     autocompleteParticipants(q: string): Observable<Participant[]> {
-        return this.http.get<Participant[]>(`${this.baseUrl}/autocomplete`, { params: { q } });
+        return this.http.get<any>(`${this.baseUrl}/autocomplete`, { params: { q } }).pipe(
+            map(res => Array.isArray(res) ? res : (res?.content ?? []))
+        );
     }
 
     searchParticipants(keyword: string, page: number = 0, size: number = 20, type?: string): Observable<PageResponse<Participant>> {
