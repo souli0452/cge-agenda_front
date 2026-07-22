@@ -33,7 +33,7 @@
 
           <div class="form-field">
             <label for="title" class="field-label">
-              Titre de l'événement <span class="required">*</span>
+              Titre de l'événement <span class="text-red-500">*</span>
             </label>
             <input pInputText id="title" formControlName="title"
                    placeholder="Ex: Réunion de lancement du projet XYZ"
@@ -53,7 +53,7 @@
 
           <div class="form-field">
             <label for="type" class="field-label">
-              Type d'événement <span class="required">*</span>
+              Type d'événement <span class="text-red-500">*</span>
             </label>
             <p-select [options]="eventTypes" formControlName="type"
                       optionLabel="label" optionValue="value"
@@ -73,10 +73,12 @@
           <div class="grid-2-cols">
             <div class="form-field">
               <label for="startDate" class="field-label">
-                Date de début <span class="required">*</span>
+                Date de début <span class="text-red-500">*</span>
               </label>
-              <input pInputText type="date" id="startDate"
-                     formControlName="startDate" class="w-full" />
+              <p-datepicker formControlName="startDate" dateFormat="dd/mm/yy"
+                            inputId="startDate" placeholder="Sélectionnez la date"
+                            [showIcon]="true" styleClass="w-full" [style]="{'width': '100%'}">
+              </p-datepicker>
               @if (eventForm.get('startDate')?.invalid && eventForm.get('startDate')?.touched) {
                 <small class="field-error">Date de début requise</small>
               }
@@ -84,10 +86,12 @@
 
             <div class="form-field">
               <label for="endDate" class="field-label">
-                Date de fin <span class="required">*</span>
+                Date de fin <span class="text-red-500">*</span>
               </label>
-              <input pInputText type="date" id="endDate"
-                     formControlName="endDate" class="w-full" />
+              <p-datepicker formControlName="endDate" dateFormat="dd/mm/yy"
+                            inputId="endDate" placeholder="Sélectionnez la date"
+                            [showIcon]="true" styleClass="w-full" [style]="{'width': '100%'}">
+              </p-datepicker>
               @if (eventForm.get('endDate')?.invalid && eventForm.get('endDate')?.touched) {
                 <small class="field-error">Date de fin requise</small>
               }
@@ -119,7 +123,7 @@
               <div class="lieu-option"
                    [class.selected]="currentLieuType === 'NATIONAL'"
                    (click)="eventForm.patchValue({ lieuType: 'NATIONAL' })">
-                <i class="pi pi-map lieu-icon" style="color:#009a00"></i>
+                <i class="pi pi-map lieu-icon" style="color:var(--cge-vert-moyen)"></i>
                 <span class="lieu-label">National</span>
                 <small class="lieu-desc">Burkina Faso</small>
               </div>
@@ -146,7 +150,7 @@
           @if (currentLieuType === 'INTERNE') {
             <div class="form-field">
               <label class="field-label">
-                Salle <span class="required">*</span>
+                Salle <span class="text-red-500">*</span>
               </label>
               <p-select [options]="sallesDisponibles"
                         formControlName="salle"
@@ -164,7 +168,7 @@
             <div class="grid-2-cols">
               <div class="form-field">
                 <label class="field-label">
-                  Ville <span class="required">*</span>
+                  Ville <span class="text-red-500">*</span>
                 </label>
                 <p-select [options]="villesBurkina"
                           formControlName="ville"
@@ -184,7 +188,7 @@
           @if (currentLieuType === 'INTERNATIONAL') {
             <div class="form-field">
               <label class="field-label">
-                Pays <span class="required">*</span>
+                Pays <span class="text-red-500">*</span>
               </label>
               <input pInputText formControlName="pays"
                      placeholder="Ex: Côte d'Ivoire, France, Maroc..."
@@ -193,7 +197,7 @@
             <div class="grid-2-cols">
               <div class="form-field">
                 <label class="field-label">
-                  Ville <span class="required">*</span>
+                  Ville <span class="text-red-500">*</span>
                 </label>
                 <input pInputText formControlName="ville"
                        placeholder="Ex: Abidjan, Paris, Rabat..."
@@ -211,7 +215,7 @@
           @if (currentLieuType === 'VIRTUEL') {
             <div class="form-field">
               <label class="field-label">
-                Lien de réunion <span class="required">*</span>
+                Lien de réunion <span class="text-red-500">*</span>
               </label>
               <input pInputText formControlName="meetingLink"
                      placeholder="https://meet.google.com/..."
@@ -376,7 +380,7 @@
     >
       <ng-template #item let-p>
         <div style="display:flex;flex-direction:column;padding:4px 2px;gap:2px">
-          <span style="font-weight:600;font-size:14px;color:#145214">{{ p.firstName }} {{ p.lastName }}</span>
+          <span style="font-weight:600;font-size:14px;color:var(--cge-vert-moyen)">{{ p.firstName }} {{ p.lastName }}</span>
           <span style="font-size:12px;color:#666">{{ p.email }} · {{ p.structure }}</span>
         </div>
       </ng-template>

@@ -1,4 +1,5 @@
-﻿import { Component, OnInit, OnDestroy, ViewChild, effect } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy, ViewChild, effect, DestroyRef } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -20,15 +21,15 @@ import { Dialog }              from 'primeng/dialog';
 import { Divider }             from 'primeng/divider';
 import { ConfirmationService, MessageService, MenuItem } from 'primeng/api';
 
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 import JSZip from 'jszip';
 import { forkJoin, of } from 'rxjs';
+import { catchError, switchMap, map } from 'rxjs/operators';
 
 import { EventService }       from '../../service/event.service';
 import { ParticipantService } from '../../service/participant.service';
 import { FileService }        from '../../service/file.service';
+import { ExportService }      from '../../service/export.service';
 import {
     Event,
     EventType,
@@ -44,6 +45,7 @@ import {
     PARTICIPANT_TYPE_OPTIONS
 } from '../../models';
 import { EventFiltersComponent, EventFilters } from './components/event-filters/event-filters';
+import { ViewModeToggleComponent } from '../../shared/view-mode-toggle/view-mode-toggle';
 import { EventRowActionsComponent } from './components/event-row-actions/event-row-actions';
 import { environments } from '../../../environments/environments';
 import { AgendaYearService } from '../../service/agenda-year.service';
@@ -57,7 +59,7 @@ import { AgendaYearService } from '../../service/agenda-year.service';
         Select, TagModule, TooltipModule, ConfirmDialogModule,
         ToastModule, IconFieldModule, InputIconModule,
         MenuModule, Dialog, Divider,
-        EventFiltersComponent, EventRowActionsComponent
+        EventFiltersComponent, EventRowActionsComponent, ViewModeToggleComponent
     ],
     providers: [ConfirmationService, MessageService],
     template: `
@@ -104,14 +106,7 @@ import { AgendaYearService } from '../../service/agenda-year.service';
         </div>
 
         <!-- Toggle vue liste / cartes -->
-        <div class="view-toggle">
-            <button class="vt-btn" [class.vt-active]="viewMode === 'list'" (click)="viewMode = 'list'" title="Vue liste">
-                <i class="pi pi-list"></i>
-            </button>
-            <button class="vt-btn" [class.vt-active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Vue cartes">
-                <i class="pi pi-th-large"></i>
-            </button>
-        </div>
+        <app-view-mode-toggle [(viewMode)]="viewMode"></app-view-mode-toggle>
 
         <div class="el-header-actions">
             <div class="export-btn-group">
@@ -686,7 +681,9 @@ export class EventListComponent implements OnInit, OnDestroy {
         private route:               ActivatedRoute,
         private confirmationService: ConfirmationService,
         private messageService:      MessageService,
-        private agendaYearService:   AgendaYearService
+        private agendaYearService:   AgendaYearService,
+        private exportService:       ExportService,
+        private destroyRef:          DestroyRef
     ) {
         effect(() => {
             const _year = this.agendaYearService.year();
@@ -700,34 +697,42 @@ export class EventListComponent implements OnInit, OnDestroy {
         this.loadEvents();
         this.loadAvailableParticipants();
 
-        this.route.queryParams.subscribe(params => {
-            const createdId = params['created'];
-            const updatedId = params['updated'];
+        this.route.queryParams.pipe(
+            takeUntilDestroyed(this.destroyRef),
+            switchMap(params => {
+                const createdId = params['created'];
+                const updatedId = params['updated'];
 
-            if (createdId) {
-                this.eventService.getAllEvents().subscribe({
-                    next: (events) => {
-                        const idx = events.findIndex(e => e.id === createdId);
-                        if (idx > 0) {
-                            const created = events.splice(idx, 1)[0];
-                            events.unshift(created);
-                        }
-                        this.events         = events;
-                        this.filteredEvents = events;
-                        this.messageService.add({
-                            severity: 'success',
-                            summary: 'Événement créé',
-                            detail: 'Le nouvel événement est en tête de liste',
-                            life: 4000
-                        });
+                if (createdId) {
+                    return this.eventService.getAllEvents().pipe(
+                        map(events => ({ createdId, events }))
+                    );
+                }
+                if (updatedId) {
+                    setTimeout(() => {
                         this.router.navigate([], { queryParams: {}, replaceUrl: true });
-                    }
-                });
-            } else if (updatedId) {
-                setTimeout(() => {
-                    this.router.navigate([], { queryParams: {}, replaceUrl: true });
-                }, 500);
+                    }, 500);
+                }
+                return of(null);
+            })
+        ).subscribe(result => {
+            if (!result) return;
+
+            const { createdId, events } = result;
+            const idx = events.findIndex(e => e.id === createdId);
+            if (idx > 0) {
+                const created = events.splice(idx, 1)[0];
+                events.unshift(created);
             }
+            this.events         = events;
+            this.filteredEvents = events;
+            this.messageService.add({
+                severity: 'success',
+                summary: 'Événement créé',
+                detail: 'Le nouvel événement est en tête de liste',
+                life: 4000
+            });
+            this.router.navigate([], { queryParams: {}, replaceUrl: true });
         });
 
         this.startStatusUpdateTimer();
@@ -906,24 +911,20 @@ export class EventListComponent implements OnInit, OnDestroy {
         if (!this.selectedEvent?.id) return;
         this.loadingParticipants = true;
 
-        this.participantService.createParticipant(this.newParticipant).subscribe({
-            next: (created) => {
-                this.eventService.addParticipant(this.selectedEvent!.id!, created).subscribe({
-                    next: () => {
-                        this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Participant créé et ajouté' });
-                        this.resetNewParticipant();
-                        this.showCreateParticipantForm = false;
-                        this.refreshParticipants();
-                    },
-                    error: (err) => {
-                        this.loadingParticipants = false;
-                        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Erreur ajout' });
-                    }
-                });
+        const eventId = this.selectedEvent.id;
+
+        this.participantService.createParticipant(this.newParticipant).pipe(
+            switchMap(created => this.eventService.addParticipant(eventId, created))
+        ).subscribe({
+            next: () => {
+                this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Participant créé et ajouté' });
+                this.resetNewParticipant();
+                this.showCreateParticipantForm = false;
+                this.refreshParticipants();
             },
             error: (err) => {
                 this.loadingParticipants = false;
-                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible de créer' });
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible de créer/ajouter le participant' });
             }
         });
     }
@@ -994,27 +995,35 @@ export class EventListComponent implements OnInit, OnDestroy {
 
     onFileSelected(event: any): void {
         if (!this.selectedEvent?.id) return;
-        const files  = event.target.files;
-        let uploaded = 0, errors = 0;
-        const total  = files.length;
+        const files = event.target.files;
+        const eventId = this.selectedEvent.id;
+        if (!files.length) return;
 
-        for (const file of files) {
+        this.loadingFiles = true;
+
+        const uploads = Array.from<File>(files).map((file: File) => {
             const formData = new FormData();
             formData.append('file',    file);
-            formData.append('eventId', this.selectedEvent.id);
-            this.loadingFiles = true;
+            formData.append('eventId', eventId);
+            return this.fileService.uploadFile(formData).pipe(
+                catchError(() => of(null))
+            );
+        });
 
-            this.fileService.uploadFile(formData).subscribe({
-                next: () => {
-                    uploaded++;
-                    if (uploaded + errors === total) {
-                        this.messageService.add({ severity: 'success', summary: 'Succès', detail: `${uploaded} fichier(s) ajouté(s)` });
-                        this.refreshFiles();
-                    }
-                },
-                error: () => { errors++; this.loadingFiles = false; }
-            });
-        }
+        forkJoin(uploads).subscribe(results => {
+            this.loadingFiles = false;
+            const uploaded = results.filter(r => r !== null).length;
+            const errors   = results.length - uploaded;
+
+            if (uploaded > 0) {
+                this.messageService.add({ severity: 'success', summary: 'Succès', detail: `${uploaded} fichier(s) ajouté(s)` });
+                this.refreshFiles();
+            }
+            if (errors > 0) {
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: `${errors} fichier(s) n'ont pas pu être ajoutés` });
+            }
+        });
+
         event.target.value = '';
     }
 
@@ -1159,12 +1168,12 @@ export class EventListComponent implements OnInit, OnDestroy {
             CONFERENCE:  '#1565C0',
             SEMINAIRE:   '#6A1B9A',
             ATELIER:     '#E65100',
-            REUNION:     '#228B22',
+            REUNION:     'var(--cge-vert-moyen)',
             CEREMONIE:   '#F57F17',
             FORMATION:   '#00695C',
             AUTRE:       '#546E7A'
         };
-        return colors[type] || '#228B22';
+        return colors[type] || 'var(--cge-vert-moyen)';
     }
 
     get eventsThisMonth(): number {
@@ -1238,16 +1247,6 @@ export class EventListComponent implements OnInit, OnDestroy {
     // ==========================================
     exportToPDF(): void {
         const today = new Date();
-        const doc   = new jsPDF('l', 'mm', 'a4');
-
-        doc.setFillColor(34, 139, 34);
-        doc.rect(0, 0, 297, 30, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(20);
-        doc.setFont('helvetica', 'bold');
-        doc.text('Liste des événements — CGE Agenda', 148.5, 13, { align: 'center' });
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
 
         const filters: string[] = [];
         if (this.searchKeyword) filters.push(`Recherche : "${this.searchKeyword}"`);
@@ -1256,9 +1255,8 @@ export class EventListComponent implements OnInit, OnDestroy {
         const subtitle = filters.length
             ? `${this.filteredEvents.length} événement(s) — ${filters.join(' · ')}`
             : `${this.filteredEvents.length} événement(s) — Généré le ${today.toLocaleDateString('fr-FR')}`;
-        doc.text(subtitle, 148.5, 22, { align: 'center' });
 
-        const tableData = this.filteredEvents.map(ev => [
+        const rows = this.filteredEvents.map(ev => [
             ev.title,
             this.getTypeLabel(ev.type),
             new Date(ev.startDate).toLocaleDateString('fr-FR'),
@@ -1269,37 +1267,28 @@ export class EventListComponent implements OnInit, OnDestroy {
             (ev.files?.length || 0).toString()
         ]);
 
-        autoTable(doc, {
-            head: [['Titre', 'Type', 'Date début', 'Date fin', 'Statut', 'Lieu', 'Part.', 'Fichiers']],
-            body: tableData,
-            startY: 35,
-            styles: { fontSize: 9, cellPadding: 3 },
-            headStyles: { fillColor: [34, 139, 34], textColor: [255, 255, 255], fontStyle: 'bold' },
-            alternateRowStyles: { fillColor: [245, 245, 245] },
+        this.exportService.exportTableToPdf({
+            title: 'Liste des événements — CGE Agenda',
+            subtitle,
+            columns: ['Titre', 'Type', 'Date début', 'Date fin', 'Statut', 'Lieu', 'Part.', 'Fichiers'],
+            rows,
             columnStyles: {
                 0: { cellWidth: 52 }, 1: { cellWidth: 24 },
                 2: { cellWidth: 28 }, 3: { cellWidth: 28 },
                 4: { cellWidth: 28 }, 5: { cellWidth: 48 },
                 6: { cellWidth: 14, halign: 'center' },
                 7: { cellWidth: 14, halign: 'center' }
-            }
+            },
+            footerLabel: 'CGE Agenda',
+            filename: `evenements_${today.toISOString().split('T')[0]}.pdf`
         });
 
-        const pageCount = (doc as any).internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setTextColor(150);
-            doc.setFontSize(8);
-            doc.text(`Page ${i} sur ${pageCount} — CGE Agenda`, 148.5, 205, { align: 'center' });
-        }
-
-        doc.save(`evenements_${today.toISOString().split('T')[0]}.pdf`);
         this.messageService.add({ severity: 'success', summary: 'Export PDF', detail: `${this.filteredEvents.length} événement(s) exporté(s)` });
     }
 
  
     exportToExcel(): void {
-        const evData = this.filteredEvents.map(ev => ({
+        const evRows = this.filteredEvents.map(ev => ({
             'Titre':        ev.title,
             'Type':         this.getTypeLabel(ev.type),
             'Statut':       this.getStatusLabel(ev.status),
@@ -1312,19 +1301,10 @@ export class EventListComponent implements OnInit, OnDestroy {
             'Créateur':     ev.creatorUsername || ''
         }));
 
-        const ws1 = XLSX.utils.json_to_sheet(evData.length ? evData : [{}]);
-        if (evData.length) {
-            const keys1 = Object.keys(evData[0]);
-            ws1['!cols'] = keys1.map(k => ({
-                wch: Math.max(k.length + 2, ...evData.map(r => String((r as any)[k] ?? '').length))
-            }));
-        }
-
-        const filesData: { 'Événement': string; 'Fichier': string; 'Type': string; 'Taille (Ko)': number | string; 'Description': string; 'Lien de téléchargement': string }[] = [];
-
+        const filesRows: Record<string, unknown>[] = [];
         for (const ev of this.filteredEvents) {
             for (const f of (ev.files || [])) {
-                filesData.push({
+                filesRows.push({
                     'Événement':              ev.title,
                     'Fichier':                f.fileName,
                     'Type':                   f.fileType  || '—',
@@ -1335,31 +1315,25 @@ export class EventListComponent implements OnInit, OnDestroy {
             }
         }
 
-        const ws2 = XLSX.utils.json_to_sheet(
-            filesData.length ? filesData : [{ 'Info': 'Aucune pièce jointe pour les événements sélectionnés' }]
-        );
-
-        if (filesData.length) {
-            const keys2 = Object.keys(filesData[0]);
-            ws2['!cols'] = keys2.map(k => ({
-                wch: Math.max(k.length + 2, ...filesData.map(r => String((r as any)[k] ?? '').length))
-            }));
-
-            const lienColIdx    = keys2.indexOf('Lien de téléchargement');
-            const lienColLetter = XLSX.utils.encode_col(lienColIdx);
-            filesData.forEach((row, i) => {
-                const cellRef = `${lienColLetter}${i + 2}`;
-                if (ws2[cellRef] && row['Lien de téléchargement'] !== '—') {
-                    ws2[cellRef].l = { Target: row['Lien de téléchargement'], Tooltip: 'Télécharger le fichier' };
+        this.exportService.exportToExcel([
+            { name: 'Événements', rows: evRows },
+            {
+                name: 'Pièces jointes',
+                rows: filesRows,
+                emptyPlaceholder: { 'Info': 'Aucune pièce jointe pour les événements sélectionnés' },
+                postProcess: (ws, rows) => {
+                    const keys        = Object.keys(rows[0]);
+                    const lienColIdx  = keys.indexOf('Lien de téléchargement');
+                    const lienColLetter = XLSX.utils.encode_col(lienColIdx);
+                    rows.forEach((row, i) => {
+                        const cellRef = `${lienColLetter}${i + 2}`;
+                        if (ws[cellRef] && row['Lien de téléchargement'] !== '—') {
+                            ws[cellRef].l = { Target: row['Lien de téléchargement'], Tooltip: 'Télécharger le fichier' };
+                        }
+                    });
                 }
-            });
-        }
-
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws1, 'Événements');
-        XLSX.utils.book_append_sheet(wb, ws2, 'Pièces jointes');
-
-        XLSX.writeFile(wb, `evenements_${new Date().toISOString().split('T')[0]}.xlsx`);
+            }
+        ], `evenements_${new Date().toISOString().split('T')[0]}.xlsx`);
 
         const totalFichiers = this.filteredEvents.reduce((sum, ev) => sum + (ev.files?.length ?? 0), 0);
         this.messageService.add({

@@ -18,7 +18,8 @@ import { RadioButtonModule }     from 'primeng/radiobutton';
 import { CardModule }            from 'primeng/card';
 import { DividerModule }         from 'primeng/divider';
 import { ToastModule }           from 'primeng/toast';
-import { MessageService }        from 'primeng/api';
+import { ConfirmDialogModule }   from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { IconFieldModule }       from 'primeng/iconfield';
 import { InputIconModule }       from 'primeng/inputicon';
 import { TooltipModule }         from 'primeng/tooltip';
@@ -49,11 +50,11 @@ interface UploadedFile {
         CommonModule, ReactiveFormsModule, FormsModule,
         ButtonModule, InputTextModule, TextareaModule,
         DatePickerModule, SelectModule, RadioButtonModule,
-        CardModule, DividerModule, ToastModule,
+        CardModule, DividerModule, ToastModule, ConfirmDialogModule,
         IconFieldModule, InputIconModule, TooltipModule,
         ProgressSpinnerModule, SkeletonModule, AutoCompleteModule
     ],
-    providers: [MessageService],
+    providers: [MessageService, ConfirmationService],
     templateUrl: './event-create.html',
     styleUrl: './event-create.css'
 })
@@ -107,7 +108,8 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         private fileService:        FileService,
         private participantService: ParticipantService,
         private router:             Router,
-        private messageService:     MessageService
+        private messageService:     MessageService,
+        private confirmationService: ConfirmationService
     ) {}
 
     hasUnsavedChanges(): boolean {
@@ -213,7 +215,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
     }
 
     loadCities(countryCode: string): void {
-        this.cities = getCitiesOfCountry(countryCode);
+        getCitiesOfCountry(countryCode).then(cities => this.cities = cities);
     }
 
     onCountryChange(event: any): void {
@@ -731,8 +733,17 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
     }
 
     cancel(): void {
-        if (confirm('Êtes-vous sûr de vouloir annuler ? Toutes les données seront perdues.')) {
-            this.router.navigate(['/events']);
-        }
+        this.confirmationService.confirm({
+            header:  'Confirmation',
+            message: 'Êtes-vous sûr de vouloir annuler ? Toutes les données seront perdues.',
+            icon:    'pi pi-exclamation-triangle',
+            acceptLabel: 'Oui, annuler',
+            rejectLabel: 'Continuer la saisie',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.submitted = true;
+                this.router.navigate(['/events']);
+            }
+        });
     }
 }

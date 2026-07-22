@@ -197,8 +197,8 @@ export class CgeStatisticsComponent implements OnInit {
         );
         const typeData = Object.values(typeCount);
         const typeColors = [
-            '#1AAF1A', '#178f17', '#136f13', '#0e5010',
-            '#42bf42', '#6fcc6f', '#9bdc9b'
+            '#009640', '#008539', '#006e2f', '#005122',
+            '#2da861', '#5fbd87', '#90d1ac', '#bce4cd'
         ];
 
         this.typeChartData = {
@@ -221,7 +221,7 @@ export class CgeStatisticsComponent implements OnInit {
             status => EventStatusLabels[status] || status
         );
         const statusData = Object.values(statusCount);
-        const statusColors = ['#1AAF1A', '#178f17', '#136f13', '#42bf42', '#9bdc9b'];
+        const statusColors = ['#009640', '#008539', '#006e2f', '#2da861', '#90d1ac'];
 
         this.statusChartData = {
             labels: statusLabels,
@@ -250,8 +250,8 @@ export class CgeStatisticsComponent implements OnInit {
             datasets: [{
                 label: `Événements ${this.selectedYear}`,
                 data: monthlyData,
-                backgroundColor: 'rgba(26, 175, 26, 0.15)',
-                borderColor: '#1AAF1A',
+                backgroundColor: 'rgba(0, 150, 64, 0.15)',
+                borderColor: '#009640',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
@@ -272,7 +272,7 @@ export class CgeStatisticsComponent implements OnInit {
         doc.setFont('helvetica');
 
         // Header
-        doc.setFillColor(34, 139, 34);
+        doc.setFillColor(0, 150, 64);
         doc.rect(0, 0, 210, 40, 'F');
 
         doc.setTextColor(255, 255, 255);
@@ -347,7 +347,7 @@ export class CgeStatisticsComponent implements OnInit {
                 theme: 'striped',
                 styles: { font: 'helvetica' },
                 headStyles: { 
-                    fillColor: [34, 139, 34],
+                    fillColor: [0, 150, 64],
                     font: 'helvetica',
                     fontStyle: 'bold'
                 }
@@ -374,7 +374,7 @@ export class CgeStatisticsComponent implements OnInit {
                 theme: 'grid',
                 styles: { font: 'helvetica' },
                 headStyles: { 
-                    fillColor: [34, 139, 34],
+                    fillColor: [0, 150, 64],
                     font: 'helvetica',
                     fontStyle: 'bold'
                 }

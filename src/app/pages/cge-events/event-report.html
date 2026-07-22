@@ -1,4 +1,4 @@
-<button class="rp-grid-toggle no-print"
+<button *ngIf="!isProd" class="rp-grid-toggle no-print"
         (click)="toggleGrid()" [attr.aria-pressed]="gridVisible">
     <span class="rp-toggle-dot"></span>
     {{ gridVisible ? 'Masquer grille' : 'Grille MB' }} <kbd>Alt+G</kbd>

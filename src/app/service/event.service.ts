@@ -21,11 +21,11 @@ export class EventService {
         return this.http.get<Event>(`${this.apiUrl}/get/${id}`);
     }
 
-    createEvent(event: any): Observable<Event> {
+    createEvent(event: Partial<Event>): Observable<Event> {
         return this.http.post<Event>(`${this.apiUrl}/create`, event);
     }
 
-    updateEvent(id: string, event: any): Observable<Event> {
+    updateEvent(id: string, event: Partial<Event>): Observable<Event> {
         return this.http.put<Event>(`${this.apiUrl}/update/${id}`, event);
     }
 
@@ -112,6 +112,23 @@ export class EventService {
         );
     }
 
+    saveCompteRendu(id: string, points: string, decisions: string, actions: string): Observable<Event> {
+        const params = new HttpParams()
+            .set('points', points)
+            .set('decisions', decisions)
+            .set('actions', actions);
+        return this.http.put<Event>(
+            `${this.apiUrl}/${id}/compte-rendu`, null, { params }
+        );
+    }
+
+    downloadCompteRendu(id: string): Observable<Blob> {
+        return this.http.get(
+            `${this.apiUrl}/compte-rendu/${id}`,
+            { responseType: 'blob' }
+        );
+    }
+
     searchEvents(filters: {
         keyword?:   string;
         type?:      EventType;
@@ -120,8 +137,8 @@ export class EventService {
         endDate?:   string;
     }): Observable<Event[]> {
         let params = new HttpParams();
-        Object.keys(filters).forEach(key => {
-            const value = (filters as any)[key];
+        (Object.keys(filters) as (keyof typeof filters)[]).forEach(key => {
+            const value = filters[key];
             if (value) params = params.set(key, value);
         });
         return this.http.get<Event[]>(`${this.apiUrl}/search`, { params });
@@ -133,7 +150,7 @@ export class EventService {
         );
     }
 
-    getEventsByDateRange(start: any, end: any): Observable<Event[]> {
+    getEventsByDateRange(start: string, end: string): Observable<Event[]> {
         const params = new HttpParams()
             .set('start', start)
             .set('end',   end);
@@ -173,8 +190,8 @@ export class EventService {
         year:     number,
         month:    number,
         keyword?: string,
-        type?:    any,
-        status?:  any
+        type?:    EventType,
+        status?:  EventStatus
     ): Observable<Blob> {
         let params = new HttpParams()
             .set('year',  year.toString())

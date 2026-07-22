@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { CardModule }          from 'primeng/card';
 import { ButtonModule }        from 'primeng/button';
@@ -180,6 +182,31 @@ import {
         <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="observationDialogVisible = false"/>
         <p-button label="Enregistrer" icon="pi pi-save" [loading]="actionLoading"
                   [disabled]="!observationText.trim()" (onClick)="saveObservation()"/>
+    </ng-template>
+</p-dialog>
+
+<!-- Compte-rendu de réunion -->
+<p-dialog [(visible)]="compteRenduDialogVisible" [modal]="true" [style]="{width:'640px'}"
+          header="Compte-rendu de réunion">
+    <div class="dlg-body">
+        <div class="dlg-banner dlg-blue">
+            <i class="pi pi-file-edit"></i>
+            <div><strong>{{ event?.title }}</strong></div>
+        </div>
+        <label class="dlg-label">Points discutés</label>
+        <textarea pTextarea [(ngModel)]="crPoints" rows="4"
+                  placeholder="Résumer les sujets abordés pendant la réunion..." class="w-full"></textarea>
+        <label class="dlg-label" style="margin-top:12px">Décisions prises</label>
+        <textarea pTextarea [(ngModel)]="crDecisions" rows="4"
+                  placeholder="Lister les décisions actées..." class="w-full"></textarea>
+        <label class="dlg-label" style="margin-top:12px">Actions à suivre</label>
+        <textarea pTextarea [(ngModel)]="crActions" rows="4"
+                  placeholder="Lister les prochaines actions et responsables..." class="w-full"></textarea>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="compteRenduDialogVisible = false"/>
+        <p-button label="Enregistrer" icon="pi pi-save" [loading]="actionLoading"
+                  (onClick)="saveCompteRendu()"/>
     </ng-template>
 </p-dialog>
 
@@ -398,8 +425,8 @@ import {
                 <!-- Description -->
                 <div class="ed-card" *ngIf="event.description">
                     <div class="ed-section-hd">
-                        <div class="ed-section-icon" style="background:#e8f5e9">
-                            <i class="pi pi-align-left" style="color:#228B22"></i>
+                        <div class="ed-section-icon" style="background:var(--cge-vert-clair)">
+                            <i class="pi pi-align-left" style="color:var(--cge-vert-moyen)"></i>
                         </div>
                         <h3>Description</h3>
                     </div>
@@ -516,7 +543,7 @@ import {
                         <span class="ed-stat-lbl">Participants</span>
                     </div>
                     <div class="ed-stat-mini">
-                        <i class="pi pi-paperclip" style="color:#228B22"></i>
+                        <i class="pi pi-paperclip" style="color:var(--cge-vert-moyen)"></i>
                         <span class="ed-stat-num">{{ files.length }}</span>
                         <span class="ed-stat-lbl">Fichiers</span>
                     </div>
@@ -570,11 +597,51 @@ import {
                     </div>
                 </div>
 
+                <!-- Compte-rendu de réunion -->
+                <div class="ed-card" *ngIf="isTermine && (hasCompteRendu || canWriteCompteRendu)">
+                    <div class="ed-section-hd">
+                        <div class="ed-section-icon" style="background:#e5f4ec">
+                            <i class="pi pi-file-edit" style="color:var(--cge-vert-moyen)"></i>
+                        </div>
+                        <h3>Compte-rendu de réunion</h3>
+                        <p-button *ngIf="canWriteCompteRendu" icon="pi pi-pencil" [text]="true" size="small"
+                                  ariaLabel="Rédiger le compte-rendu"
+                                  pTooltip="Rédiger / modifier" (onClick)="openCompteRenduDialog()">
+                        </p-button>
+                        <p-button *ngIf="hasCompteRendu" icon="pi pi-download" [text]="true" size="small"
+                                  ariaLabel="Télécharger le compte-rendu PDF"
+                                  pTooltip="Télécharger le PDF" (onClick)="downloadCompteRendu()">
+                        </p-button>
+                    </div>
+                    <div *ngIf="!hasCompteRendu" class="ed-empty">
+                        <i class="pi pi-file-edit"></i>
+                        <p>Aucun compte-rendu rédigé</p>
+                        <p-button *ngIf="canWriteCompteRendu" label="Rédiger" icon="pi pi-pencil"
+                                  size="small" severity="success"
+                                  ariaLabel="Rédiger le compte-rendu"
+                                  (onClick)="openCompteRenduDialog()"></p-button>
+                    </div>
+                    <div *ngIf="hasCompteRendu">
+                        <div class="ed-cr-section">
+                            <strong>Points discutés</strong>
+                            <p>{{ getCompteRenduPoints() }}</p>
+                        </div>
+                        <div class="ed-cr-section">
+                            <strong>Décisions prises</strong>
+                            <p>{{ getCompteRenduDecisions() }}</p>
+                        </div>
+                        <div class="ed-cr-section">
+                            <strong>Actions à suivre</strong>
+                            <p>{{ getCompteRenduActions() }}</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Fichiers -->
                 <div class="ed-card">
                     <div class="ed-section-hd">
-                        <div class="ed-section-icon" style="background:#e8f5e9">
-                            <i class="pi pi-paperclip" style="color:#228B22"></i>
+                        <div class="ed-section-icon" style="background:var(--cge-vert-clair)">
+                            <i class="pi pi-paperclip" style="color:var(--cge-vert-moyen)"></i>
                         </div>
                         <h3>Fichiers</h3>
                         <span class="ed-badge-count">{{ files.length }}</span>
@@ -659,6 +726,7 @@ export class EventDetailComponent implements OnInit {
     rejectDialogVisible      = false;
     delegateDialogVisible    = false;
     observationDialogVisible = false;
+    compteRenduDialogVisible = false;
     validateComment   = '';
     changeSuggestions = '';
     rejectReason      = '';
@@ -666,6 +734,9 @@ export class EventDetailComponent implements OnInit {
     delegueEmail      = '';
     delegueMotif      = '';
     observationText   = '';
+    crPoints          = '';
+    crDecisions       = '';
+    crActions         = '';
 
     showAllSchedules = false;
     @ViewChild('hiddenFileInput') hiddenFileInput!: ElementRef;
@@ -717,6 +788,19 @@ export class EventDetailComponent implements OnInit {
     get isPlanifie():    boolean { return (this.event?.status as string) === 'PLANIFIE'; }
     get isEnCours():     boolean { return (this.event?.status as string) === 'EN_COURS'; }
     get isOperational(): boolean { return this.isPlanifie || this.isEnCours; }
+    get isTermine():     boolean { return (this.event?.status as string) === 'TERMINE'; }
+
+    get isCreator(): boolean {
+        const email = this.authService.email;
+        return !!email && email.toLowerCase() === ((this.event as any)?.creatorEmail || '').toLowerCase();
+    }
+
+    get canWriteCompteRendu(): boolean { return this.isTermine && (this.canValidate || this.isCreator); }
+
+    get hasCompteRendu(): boolean {
+        const e = this.event as any;
+        return !!(e?.compteRenduPoints || e?.compteRenduDecisions || e?.compteRenduActions);
+    }
 
     get hasAmendments(): boolean {
         const e = this.event as any;
@@ -725,6 +809,9 @@ export class EventDetailComponent implements OnInit {
 
     getRejectionReason():  string { return (this.event as any)?.rejectionReason  || ''; }
     getChangeSuggestions():string { return (this.event as any)?.changeSuggestions || ''; }
+    getCompteRenduPoints():    string { return (this.event as any)?.compteRenduPoints    || '—'; }
+    getCompteRenduDecisions(): string { return (this.event as any)?.compteRenduDecisions || '—'; }
+    getCompteRenduActions():   string { return (this.event as any)?.compteRenduActions   || '—'; }
 
     getVisibleSchedules(): any[] {
         if (!this.event?.schedules) return [];
@@ -842,6 +929,44 @@ export class EventDetailComponent implements OnInit {
         });
     }
 
+    openCompteRenduDialog(): void {
+        const e = this.event as any;
+        this.crPoints    = e?.compteRenduPoints    || '';
+        this.crDecisions = e?.compteRenduDecisions || '';
+        this.crActions   = e?.compteRenduActions   || '';
+        this.compteRenduDialogVisible = true;
+    }
+
+    saveCompteRendu(): void {
+        if (!this.eventId) return;
+        this.actionLoading = true;
+        this.eventService.saveCompteRendu(this.eventId, this.crPoints, this.crDecisions, this.crActions).subscribe({
+            next: () => {
+                this.messageService.add({ severity: 'success', summary: 'Compte-rendu enregistré', detail: 'Le compte-rendu a été sauvegardé.', life: 4000 });
+                this.compteRenduDialogVisible = false; this.actionLoading = false; this.loadEvent();
+            },
+            error: (err: any) => {
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible d\'enregistrer le compte-rendu' });
+                this.actionLoading = false;
+            }
+        });
+    }
+
+    downloadCompteRendu(): void {
+        if (!this.eventId) return;
+        this.eventService.downloadCompteRendu(this.eventId).subscribe({
+            next: (blob: Blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a   = document.createElement('a');
+                a.href = url; a.download = `compte_rendu_${this.eventId}.pdf`;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            },
+            error: () => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec du téléchargement', life: 3000 })
+        });
+    }
+
     openDelegateDialog(): void {
         this.delegueNom   = this.event?.delegueNom   || '';
         this.delegueEmail = this.event?.delegueEmail || '';
@@ -903,21 +1028,31 @@ export class EventDetailComponent implements OnInit {
 
     onFileUpload(event: any): void {
         if (!this.eventId) return;
-        const files = event.files; let uploadedCount = 0;
-        for (const file of files) {
+        const files = event.files;
+        if (!files?.length) return;
+        const eventId = this.eventId;
+
+        const uploads = Array.from<File>(files).map((file: File) => {
             const formData = new FormData();
-            formData.append('file', file); formData.append('eventId', this.eventId);
-            this.fileService.uploadFile(formData).subscribe({
-                next: () => {
-                    uploadedCount++;
-                    if (uploadedCount === files.length) {
-                        this.messageService.add({ severity: 'success', summary: 'Succès', detail: `${uploadedCount} fichier(s) ajouté(s)`, life: 3000 });
-                        this.loadFiles();
-                    }
-                },
-                error: () => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: `Échec d'upload de ${file.name}`, life: 3000 })
-            });
-        }
+            formData.append('file', file);
+            formData.append('eventId', eventId);
+            return this.fileService.uploadFile(formData).pipe(
+                catchError(() => of(null))
+            );
+        });
+
+        forkJoin(uploads).subscribe(results => {
+            const uploaded = results.filter((r: unknown) => r !== null).length;
+            const errors   = results.length - uploaded;
+
+            if (uploaded > 0) {
+                this.messageService.add({ severity: 'success', summary: 'Succès', detail: `${uploaded} fichier(s) ajouté(s)`, life: 3000 });
+                this.loadFiles();
+            }
+            if (errors > 0) {
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: `${errors} fichier(s) n'ont pas pu être ajoutés`, life: 3000 });
+            }
+        });
     }
 
     confirmDeleteFile(file: FileUpload): void {
@@ -1017,9 +1152,9 @@ export class EventDetailComponent implements OnInit {
     getEventTypeColor(): string {
         const colors: Record<string, string> = {
             CONFERENCE: '#1565C0', SEMINAIRE: '#6A1B9A', ATELIER: '#E65100',
-            REUNION: '#228B22', CEREMONIE: '#F57F17', FORMATION: '#00695C', AUTRE: '#546E7A'
+            REUNION: 'var(--cge-vert-moyen)', CEREMONIE: '#F57F17', FORMATION: '#00695C', AUTRE: '#546E7A'
         };
-        return colors[this.event?.type || ''] || '#228B22';
+        return colors[this.event?.type || ''] || 'var(--cge-vert-moyen)';
     }
 
     getEventTypeIcon(): string {
@@ -1035,12 +1170,12 @@ export class EventDetailComponent implements OnInit {
             CONFERENCE:    'linear-gradient(135deg, #0d3b8c 0%, #1565C0 55%, #1e88e5 100%)',
             SEMINAIRE:     'linear-gradient(135deg, #4a0072 0%, #6A1B9A 55%, #9c27b0 100%)',
             ATELIER:       'linear-gradient(135deg, #bf360c 0%, #E65100 55%, #f4511e 100%)',
-            REUNION:       'linear-gradient(135deg, #145214 0%, #228B22 55%, #2e9e2e 100%)',
+            REUNION:       'linear-gradient(135deg, var(--p-primary-800) 0%, var(--cge-vert-moyen) 55%, var(--p-primary-300) 100%)',
             CEREMONIE:     'linear-gradient(135deg, #b34700 0%, #E65100 50%, #F57F17 100%)',
             FORMATION:     'linear-gradient(135deg, #004d40 0%, #00695C 55%, #00897b 100%)',
             AUTRE:         'linear-gradient(135deg, #263238 0%, #546E7A 55%, #78909c 100%)',
         };
-        return gradients[this.event?.type || ''] || 'linear-gradient(135deg, #145214 0%, #228B22 55%, #2e9e2e 100%)';
+        return gradients[this.event?.type || ''] || 'linear-gradient(135deg, var(--p-primary-800) 0%, var(--cge-vert-moyen) 55%, var(--p-primary-300) 100%)';
     }
 
     getDelegueInitials(): string {
@@ -1053,7 +1188,7 @@ export class EventDetailComponent implements OnInit {
     }
 
     getAvatarColor(seed: string): string {
-        const colors = ['#1565C0','#6A1B9A','#E65100','#228B22','#F57F17','#00695C','#546E7A','#c62828','#00838f'];
+        const colors = ['#1565C0','#6A1B9A','#E65100','var(--cge-vert-moyen)','#F57F17','#00695C','#546E7A','#c62828','#00838f'];
         let hash = 0;
         for (let i = 0; i < seed.length; i++) hash = seed.charCodeAt(i) + ((hash << 5) - hash);
         return colors[Math.abs(hash) % colors.length];

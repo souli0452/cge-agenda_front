@@ -1,0 +1,8 @@
+<div class="view-toggle">
+    <button type="button" class="vt-btn" [class.vt-active]="viewMode === 'list'" (click)="setMode('list')" title="Vue liste">
+        <i class="pi pi-list"></i>
+    </button>
+    <button type="button" class="vt-btn" [class.vt-active]="viewMode === 'card'" (click)="setMode('card')" title="Vue cartes">
+        <i class="pi pi-th-large"></i>
+    </button>
+</div>

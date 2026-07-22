@@ -142,8 +142,8 @@ import { SettingsService, UserSettings } from '../../../app/service/settings.ser
                 <!-- Invitations -->
                 <div class="notif-row">
                     <div class="notif-info">
-                        <div class="notif-icon-wrap" style="background:#e8f5e9">
-                            <i class="pi pi-calendar-plus" style="color:#228B22"></i>
+                        <div class="notif-icon-wrap" style="background:var(--cge-vert-clair)">
+                            <i class="pi pi-calendar-plus" style="color:var(--cge-vert-moyen)"></i>
                         </div>
                         <div>
                             <div class="notif-label">Invitations à des événements</div>
@@ -288,7 +288,7 @@ export class SettingsComponent implements OnInit {
     get roleColor(): string {
         const map: Record<string, string> = {
             'ADMIN':             '#f44336',
-            'CGE':               '#228B22',
+            'CGE':               'var(--cge-vert-moyen)',
             'DIRECTEUR_CABINET': '#2196F3',
             'PROTOCOLE':         '#ff9800',
             'SECRETAIRE':        '#9c27b0',

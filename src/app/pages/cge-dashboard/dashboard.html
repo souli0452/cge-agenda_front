@@ -1,4 +1,4 @@
-<button class="db-grid-toggle" (click)="toggleGrid()" [attr.aria-pressed]="gridVisible"
+<button *ngIf="!isProd" class="db-grid-toggle" (click)="toggleGrid()" [attr.aria-pressed]="gridVisible"
         pTooltip="Alt+G" tooltipPosition="left">
     <span class="db-toggle-dot"></span>
     <span>{{ gridVisible ? 'Masquer grille' : 'Grille MB' }}</span>

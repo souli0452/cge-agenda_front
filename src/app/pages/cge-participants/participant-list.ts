@@ -270,7 +270,7 @@ import { Participant } from '../../models';
               <div class="form-row">
                 <div class="form-col">
                   <label for="firstName" class="field-label">
-                    Prénom <span class="required">*</span>
+                    Prénom <span class="text-red-500">*</span>
                   </label>
                   <input
                     pInputText
@@ -285,7 +285,7 @@ import { Participant } from '../../models';
 
                 <div class="form-col">
                   <label for="lastName" class="field-label">
-                    Nom <span class="required">*</span>
+                    Nom <span class="text-red-500">*</span>
                   </label>
                   <input
                     pInputText
@@ -310,7 +310,7 @@ import { Participant } from '../../models';
               <div class="form-row">
                 <div class="form-col">
                   <label for="email" class="field-label">
-                    Email <span class="required">*</span>
+                    Email <span class="text-red-500">*</span>
                   </label>
                   <input
                     pInputText
@@ -346,7 +346,7 @@ import { Participant } from '../../models';
               <div class="form-row">
                 <div class="form-col">
                   <label for="structure" class="field-label">
-                    Structure <span class="required">*</span>
+                    Structure <span class="text-red-500">*</span>
                   </label>
                   <input
                     pInputText
@@ -373,7 +373,7 @@ import { Participant } from '../../models';
               <div class="form-row">
                 <div class="form-col-full">
                   <label for="participantType" class="field-label">
-                    Type de participant <span class="required">*</span>
+                    Type de participant <span class="text-red-500">*</span>
                   </label>
                   <p-select
                     id="participantType"

@@ -1,7 +1,6 @@
 ﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
-import { HttpClient }        from '@angular/common/http';
 
 import { ButtonModule }        from 'primeng/button';
 import { TableModule }         from 'primeng/table';
@@ -21,18 +20,8 @@ import { MessageService, ConfirmationService } from 'primeng/api';
 import { environments } from '../../../../environments/environments';
 import { UserTableComponent } from './components/user-table/user-table';
 import { UserFormDialogComponent } from './components/user-form-dialog/user-form-dialog';
-
-interface KeycloakUser {
-    id:               string | undefined;
-    username:         string;
-    email:            string;
-    firstName:        string;
-    lastName:         string;
-    enabled:          boolean;
-    emailVerified:    boolean;
-    createdTimestamp: number;
-    realmRoles?:      string[];
-}
+import { UserService, KeycloakUser, KcRole, UserPayload } from '../../../service/user.service';
+import { ViewModeToggleComponent } from '../../../shared/view-mode-toggle/view-mode-toggle';
 
 interface UserFormData {
     username:  string;
@@ -42,12 +31,6 @@ interface UserFormData {
     password:  string;
     role:      string;
     enabled:   boolean;
-}
-
-interface KcRole {
-    id:           string;
-    name:         string;
-    description?: string;
 }
 
 @Component({
@@ -60,7 +43,7 @@ interface KcRole {
         SelectModule, TooltipModule, SkeletonModule,
         IconFieldModule, InputIconModule,
         ConfirmDialogModule, DividerModule,
-        UserTableComponent, UserFormDialogComponent
+        UserTableComponent, UserFormDialogComponent, ViewModeToggleComponent
     ],
     providers: [MessageService, ConfirmationService],
     styleUrls: ['./users.css'],
@@ -102,14 +85,7 @@ interface KcRole {
                 (onClick)="openCreateDialog()" />
         </div>
         <!-- Toggle isolé à l'extrémité droite -->
-        <div class="view-toggle header-isolated-toggle">
-            <button class="vt-btn" [class.vt-active]="userViewMode === 'list'" (click)="userViewMode = 'list'" title="Vue liste">
-                <i class="pi pi-list"></i>
-            </button>
-            <button class="vt-btn" [class.vt-active]="userViewMode === 'card'" (click)="userViewMode = 'card'" title="Vue cartes">
-                <i class="pi pi-th-large"></i>
-            </button>
-        </div>
+        <app-view-mode-toggle class="header-isolated-toggle" [(viewMode)]="userViewMode"></app-view-mode-toggle>
     </div>
     <div class="role-stats-grid">
         <div class="role-stat-card" *ngFor="let stat of roleStats">
@@ -185,7 +161,7 @@ interface KcRole {
 
         <div class="user-info-banner">
             <div class="user-avatar-sm"
-                 [style.background]="selectedUser ? getAvatarColor(selectedUser) : '#228B22'">
+                 [style.background]="selectedUser ? getAvatarColor(selectedUser) : 'var(--cge-vert-moyen)'">
                 {{ selectedUser ? getInitials(selectedUser) : '' }}
             </div>
             <div>
@@ -198,14 +174,28 @@ interface KcRole {
             </div>
         </div>
 
-        <div class="reset-pwd-info">
+        <div class="reset-pwd-info" *ngIf="!generatedPassword">
             <i class="pi pi-info-circle reset-pwd-icon"></i>
             <div>
-                <div class="reset-pwd-title">Mot de passe par défaut</div>
+                <div class="reset-pwd-title">Mot de passe temporaire aléatoire</div>
                 <div class="reset-pwd-desc">
-                    Le compte sera réinitialisé avec le mot de passe temporaire
-                    <strong>Asce&#64;2026</strong>.<br>
+                    Un mot de passe temporaire unique sera généré pour ce compte.
+                    Vous devrez le communiquer vous-même à l'utilisateur — il ne sera plus affiché ensuite.<br>
                     L'utilisateur devra le changer à sa prochaine connexion.
+                </div>
+            </div>
+        </div>
+
+        <div class="reset-pwd-info" *ngIf="generatedPassword">
+            <i class="pi pi-check-circle reset-pwd-icon" style="color:var(--cge-vert-moyen)"></i>
+            <div style="width:100%">
+                <div class="reset-pwd-title">Mot de passe temporaire généré</div>
+                <div class="reset-pwd-desc" style="margin-bottom:8px">
+                    Communiquez-le à l'utilisateur maintenant — il ne sera plus récupérable après fermeture de cette fenêtre.
+                </div>
+                <div style="display:flex; align-items:center; gap:8px">
+                    <code style="flex:1; padding:8px 12px; background:var(--surface-100); border-radius:6px; font-size:15px; letter-spacing:0.5px">{{ generatedPassword }}</code>
+                    <p-button icon="pi pi-copy" [text]="true" pTooltip="Copier" (onClick)="copyGeneratedPassword()" />
                 </div>
             </div>
         </div>
@@ -215,16 +205,23 @@ interface KcRole {
     <ng-template pTemplate="footer">
         <div class="dialog-footer">
             <p-button
+                *ngIf="!generatedPassword"
                 label="Annuler"
                 [text]="true"
                 severity="secondary"
-                (onClick)="resetPasswordDialogVisible = false" />
+                (onClick)="closeResetPasswordDialog()" />
             <p-button
+                *ngIf="!generatedPassword"
                 label="Réinitialiser"
                 icon="pi pi-key"
                 severity="warn"
                 [loading]="actionLoading"
                 (onClick)="resetPassword()" />
+            <p-button
+                *ngIf="generatedPassword"
+                label="Fermer"
+                severity="success"
+                (onClick)="closeResetPasswordDialog()" />
         </div>
     </ng-template>
 </p-dialog>
@@ -244,7 +241,7 @@ interface KcRole {
             <h4 class="section-label">Créer un rôle</h4>
             <div class="form-row-2">
                 <div class="form-field" style="flex:1">
-                    <label class="field-label">Nom du rôle <span class="required">*</span></label>
+                    <label class="field-label">Nom du rôle <span class="text-red-500">*</span></label>
                     <input pInputText
                            [(ngModel)]="newRoleName"
                            placeholder="Ex: RESPONSABLE_TECHNIQUE"
@@ -417,8 +414,7 @@ export class AdminUsersComponent implements OnInit {
     editMode                   = false;
 
     selectedUser:    KeycloakUser | null = null;
-    newPassword      = '';
-    confirmPassword  = '';
+    generatedPassword: string | null = null;
 
     userForm: UserFormData = this.emptyForm();
     roleOptions = [
@@ -426,9 +422,7 @@ export class AdminUsersComponent implements OnInit {
         { label: 'CGE',                   value: 'CGE'               },
         { label: 'Directeur de Cabinet',  value: 'DIRECTEUR_CABINET' },
         { label: 'Agent Protocole',       value: 'PROTOCOLE'         },
-        { label: 'Secrétaire',            value: 'SECRETAIRE'        },
-        { label: 'Délégué',               value: 'DELEGUE'           },
-        { label: 'Utilisateur (lecture)', value: 'USER'              }
+        { label: 'Secrétaire',            value: 'SECRETAIRE'        }
     ];
 
     roleFilterOptions = [
@@ -436,9 +430,7 @@ export class AdminUsersComponent implements OnInit {
         { label: 'CGE',             value: 'CGE'               },
         { label: 'Dir. Cabinet',    value: 'DIRECTEUR_CABINET' },
         { label: 'Protocole',       value: 'PROTOCOLE'         },
-        { label: 'Secrétaire',      value: 'SECRETAIRE'        },
-        { label: 'Délégué',         value: 'DELEGUE'           },
-        { label: 'Utilisateur',     value: 'USER'              }
+        { label: 'Secrétaire',      value: 'SECRETAIRE'        }
     ];
 
     statusFilterOptions = [
@@ -460,7 +452,7 @@ export class AdminUsersComponent implements OnInit {
     newRoleDesc:          string            = '';
 
     constructor(
-        private http:                HttpClient,
+        private userService:         UserService,
         private messageService:      MessageService,
         private confirmationService: ConfirmationService
     ) {}
@@ -472,9 +464,7 @@ export class AdminUsersComponent implements OnInit {
 
     loadUsers(): void {
         this.loading = true;
-        this.http.get<KeycloakUser[]>(
-            `${environments.apiUrl}/admin/users`
-        ).subscribe({
+        this.userService.getUsers().subscribe({
             next: (users) => {
                 this.users         = users;
                 this.filteredUsers = users;
@@ -482,14 +472,28 @@ export class AdminUsersComponent implements OnInit {
                 this.loading = false;
             },
             error: () => {
-                this.users         = this.getDemoUsers();
-                this.filteredUsers = this.users;
-                this.computeRoleStats();
                 this.loading = false;
+
+                if (!environments.production) {
+                    this.users         = this.getDemoUsers();
+                    this.filteredUsers = this.users;
+                    this.computeRoleStats();
+                    this.messageService.add({
+                        severity: 'warn',
+                        summary:  'Mode démo (dev uniquement)',
+                        detail:   'API admin non disponible — données de démonstration',
+                        life: 5000
+                    });
+                    return;
+                }
+
+                this.users         = [];
+                this.filteredUsers = [];
+                this.computeRoleStats();
                 this.messageService.add({
-                    severity: 'warn',
-                    summary:  'Mode démo',
-                    detail:   'API admin non disponible — données de démonstration',
+                    severity: 'error',
+                    summary:  'Erreur',
+                    detail:   'Impossible de charger la liste des utilisateurs',
                     life: 5000
                 });
             }
@@ -497,14 +501,21 @@ export class AdminUsersComponent implements OnInit {
     }
 
     loadRoles(): void {
-        this.http.get<KcRole[]>(`${environments.apiUrl}/admin/roles`).subscribe({
+        this.userService.getRoles().subscribe({
             next: (roles) => {
                 this.availableRoles   = roles;
                 this.roleOptions      = roles.map(r => ({ label: this.getRoleLabel(r.name), value: r.name }));
                 this.roleFilterOptions = roles.map(r => ({ label: this.getRoleLabel(r.name), value: r.name }));
                 this.computeRoleStats();
             },
-            error: () => { /* conserve le fallback statique */ }
+            error: () => {
+                this.messageService.add({
+                    severity: 'warn',
+                    summary:  'Attention',
+                    detail:   'Liste des rôles indisponible — valeurs par défaut utilisées',
+                    life: 5000
+                });
+            }
         });
     }
 
@@ -556,11 +567,10 @@ export class AdminUsersComponent implements OnInit {
     computeRoleStats(): void {
         const staticDefs = [
             { value: 'ADMIN',             label: 'Admin',     color: '#f44336' },
-            { value: 'CGE',               label: 'CGE',       color: '#228B22' },
+            { value: 'CGE',               label: 'CGE',       color: 'var(--cge-vert-moyen)' },
             { value: 'DIRECTEUR_CABINET', label: 'Directeur', color: '#2196F3' },
             { value: 'PROTOCOLE',         label: 'Protocole', color: '#ff9800' },
-            { value: 'SECRETAIRE',        label: 'Secrétaire',color: '#9c27b0' },
-            { value: 'USER',              label: 'User',      color: '#607d8b' }
+            { value: 'SECRETAIRE',        label: 'Secrétaire',color: '#9c27b0' }
         ];
         const defs = this.availableRoles.length > 0
             ? this.availableRoles.map(r => ({
@@ -646,9 +656,8 @@ export class AdminUsersComponent implements OnInit {
     }
 
     openResetPasswordDialog(user: any): void {
-        this.selectedUser            = user;
-        this.newPassword             = '';
-        this.confirmPassword         = '';
+        this.selectedUser               = user;
+        this.generatedPassword          = null;
         this.resetPasswordDialogVisible = true;
     }
 
@@ -656,7 +665,7 @@ export class AdminUsersComponent implements OnInit {
         if (!this.isFormValid()) return;
         this.actionLoading = true;
 
-        const payload: any = {
+        const payload: UserPayload = {
             username:  this.userForm.username,
             email:     this.userForm.email,
             firstName: this.userForm.firstName,
@@ -670,12 +679,8 @@ export class AdminUsersComponent implements OnInit {
         }
 
         const request$ = this.editMode && this.selectedUser
-            ? this.http.put(
-                `${environments.apiUrl}/admin/users/${this.selectedUser.id}`,
-                payload)
-            : this.http.post(
-                `${environments.apiUrl}/admin/users`,
-                payload);
+            ? this.userService.updateUser(this.selectedUser.id!, payload)
+            : this.userService.createUser(payload);
 
         request$.subscribe({
             next: () => {
@@ -702,10 +707,7 @@ export class AdminUsersComponent implements OnInit {
 
     toggleUserStatus(user: KeycloakUser): void {
         const newStatus = !user.enabled;
-        this.http.patch(
-            `${environments.apiUrl}/admin/users/${user.id}/status`,
-            { enabled: newStatus }
-        ).subscribe({
+        this.userService.setUserStatus(user.id!, newStatus).subscribe({
             next: () => {
                 user.enabled = newStatus;
                 this.messageService.add({
@@ -730,19 +732,16 @@ export class AdminUsersComponent implements OnInit {
         if (!this.selectedUser) return;
 
         this.actionLoading = true;
-        this.http.patch(
-            `${environments.apiUrl}/admin/users/${this.selectedUser.id}/reset-password`,
-            {}
-        ).subscribe({
-            next: () => {
+        this.userService.resetPassword(this.selectedUser.id!).subscribe({
+            next: (result) => {
+                this.generatedPassword = result.temporaryPassword;
                 this.messageService.add({
                     severity: 'success',
                     summary:  'Mot de passe réinitialisé',
-                    detail:   `Le compte "${this.selectedUser?.username}" utilisera Asce@2026 à la prochaine connexion`,
+                    detail:   `Un nouveau mot de passe temporaire a été généré pour "${this.selectedUser?.username}"`,
                     life: 5000
                 });
-                this.resetPasswordDialogVisible = false;
-                this.actionLoading              = false;
+                this.actionLoading = false;
             },
             error: (err) => {
                 this.messageService.add({
@@ -753,6 +752,17 @@ export class AdminUsersComponent implements OnInit {
                 this.actionLoading = false;
             }
         });
+    }
+
+    copyGeneratedPassword(): void {
+        if (!this.generatedPassword) return;
+        navigator.clipboard?.writeText(this.generatedPassword);
+        this.messageService.add({ severity: 'success', summary: 'Copié', detail: 'Mot de passe copié dans le presse-papiers', life: 2500 });
+    }
+
+    closeResetPasswordDialog(): void {
+        this.resetPasswordDialogVisible = false;
+        this.generatedPassword = null;
     }
 
     confirmDelete(user: any): void {
@@ -768,9 +778,7 @@ export class AdminUsersComponent implements OnInit {
     }
 
     deleteUser(user: KeycloakUser): void {
-        this.http.delete(
-            `${environments.apiUrl}/admin/users/${user.id}`
-        ).subscribe({
+        this.userService.deleteUser(user.id!).subscribe({
             next: () => {
                 this.messageService.add({
                     severity: 'success',
@@ -800,7 +808,7 @@ export class AdminUsersComponent implements OnInit {
         const name = this.newRoleName.trim().toUpperCase().replace(/\s+/g, '_');
         if (!name) return;
         this.rolesLoading = true;
-        this.http.post(`${environments.apiUrl}/admin/roles`, { name, description: this.newRoleDesc }).subscribe({
+        this.userService.createRole(name, this.newRoleDesc).subscribe({
             next: () => {
                 this.messageService.add({ severity: 'success', summary: 'Rôle créé', detail: `Rôle "${name}" créé avec succès`, life: 3000 });
                 this.newRoleName  = '';
@@ -829,7 +837,7 @@ export class AdminUsersComponent implements OnInit {
 
     deleteRole(roleName: string): void {
         this.rolesLoading = true;
-        this.http.delete(`${environments.apiUrl}/admin/roles/${roleName}`).subscribe({
+        this.userService.deleteRole(roleName).subscribe({
             next: () => {
                 this.messageService.add({ severity: 'success', summary: 'Supprimé', detail: `Rôle "${roleName}" supprimé`, life: 3000 });
                 this.rolesLoading = false;
@@ -849,7 +857,7 @@ export class AdminUsersComponent implements OnInit {
         this.rolesLoading         = true;
         this.rolesDialogVisible   = true;
 
-        this.http.get<string[]>(`${environments.apiUrl}/admin/users/${user.id}/roles`).subscribe({
+        this.userService.getUserRoles(user.id).subscribe({
             next: (roles) => {
                 this.userCurrentRoles = roles;
                 this.refreshAssignableRoles();
@@ -872,10 +880,7 @@ export class AdminUsersComponent implements OnInit {
     assignRoleToUser(): void {
         if (!this.selectedUserForRoles || !this.roleToAssign) return;
         this.rolesLoading = true;
-        this.http.post(
-            `${environments.apiUrl}/admin/users/${this.selectedUserForRoles.id}/roles/${this.roleToAssign}`,
-            {}
-        ).subscribe({
+        this.userService.assignRole(this.selectedUserForRoles.id!, this.roleToAssign).subscribe({
             next: () => {
                 this.userCurrentRoles = [...this.userCurrentRoles, this.roleToAssign];
                 if (this.selectedUserForRoles) {
@@ -897,9 +902,7 @@ export class AdminUsersComponent implements OnInit {
     removeRoleFromUser(roleName: string): void {
         if (!this.selectedUserForRoles) return;
         this.rolesLoading = true;
-        this.http.delete(
-            `${environments.apiUrl}/admin/users/${this.selectedUserForRoles.id}/roles/${roleName}`
-        ).subscribe({
+        this.userService.removeRole(this.selectedUserForRoles.id!, roleName).subscribe({
             next: () => {
                 this.userCurrentRoles = this.userCurrentRoles.filter(r => r !== roleName);
                 if (this.selectedUserForRoles) {
@@ -939,11 +942,11 @@ export class AdminUsersComponent implements OnInit {
 
     getPrimaryRole(user: KeycloakUser): string {
         const priority = ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                          'PROTOCOLE', 'SECRETAIRE', 'DELEGUE', 'USER'];
+                          'PROTOCOLE', 'SECRETAIRE'];
         for (const r of priority) {
             if (user.realmRoles?.includes(r)) return r;
         }
-        return user.realmRoles?.[0] || 'USER';
+        return user.realmRoles?.[0] || '';
     }
 
     getRoleLabel(role: string): string {
@@ -952,9 +955,7 @@ export class AdminUsersComponent implements OnInit {
             'CGE':               'CGE',
             'DIRECTEUR_CABINET': 'Dir. Cabinet',
             'PROTOCOLE':         'Protocole',
-            'SECRETAIRE':        'Secrétaire',
-            'DELEGUE':           'Délégué',
-            'USER':              'Utilisateur'
+            'SECRETAIRE':        'Secrétaire'
         };
         return map[role] || role;
     }
@@ -962,12 +963,10 @@ export class AdminUsersComponent implements OnInit {
     getRoleColor(role: string): string {
         const map: Record<string, string> = {
             'ADMIN':             '#f44336',
-            'CGE':               '#228B22',
+            'CGE':               'var(--cge-vert-moyen)',
             'DIRECTEUR_CABINET': '#2196F3',
             'PROTOCOLE':         '#ff9800',
-            'SECRETAIRE':        '#9c27b0',
-            'DELEGUE':           '#00bcd4',
-            'USER':              '#607d8b'
+            'SECRETAIRE':        '#9c27b0'
         };
         return map[role] || '#607d8b';
     }
@@ -978,9 +977,7 @@ export class AdminUsersComponent implements OnInit {
             'CGE':               'success',
             'DIRECTEUR_CABINET': 'info',
             'PROTOCOLE':         'warn',
-            'SECRETAIRE':        'secondary',
-            'DELEGUE':           'help',
-            'USER':              'contrast'
+            'SECRETAIRE':        'secondary'
         };
         return map[role] || 'secondary';
     }
@@ -991,9 +988,7 @@ export class AdminUsersComponent implements OnInit {
             'CGE':               'Valide, rejette et gère les événements',
             'DIRECTEUR_CABINET': 'Crée des événements → soumis à validation CGE',
             'PROTOCOLE':         'Crée des événements → soumis à validation CGE',
-            'SECRETAIRE':        'Crée des événements → soumis à validation CGE',
-            'DELEGUE':           'Remplaçant désigné — accès limité',
-            'USER':              'Consultation uniquement — lecture seule'
+            'SECRETAIRE':        'Crée des événements → soumis à validation CGE'
         };
         return map[role] || '';
     }

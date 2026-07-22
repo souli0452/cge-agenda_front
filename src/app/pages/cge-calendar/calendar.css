@@ -25,7 +25,7 @@
 .cal-header-icon {
     width: 52px;
     height: 52px;
-    background: linear-gradient(135deg, #063419, #0B5C2E);
+    background: var(--cge-vert-moyen);
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -59,9 +59,9 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    background: #e8f4ec;
-    color: #0B5C2E;
-    border: 1px solid #b8dfc5;
+    background: var(--cge-vert-clair);
+    color: var(--cge-vert-moyen);
+    border: 1px solid var(--p-primary-200);
     padding: 8px 14px;
     border-radius: 30px;
     font-size: 13px;
@@ -401,15 +401,15 @@
     }
 
     .fc-button:hover:not(:disabled) {
-        background: #228B22 !important;
-        border-color: #228B22 !important;
+        background: var(--cge-vert-moyen) !important;
+        border-color: var(--cge-vert-moyen) !important;
         color: white !important;
     }
 
     .fc-button-active,
     .fc-button-primary:not(:disabled).fc-button-active {
-        background: #228B22 !important;
-        border-color: #1a6b1a !important;
+        background: var(--cge-vert-moyen) !important;
+        border-color: var(--p-primary-700) !important;
         color: white !important;
     }
 
@@ -451,11 +451,11 @@
 
     /* Aujourd'hui */
     .fc-day-today {
-        background: #f0faf0 !important;
+        background: var(--cge-vert-clair) !important;
     }
 
     .fc-day-today .fc-daygrid-day-number {
-        background: #228B22 !important;
+        background: var(--cge-vert-moyen) !important;
         color: white !important;
         border-radius: 50% !important;
         width: 28px !important;
@@ -490,11 +490,11 @@
     .fc-daygrid-more-link {
         font-size: 11px !important;
         font-weight: 700 !important;
-        color: #228B22 !important;
+        color: var(--cge-vert-moyen) !important;
     }
 
     /* Vue liste */
-    .fc-list-event:hover td { background: #f0faf0 !important; }
+    .fc-list-event:hover td { background: var(--cge-vert-clair) !important; }
     .fc-list-day-cushion     { background: var(--surface-ground) !important; }
 
     .fc-list-event-dot {

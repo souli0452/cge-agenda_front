@@ -81,7 +81,7 @@
 
 .stepper-step.clickable:hover .step-circle {
   transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(34, 139, 34, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 150, 64, 0.3);
 }
 
 .step-circle {
@@ -134,7 +134,7 @@
   background: var(--primary-color);
   border-color: var(--primary-color);
   color: white;
-  box-shadow: 0 0 0 4px rgba(34, 139, 34, 0.2);
+  box-shadow: 0 0 0 4px rgba(0, 150, 64, 0.2);
   animation: pulse 2s infinite;
 }
 
@@ -144,8 +144,8 @@
 }
 
 @keyframes pulse {
-  0%, 100% { box-shadow: 0 0 0 4px rgba(34, 139, 34, 0.2); }
-  50%       { box-shadow: 0 0 0 8px rgba(34, 139, 34, 0.1); }
+  0%, 100% { box-shadow: 0 0 0 4px rgba(0, 150, 64, 0.2); }
+  50%       { box-shadow: 0 0 0 8px rgba(0, 150, 64, 0.1); }
 }
 
 /* Étape en attente */
@@ -181,7 +181,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: #E8F5E9;
+  background: var(--cge-vert-clair);
   border-left: 4px solid var(--primary-color);
   border-radius: 8px;
   margin-bottom: 32px;
@@ -192,7 +192,7 @@
 .phase-intro p {
   margin: 0;
   font-size: 14px;
-  color: #2E7D32;
+  color: var(--cge-vert-moyen);
   line-height: 1.5;
 }
 
@@ -227,7 +227,6 @@
   margin-bottom: 8px;
 }
 
-.required { color: #dc3545 !important; font-weight: 700; font-size: 16px; }
 
 .field-hint {
   display: flex;
@@ -299,16 +298,16 @@
 
 .lieu-option:hover {
   border-color: var(--primary-color) !important;
-  background: rgba(34, 139, 34, 0.04) !important;
+  background: rgba(0, 150, 64, 0.04) !important;
   transform: translateY(-4px) !important;
-  box-shadow: 0 8px 20px rgba(34, 139, 34, 0.15) !important;
+  box-shadow: 0 8px 20px rgba(0, 150, 64, 0.15) !important;
 }
 
 .lieu-option.selected {
   border-color: var(--primary-color) !important;
-  background: rgba(34, 139, 34, 0.08) !important;
-  box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.2),
-              0 8px 20px rgba(34, 139, 34, 0.15) !important;
+  background: rgba(0, 150, 64, 0.08) !important;
+  box-shadow: 0 0 0 3px rgba(0, 150, 64, 0.2),
+              0 8px 20px rgba(0, 150, 64, 0.15) !important;
   transform: translateY(-4px) !important;
 }
 
@@ -356,15 +355,15 @@
 
 .mode-card:hover {
   border-color: var(--primary-color);
-  background: rgba(34, 139, 34, 0.02);
+  background: rgba(0, 150, 64, 0.02);
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .mode-card.active {
   border-color: var(--primary-color);
-  background: rgba(34, 139, 34, 0.08);
-  box-shadow: 0 4px 12px rgba(34, 139, 34, 0.2);
+  background: rgba(0, 150, 64, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 150, 64, 0.2);
 }
 
 .mode-card-content { display: flex; align-items: flex-start; gap: 14px; }
@@ -469,8 +468,8 @@
 }
 
 .participant-card.existing-participant {
-  background: #E8F5E9;
-  border-left-color: #4CAF50;
+  background: var(--cge-vert-clair);
+  border-left-color: var(--cge-vert-moyen);
 }
 
 .participant-card.new-participant {
@@ -501,7 +500,7 @@
   letter-spacing: 0.5px;
 }
 
-.participant-badge.badge-existing { background: #4CAF50; }
+.participant-badge.badge-existing { background: var(--cge-vert-moyen); }
 
 /* ==========================================
    EMPTY STATES
@@ -546,13 +545,13 @@
   text-align: center;
   cursor: pointer;
   transition: all 0.3s;
-  background: rgba(34, 139, 34, 0.02);
+  background: rgba(0, 150, 64, 0.02);
   margin: 20px 0;
 }
 
 .upload-area:hover {
   border-color: var(--primary-color);
-  background: rgba(34, 139, 34, 0.05);
+  background: rgba(0, 150, 64, 0.05);
   transform: translateY(-2px);
 }
 
@@ -670,7 +669,7 @@
   border-radius: 14px;
   padding: 0 10px;
   margin-left: 12px;
-  box-shadow: 0 2px 6px rgba(34, 139, 34, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 150, 64, 0.3);
 }
 
 .summary-item {
@@ -745,7 +744,7 @@
   color: white;
 }
 
-.participant-type-badge.badge-existing { background: #4CAF50; }
+.participant-type-badge.badge-existing { background: var(--cge-vert-moyen); }
 
 /* ==========================================
    LOADER
@@ -926,7 +925,7 @@
   .p-inputtext:focus,
   .p-textarea:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 150, 64, 0.1);
   }
 
   .p-inputtext.ng-invalid.ng-touched,
@@ -948,7 +947,7 @@
   .p-select:focus,
   .p-select.p-focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+    box-shadow: 0 0 0 3px rgba(0, 150, 64, 0.1);
   }
 
   .p-select.ng-invalid.ng-touched {

@@ -9,6 +9,8 @@ import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
 import { ParticipantService } from '../../service/participant.service';
+import { EventService } from '../../service/event.service';
+import { getEventStatusSeverity } from '../../models';
 
 @Component({
   selector: 'app-participant-detail',
@@ -85,7 +87,7 @@ import { ParticipantService } from '../../service/participant.service';
                 <span class="info-label">Email</span>
                 <div class="info-value">
                   <i class="pi pi-envelope"></i>
-                  <a [href]="'mailto:' + participant.email" style="color: #228B22; text-decoration: none;">
+                  <a [href]="'mailto:' + participant.email" style="color: var(--cge-vert-moyen); text-decoration: none;">
                     {{ participant.email }}
                   </a>
                 </div>
@@ -239,6 +241,7 @@ export class ParticipantDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private participantService: ParticipantService,
+    private eventService: EventService,
     private messageService: MessageService
   ) {}
 
@@ -271,15 +274,21 @@ export class ParticipantDetailComponent implements OnInit {
   }
 
   loadParticipantEvents(participantId: string): void {
-    
-    this.events = [];
-    
-    const today = new Date();
-    this.participationStats = {
-      totalEvents: this.events.length,
-      upcomingEvents: this.events.filter(e => new Date(e.startDate) > today).length,
-      pastEvents: this.events.filter(e => new Date(e.endDate) < today).length
-    };
+    this.eventService.getEventsByParticipant(participantId).subscribe({
+      next: (events) => {
+        this.events = events;
+        const today = new Date();
+        this.participationStats = {
+          totalEvents: this.events.length,
+          upcomingEvents: this.events.filter(e => new Date(e.startDate) > today).length,
+          pastEvents: this.events.filter(e => new Date(e.endDate) < today).length
+        };
+      },
+      error: () => {
+        this.events = [];
+        this.participationStats = { totalEvents: 0, upcomingEvents: 0, pastEvents: 0 };
+      }
+    });
   }
 
   getInitials(): string {
@@ -290,21 +299,8 @@ export class ParticipantDetailComponent implements OnInit {
   }
 
   getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-  switch (status) {
-    case 'PLANIFIE':
-      return 'info';
-    case 'EN_COURS':
-      return 'warn';
-    case 'TERMINE':       
-      return 'success';
-    case 'ANNULE':
-      return 'danger';
-    case 'REPORTER':
-      return 'secondary';
-    default:
-      return 'info';
+    return getEventStatusSeverity(status);
   }
-}
 
   editParticipant(): void {
     this.router.navigate(['/participants', this.participant.id, 'edit']);

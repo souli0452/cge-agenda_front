@@ -6,11 +6,12 @@ import { ChartModule } from 'primeng/chart';
 import { TableModule } from 'primeng/table';
 import { TagModule } from 'primeng/tag';
 import { TooltipModule } from 'primeng/tooltip';
-import { forkJoin, of } from 'rxjs';
+import { of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { EventService } from '../../service/event.service';
-import { StatsService } from '../../service/stats.service';
+import { StatsService, EventsByStatusAndMonth } from '../../service/stats.service';
 import { AgendaYearService } from '../../service/agenda-year.service';
+import { environments } from '../../../environments/environments';
 import {
     Event,
     DashboardStats,
@@ -38,16 +39,18 @@ import {
 export class CgeDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
 
     gridVisible = false;
+    isProd = environments.production;
 
     @HostListener('document:keydown', ['$event'])
     onKeydown(e: KeyboardEvent): void {
-        if (e.altKey && (e.key === 'g' || e.key === 'G')) {
+        if (!this.isProd && e.altKey && (e.key === 'g' || e.key === 'G')) {
             e.preventDefault();
             this.toggleGrid();
         }
     }
 
     toggleGrid(): void {
+        if (this.isProd) return;
         this.gridVisible = !this.gridVisible;
         document.body.classList.toggle('mb-grid-on', this.gridVisible);
     }
@@ -108,11 +111,8 @@ export class CgeDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     loadData(): void {
         this.loading = true;
         const year = this.agendaYearService.year();
-        forkJoin({
-            stats:  this.statsService.getDashboardStats().pipe(catchError(() => of(null))),
-            events: this.eventService.getAllEvents()
-        }).subscribe({
-            next: ({ stats, events }) => {
+        this.eventService.getAllEvents().subscribe({
+            next: (events) => {
                 const eventsOfYear = events.filter(e =>
                     new Date(e.startDate).getFullYear() === year
                 );
@@ -167,17 +167,19 @@ export class CgeDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
                 data: typeData,
                 backgroundColor: [
                     'rgb(66,165,245)', 'rgb(102,187,106)', 'rgb(255,167,38)',
-                    'rgb(171,71,188)', 'rgb(38,198,218)',  'rgb(120,144,156)', 'rgb(141,110,99)'
+                    'rgb(171,71,188)', 'rgb(38,198,218)',  'rgb(120,144,156)', 'rgb(141,110,99)',
+                    'rgb(6,182,212)'
                 ],
                 hoverBackgroundColor: [
                     'rgba(66,165,245,.8)', 'rgba(102,187,106,.8)', 'rgba(255,167,38,.8)',
-                    'rgba(171,71,188,.8)', 'rgba(38,198,218,.8)',  'rgba(120,144,156,.8)', 'rgba(141,110,99,.8)'
+                    'rgba(171,71,188,.8)', 'rgba(38,198,218,.8)',  'rgba(120,144,156,.8)', 'rgba(141,110,99,.8)',
+                    'rgba(6,182,212,.8)'
                 ]
             }]
         };
     }
 
-    prepareStatusMonthChart(data: any): void {
+    prepareStatusMonthChart(data: EventsByStatusAndMonth): void {
         const months   = Object.keys(data[Object.keys(data)[0]]);
         const datasets = Object.keys(data).map(status => ({
             label:           this.getStatusLabel(status),
@@ -192,7 +194,7 @@ export class CgeDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     getStatusChartColor(status: string): string {
         const c: any = {
             'PLANIFIE': 'rgba(66,165,245,.8)',  'EN_COURS': 'rgba(255,167,38,.8)',
-            'TERMINE':  'rgba(102,187,106,.8)', 'ANNULER':  'rgba(239,83,80,.8)',
+            'TERMINE':  'rgba(0,150,64,.8)', 'ANNULER':  'rgba(239,83,80,.8)',
             'REPORTER': 'rgba(171,71,188,.8)'
         };
         return c[status] || 'rgba(120,144,156,.8)';
@@ -201,7 +203,7 @@ export class CgeDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     getStatusChartBorderColor(status: string): string {
         const c: any = {
             'PLANIFIE': 'rgb(66,165,245)',  'EN_COURS': 'rgb(255,167,38)',
-            'TERMINE':  'rgb(102,187,106)', 'ANNULER':  'rgb(239,83,80)',
+            'TERMINE':  'rgb(0,150,64)', 'ANNULER':  'rgb(239,83,80)',
             'REPORTER': 'rgb(171,71,188)'
         };
         return c[status] || 'rgb(120,144,156)';

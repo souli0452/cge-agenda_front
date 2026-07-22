@@ -153,12 +153,12 @@ import { BackupService, BackupInfo, BackupConfig } from '../../../service/backup
 
 .backup-icon {
     width: 52px; height: 52px;
-    background: var(--cge-vert-clair, #e8f4ec);
+    background: var(--cge-vert-clair, var(--cge-vert-clair));
     border-radius: 12px;
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
-.backup-icon i { font-size: 1.5rem; color: var(--cge-vert-moyen, #228B22); }
+.backup-icon i { font-size: 1.5rem; color: var(--cge-vert-moyen, var(--cge-vert-moyen)); }
 
 .config-header { display: flex; align-items: center; }
 .config-grid { display: flex; flex-direction: column; }
@@ -174,7 +174,7 @@ import { BackupService, BackupInfo, BackupConfig } from '../../../service/backup
 }
 
 .tab-count {
-    background: var(--primary-color, #228B22);
+    background: var(--primary-color, var(--cge-vert-moyen));
     color: white; border-radius: 10px;
     padding: 1px 7px; font-size: 0.7rem; font-weight: 600;
 }

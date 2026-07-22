@@ -14,8 +14,8 @@ export const ROLE_META: Record<string, RoleMeta> = {
     },
     CGE: {
         label:   'CGE',
-        color:   '#0B5C2E',
-        bgColor: '#E8F4EC',
+        color:   '#009640',
+        bgColor: '#E5F4EC',
         icon:    'pi-star'
     },
     DIRECTEUR_CABINET: {
@@ -34,18 +34,6 @@ export const ROLE_META: Record<string, RoleMeta> = {
         label:   'Secrétaire',
         color:   '#2563EB',
         bgColor: '#EFF6FF',
-        icon:    'pi-user'
-    },
-    DELEGUE: {
-        label:   'Délégué',
-        color:   '#0891B2',
-        bgColor: '#ECFEFF',
-        icon:    'pi-send'
-    },
-    USER: {
-        label:   'Utilisateur',
-        color:   '#6B7280',
-        bgColor: '#F9FAFB',
         icon:    'pi-user'
     }
 };

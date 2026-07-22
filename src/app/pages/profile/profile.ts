@@ -58,8 +58,8 @@ import { ROLE_META, getRoleLabel } from '../../models';
         <!-- Informations personnelles -->
         <div class="pf-card">
             <div class="pf-card-hd">
-                <div class="pf-card-icon" style="background:#e8f5e9">
-                    <i class="pi pi-user" style="color:#228B22"></i>
+                <div class="pf-card-icon" style="background:var(--cge-vert-clair)">
+                    <i class="pi pi-user" style="color:var(--cge-vert-moyen)"></i>
                 </div>
                 <h3>Informations personnelles</h3>
             </div>

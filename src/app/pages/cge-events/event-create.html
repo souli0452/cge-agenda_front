@@ -1,4 +1,5 @@
 <p-toast position="top-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 <div class="event-create-container">
   <div class="page-header">
@@ -50,7 +51,7 @@
 
           <div class="form-field">
             <label class="field-label" for="event-title">
-              Titre de l'événement <span class="required">*</span>
+              Titre de l'événement <span class="text-red-500">*</span>
             </label>
             <p-iconfield iconPosition="left" class="w-full">
               <p-inputicon styleClass="pi pi-bookmark" />
@@ -74,7 +75,7 @@
 
           <div class="form-field">
             <label class="field-label">
-              Type d'événement <span class="required">*</span>
+              Type d'événement <span class="text-red-500">*</span>
             </label>
             <p-select formControlName="type" [options]="typeOptions"
                       placeholder="Sélectionnez le type"
@@ -88,7 +89,7 @@
 
           <div class="form-field" *ngIf="isAutreType">
             <label class="field-label">
-              Précisez le type d'événement <span class="required">*</span>
+              Précisez le type d'événement <span class="text-red-500">*</span>
             </label>
             <p-iconfield iconPosition="left" class="w-full">
               <p-inputicon styleClass="pi pi-tag" />
@@ -130,7 +131,7 @@
           <div class="grid-2-cols">
             <div class="form-field">
               <label class="field-label">
-                Date de début <span class="required">*</span>
+                Date de début <span class="text-red-500">*</span>
               </label>
               <p-datepicker formControlName="startDate" dateFormat="dd/mm/yy"
                             placeholder="Sélectionnez la date"
@@ -144,7 +145,7 @@
             </div>
             <div class="form-field">
               <label class="field-label">
-                Date de fin <span class="required">*</span>
+                Date de fin <span class="text-red-500">*</span>
               </label>
               <p-datepicker formControlName="endDate" dateFormat="dd/mm/yy"
                             placeholder="Sélectionnez la date"
@@ -191,7 +192,7 @@
               <div class="lieu-option"
                    [class.selected]="currentLieuType === 'NATIONAL'"
                    (click)="eventForm.patchValue({ lieuType: 'NATIONAL' })">
-                <i class="pi pi-map lieu-icon" style="color:#009a00"></i>
+                <i class="pi pi-map lieu-icon" style="color:var(--cge-vert-moyen)"></i>
                 <span class="lieu-label">National</span>
                 <small class="lieu-desc">Burkina Faso</small>
               </div>
@@ -218,7 +219,7 @@
           <ng-container *ngIf="currentLieuType === 'INTERNE'">
             <div class="form-field">
               <label class="field-label">
-                Salle <span class="required">*</span>
+                Salle <span class="text-red-500">*</span>
               </label>
               <p-select [options]="sallesDisponibles"
                         formControlName="salle"
@@ -232,7 +233,7 @@
             </div>
             <div class="form-field" *ngIf="isAutreSalle">
               <label class="field-label">
-                Nom de la salle <span class="required">*</span>
+                Nom de la salle <span class="text-red-500">*</span>
               </label>
               <p-iconfield iconPosition="left" class="w-full">
                 <p-inputicon styleClass="pi pi-building" />
@@ -251,7 +252,7 @@
             <div class="grid-2-cols">
               <div class="form-field">
                 <label class="field-label">
-                  Ville <span class="required">*</span>
+                  Ville <span class="text-red-500">*</span>
                 </label>
                 <p-select [options]="cities"
                           formControlName="ville"
@@ -276,7 +277,7 @@
             <div class="grid-2-cols">
               <div class="form-field">
                 <label class="field-label">
-                  Pays <span class="required">*</span>
+                  Pays <span class="text-red-500">*</span>
                 </label>
                 <p-select [options]="countries"
                           formControlName="pays"
@@ -288,7 +289,7 @@
               </div>
               <div class="form-field">
                 <label class="field-label">
-                  Ville <span class="required">*</span>
+                  Ville <span class="text-red-500">*</span>
                 </label>
                 <p-select *ngIf="hasCities()"
                           [options]="cities"
@@ -317,7 +318,7 @@
           <ng-container *ngIf="currentLieuType === 'VIRTUEL'">
             <div class="form-field">
               <label class="field-label">
-                Lien de réunion <span class="required">*</span>
+                Lien de réunion <span class="text-red-500">*</span>
               </label>
               <p-iconfield iconPosition="left" class="w-full">
                 <p-inputicon styleClass="pi pi-video" />
@@ -350,10 +351,10 @@
           </ng-container>
 
 <ng-container *ngIf="!currentLieuType">
-    <div class="field-hint" style="padding:16px;background:#f0fdf4;border-radius:8px;
-                                   border-left:4px solid #228B22;margin-top:8px;">
-        <i class="pi pi-info-circle" style="color:#228B22;margin-right:8px;"></i>
-        <span style="color:#228B22;font-weight:500;">
+    <div class="field-hint" style="padding:16px;background:var(--cge-vert-clair);border-radius:8px;
+                                   border-left:4px solid var(--cge-vert-moyen);margin-top:8px;">
+        <i class="pi pi-info-circle" style="color:var(--cge-vert-moyen);margin-right:8px;"></i>
+        <span style="color:var(--cge-vert-moyen);font-weight:500;">
             Sélectionnez un type de lieu ci-dessus pour afficher les champs correspondants.
         </span>
     </div>
@@ -427,7 +428,7 @@
           <div class="grid-2-cols">
             <div class="form-field">
               <label class="field-label">
-                Heure de début <span class="required">*</span>
+                Heure de début <span class="text-red-500">*</span>
               </label>
               <p-iconfield iconPosition="left" class="w-full">
                 <p-inputicon styleClass="pi pi-clock" />
@@ -437,7 +438,7 @@
             </div>
             <div class="form-field">
               <label class="field-label">
-                Heure de fin <span class="required">*</span>
+                Heure de fin <span class="text-red-500">*</span>
               </label>
               <p-iconfield iconPosition="left" class="w-full">
                 <p-inputicon styleClass="pi pi-clock" />
@@ -548,7 +549,7 @@
               >
                 <ng-template #item let-p>
                   <div style="display:flex;flex-direction:column;padding:4px 2px;gap:2px">
-                    <span style="font-weight:600;font-size:14px;color:#145214">{{ p.firstName }} {{ p.lastName }}</span>
+                    <span style="font-weight:600;font-size:14px;color:var(--cge-vert-moyen)">{{ p.firstName }} {{ p.lastName }}</span>
                     <span style="font-size:12px;color:#666">{{ p.email }} · {{ p.structure }}</span>
                   </div>
                 </ng-template>
@@ -600,7 +601,7 @@
               <div class="grid-2-cols">
                 <div class="form-field">
                   <label class="field-label">
-                    Prénom <span class="required">*</span>
+                    Prénom <span class="text-red-500">*</span>
                   </label>
                   <input pInputText formControlName="firstName"
                          placeholder="Prénom" class="w-full p-inputtext-lg"
@@ -608,7 +609,7 @@
                 </div>
                 <div class="form-field">
                   <label class="field-label">
-                    Nom <span class="required">*</span>
+                    Nom <span class="text-red-500">*</span>
                   </label>
                   <input pInputText formControlName="lastName"
                          placeholder="Nom" class="w-full p-inputtext-lg"
@@ -616,7 +617,7 @@
                 </div>
                 <div class="form-field">
                   <label class="field-label">
-                    Email <span class="required">*</span>
+                    Email <span class="text-red-500">*</span>
                   </label>
                   <p-iconfield iconPosition="left" class="w-full">
                     <p-inputicon styleClass="pi pi-envelope" />
@@ -656,7 +657,7 @@
                 </div>
                 <div class="form-field" style="grid-column: span 2;">
                   <label class="field-label">
-                    Type <span class="required">*</span>
+                    Type <span class="text-red-500">*</span>
                   </label>
                   <p-select formControlName="participantType"
                             [options]="participantTypeOptions"

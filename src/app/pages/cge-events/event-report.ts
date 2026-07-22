@@ -4,7 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { EventService } from '../../service/event.service';
 import { AgendaYearService } from '../../service/agenda-year.service';
-import { Event, EventTypeLabels, EventStatusLabels } from '../../models';
+import { environments } from '../../../environments/environments';
+import { Event, EventTypeLabels, EventStatusLabels, EVENT_STATUS_OPTIONS, EVENT_TYPE_OPTIONS } from '../../models';
 
 @Component({
     selector:     'app-event-report',
@@ -17,16 +18,18 @@ import { Event, EventTypeLabels, EventStatusLabels } from '../../models';
 export class EventReportComponent implements OnInit, AfterViewInit {
 
     gridVisible = false;
+    isProd = environments.production;
 
     @HostListener('document:keydown', ['$event'])
     onKeydown(e: KeyboardEvent): void {
-        if (e.altKey && (e.key === 'g' || e.key === 'G')) {
+        if (!this.isProd && e.altKey && (e.key === 'g' || e.key === 'G')) {
             e.preventDefault();
             this.toggleGrid();
         }
     }
 
     toggleGrid(): void {
+        if (this.isProd) return;
         this.gridVisible = !this.gridVisible;
         document.body.classList.toggle('mb-grid-on', this.gridVisible);
     }
@@ -58,25 +61,9 @@ export class EventReportComponent implements OnInit, AfterViewInit {
 
     availableYears: number[] = [];
 
-    statusOptions = [
-        { label: 'Planifié',   value: 'PLANIFIE'  },
-        { label: 'En cours',   value: 'EN_COURS'  },
-        { label: 'Terminé',    value: 'TERMINE'   },
-        { label: 'Validé',     value: 'VALIDE'    },
-        { label: 'Annulé',     value: 'ANNULER'   },
-        { label: 'Reporté',    value: 'REPORTER'  },
-        { label: 'Rejeté',     value: 'REJETE'    }
-    ];
+    statusOptions = EVENT_STATUS_OPTIONS;
 
-    typeOptions = [
-        { label: 'Réunion',    value: 'REUNION'    },
-        { label: 'Conférence', value: 'CONFERENCE' },
-        { label: 'Atelier',    value: 'ATELIER'    },
-        { label: 'Séminaire',  value: 'SEMINAIRE'  },
-        { label: 'Formation',  value: 'FORMATION'  },
-        { label: 'Mission',    value: 'MISSION'    },
-        { label: 'Autre',      value: 'AUTRE'      }
-    ];
+    typeOptions = EVENT_TYPE_OPTIONS;
 
     constructor(
         private eventService:       EventService,

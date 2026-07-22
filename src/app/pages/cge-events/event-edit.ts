@@ -17,6 +17,7 @@ import { Select }        from 'primeng/select';
 import { TableModule }   from 'primeng/table';
 import { Textarea }           from 'primeng/textarea';
 import { AutoCompleteModule } from 'primeng/autocomplete';
+import { DatePickerModule }   from 'primeng/datepicker';
 
 import { EventService }       from '../../service/event.service';
 import { FileService }        from '../../service/file.service';
@@ -29,7 +30,8 @@ import { Event, FileUpload, Participant, endDateAfterStart } from '../../models'
     imports: [
         CommonModule, ReactiveFormsModule, FormsModule,
         Button, InputText, Toast, ConfirmDialog, Skeleton,
-        Dialog, Tooltip, Select, TableModule, Textarea, AutoCompleteModule
+        Dialog, Tooltip, Select, TableModule, Textarea, AutoCompleteModule,
+        DatePickerModule
     ],
     providers: [MessageService, ConfirmationService],
     templateUrl: './event-edit.html',
@@ -148,6 +150,12 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         return this.eventForm.get('lieuType')?.value || '';
     }
 
+    formatDate(date: Date | string): string {
+        if (!date) return '';
+        const d = new Date(date);
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
     loadEvent(): void {
         if (!this.eventId) return;
         this.loading = true;
@@ -160,8 +168,8 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
                     title:       event.title       || '',
                     type:        event.type        || '',
                     description: event.description || '',
-                    startDate:   event.startDate   || '',
-                    endDate:     event.endDate     || '',
+                    startDate:   event.startDate ? new Date(event.startDate) : '',
+                    endDate:     event.endDate   ? new Date(event.endDate)   : '',
                     lieuType:    (event as any).lieuType    || '',
                     salle:       (event as any).salle       || '',
                     ville:       event.ville       || '',
@@ -220,8 +228,8 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
             title:       fv.title?.trim(),
             type:        fv.type,
             description: fv.description?.trim() || null,
-            startDate:   fv.startDate,
-            endDate:     fv.endDate,
+            startDate:   this.formatDate(fv.startDate),
+            endDate:     this.formatDate(fv.endDate),
             status:      this.currentStatus,
             lieuType:    fv.lieuType    || null,
             salle:       fv.salle?.trim()    || null,

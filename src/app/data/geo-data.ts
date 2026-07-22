@@ -1,6 +1,5 @@
 import * as i18nCountries from 'i18n-iso-countries';
 import frLocale from 'i18n-iso-countries/langs/fr.json';
-import { City } from 'country-state-city';
 
 i18nCountries.registerLocale(frLocale);
 
@@ -29,12 +28,14 @@ export function getAllCountries(): GeoCountry[] {
     });
 }
 
-export function getCitiesOfCountry(countryCode: string): GeoCity[] {
+/**
+ * Chargée à la demande (import dynamique) : country-state-city embarque la base
+ * mondiale des villes et alourdit sinon considérablement le chunk qui l'importe.
+ */
+export async function getCitiesOfCountry(countryCode: string): Promise<GeoCity[]> {
+    const { City } = await import('country-state-city');
     const cities = City.getCitiesOfCountry(countryCode) ?? [];
     return cities
         .map(c => ({ label: c.name, value: c.name }))
         .sort((a, b) => a.label.localeCompare(b.label, 'fr'));
 }
-
-// Rétrocompatibilité
-export const GEO_COUNTRIES = getAllCountries();

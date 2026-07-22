@@ -2,7 +2,7 @@
     --rp-paper:    #ffffff;
     --rp-ink:      #111315;
     --rp-ink-soft: #5b6066;
-    --rp-accent:   var(--cge-vert-moyen, #228B22);
+    --rp-accent:   var(--cge-vert-moyen, var(--cge-vert-moyen));
     --rp-border:   #d1d5db;
     --rp-alt-row:  #f8faf9;
 

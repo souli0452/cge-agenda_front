@@ -11,11 +11,11 @@
 .el-header-left { display: flex; align-items: center; gap: 16px; }
 .el-header-icon {
     width: 52px; height: 52px;
-    background: linear-gradient(135deg, #1a6b1a, #228B22);
+    background: var(--cge-vert-moyen);
     border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
     font-size: 24px; color: white; flex-shrink: 0;
-    box-shadow: 0 4px 14px rgba(34,139,34,0.35);
+    box-shadow: 0 4px 14px rgba(0, 150, 64,0.35);
 }
 .el-title    { margin: 0 0 4px; font-size: 21px; font-weight: 800; color: var(--text-color); }
 .el-subtitle { margin: 0; font-size: 13px; color: var(--text-color-secondary); }
@@ -31,7 +31,7 @@
 }
 .el-stat-blue    { background: #e3f2fd; color: #1565C0; border-color: #bbdefb; }
 .el-stat-warn    { background: #fff8e1; color: #f57f17; border-color: #ffe082; }
-.el-stat-success { background: #e8f5e9; color: #228B22; border-color: #c8e6c9; }
+.el-stat-success { background: var(--cge-vert-clair); color: var(--cge-vert-moyen); border-color: var(--p-primary-200); }
 .el-stat-num { font-size: 17px; font-weight: 800; }
 .el-stat-lbl { font-size: 11px; opacity: .8; }
 
@@ -72,7 +72,7 @@
         color: var(--text-color-secondary) !important; font-size: 12px !important;
     }
     .el-table .p-datatable-thead > tr > th:hover {
-        background: #e8f0e8 !important; color: #228B22 !important;
+        background: var(--cge-vert-clair) !important; color: var(--cge-vert-moyen) !important;
     }
     .el-table .p-datatable-tbody > tr > td {
         vertical-align: middle !important;
@@ -87,7 +87,7 @@
         width: 5px !important; min-width: 5px !important; max-width: 5px !important;
         padding: 0 !important; border-right: none !important;
     }
-    .el-td-bar { background: var(--row-color, #228B22) !important; }
+    .el-td-bar { background: var(--row-color, var(--cge-vert-moyen)) !important; }
     /* Ligne rejetée */
     .el-row-rejected > td { background: #fff5f5 !important; }
     .el-row-rejected:hover > td { background: #fee2e2 !important; }
@@ -102,7 +102,7 @@
         border: 2px dashed var(--surface-border); border-radius: 10px;
         padding: 2.5rem; text-align: center; cursor: pointer; transition: all .2s;
     }
-    .upload-zone:hover { border-color: #228B22; background: rgba(34,139,34,0.04); }
+    .upload-zone:hover { border-color: var(--cge-vert-moyen); background: rgba(0, 150, 64,0.04); }
 }
 
 .el-row { cursor: pointer; }
@@ -143,9 +143,9 @@
 /* Date */
 .el-date-wrap      { display: flex; align-items: flex-start; gap: 8px; }
 .el-date-icon-wrap {
-    width: 30px; height: 30px; background: #e8f5e9; border-radius: 8px;
+    width: 30px; height: 30px; background: var(--cge-vert-clair); border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
-    color: #228B22; font-size: 13px; flex-shrink: 0; margin-top: 1px;
+    color: var(--cge-vert-moyen); font-size: 13px; flex-shrink: 0; margin-top: 1px;
 }
 .el-date-main { font-size: 13px; font-weight: 700; color: var(--text-color); }
 .el-date-end  {
@@ -171,7 +171,7 @@
     font-size: 13px; font-weight: 700;
 }
 .el-counter-blue  { background: #e3f2fd; color: #1565C0; }
-.el-counter-green { background: #e8f5e9; color: #228B22; }
+.el-counter-green { background: var(--cge-vert-clair); color: var(--cge-vert-moyen); }
 
 /* État vide */
 .el-empty {
@@ -187,19 +187,6 @@
 }
 .el-empty-title { margin: 0; font-size: 18px; font-weight: 700; color: var(--text-color); }
 .el-empty-sub   { margin: 0; font-size: 13px; color: var(--text-color-secondary); }
-
-/* ── Toggle vue liste / cartes ─────────────────────────── */
-.view-toggle {
-    display: flex; border: 1px solid var(--surface-border);
-    border-radius: 10px; overflow: hidden; flex-shrink: 0;
-}
-.vt-btn {
-    padding: 9px 14px; border: none; cursor: pointer;
-    background: var(--surface-card); color: var(--text-color-secondary);
-    font-size: 15px; transition: all 0.15s; line-height: 1;
-}
-.vt-btn.vt-active { background: var(--primary-color); color: white; }
-.vt-btn:hover:not(.vt-active) { background: var(--surface-hover); color: var(--text-color); }
 
 /* ── Vue cartes (desktop + mobile) ────────────────────── */
 .el-cards-section {
@@ -221,7 +208,7 @@
 .el-event-card {
     background: var(--surface-card);
     border-radius: 14px;
-    border-left: 4px solid #228B22;
+    border-left: 4px solid var(--cge-vert-moyen);
     box-shadow: 0 2px 10px rgba(0,0,0,0.08);
     overflow: hidden;
     cursor: pointer;

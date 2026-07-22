@@ -24,7 +24,7 @@
 .header-icon {
     width: 52px;
     height: 52px;
-    background: linear-gradient(135deg, #228B22, #1a6b1a);
+    background: var(--cge-vert-moyen);
     border-radius: 14px;
     display: flex;
     align-items: center;
@@ -32,7 +32,7 @@
     color: white;
     font-size: 24px;
     flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(34,139,34,0.3);
+    box-shadow: 0 4px 12px rgba(0, 150, 64,0.3);
 }
 
 .page-title {
@@ -203,9 +203,9 @@
 }
 
 .status-active {
-    background: rgba(34,139,34,0.1);
-    color: #228B22;
-    border: 1px solid rgba(34,139,34,0.3);
+    background: rgba(0, 150, 64,0.1);
+    color: var(--cge-vert-moyen);
+    border: 1px solid rgba(0, 150, 64,0.3);
 }
 
 .status-inactive {
@@ -278,10 +278,6 @@
     margin-bottom: 7px;
 }
 
-.required {
-    color: #f44336;
-    font-weight: 700;
-}
 
 .field-hint {
     display: flex;
@@ -293,7 +289,7 @@
     line-height: 1.4;
 }
 
-.field-hint i { color: #228B22; font-size: 12px; }
+.field-hint i { color: var(--cge-vert-moyen); font-size: 12px; }
 
 .field-error {
     display: flex;
@@ -309,7 +305,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #228B22;
+    color: var(--cge-vert-moyen);
     font-size: 12px;
     font-weight: 500;
     margin-top: 5px;
@@ -376,13 +372,13 @@
 }
 
 .status-option:hover {
-    border-color: #228B22;
+    border-color: var(--cge-vert-moyen);
 }
 
 .active-option {
-    border-color: #228B22 !important;
-    background: rgba(34,139,34,0.08) !important;
-    color: #228B22 !important;
+    border-color: var(--cge-vert-moyen) !important;
+    background: rgba(0, 150, 64,0.08) !important;
+    color: var(--cge-vert-moyen) !important;
 }
 
 .inactive-option:hover { border-color: #f44336; }
@@ -430,7 +426,7 @@
    PRIMENG OVERRIDES
    ========================================== */
 :host ::ng-deep .users-table .p-datatable-thead > tr > th {
-    background: #228B22 !important;
+    background: var(--cge-vert-moyen) !important;
     color: white !important;
     font-weight: 700 !important;
     font-size: 13px !important;
@@ -443,7 +439,7 @@
 }
 
 :host ::ng-deep .users-table .p-datatable-thead > tr > th:hover {
-    background: #1a6b1a !important;
+    background: var(--p-primary-700) !important;
     color: white !important;
 }
 
@@ -467,8 +463,8 @@
 }
 
 :host ::ng-deep .user-form .p-inputtext:focus {
-    border-color: #228B22 !important;
-    box-shadow: 0 0 0 3px rgba(34,139,34,0.12) !important;
+    border-color: var(--cge-vert-moyen) !important;
+    box-shadow: 0 0 0 3px rgba(0, 150, 64,0.12) !important;
 }
 
 :host ::ng-deep .user-form .p-select {
@@ -477,8 +473,8 @@
 }
 
 :host ::ng-deep .user-form .p-select.p-focus {
-    border-color: #228B22 !important;
-    box-shadow: 0 0 0 3px rgba(34,139,34,0.12) !important;
+    border-color: var(--cge-vert-moyen) !important;
+    box-shadow: 0 0 0 3px rgba(0, 150, 64,0.12) !important;
 }
 
 :host ::ng-deep .p-dialog .p-dialog-header {
@@ -619,11 +615,6 @@
     border-radius: 8px;
 }
 
-/* ── Toggle vue ─────────────────────────────────────────── */
-.view-toggle { display: flex; border: 1px solid var(--surface-border); border-radius: 10px; overflow: hidden; }
-.vt-btn { padding: 9px 14px; border: none; cursor: pointer; background: var(--surface-card); color: var(--text-color-secondary); font-size: 15px; transition: all 0.15s; }
-.vt-btn.vt-active { background: var(--primary-color); color: white; }
-.vt-btn:hover:not(.vt-active) { background: var(--surface-hover); color: var(--text-color); }
 
 /* ── Vue carte mobile utilisateurs ─────────────────────── */
 :host ::ng-deep .ut-mobile-cards { display: none; flex-direction: column; gap: 12px; padding: 12px; }
@@ -687,26 +678,26 @@
     display: flex;
     gap: 14px;
     align-items: flex-start;
-    background: #e8f5e9;
-    border: 1px solid #a5d6a7;
+    background: var(--cge-vert-clair);
+    border: 1px solid var(--p-primary-200);
     border-radius: 12px;
     padding: 16px;
     margin-top: 8px;
 }
 .reset-pwd-icon {
     font-size: 22px;
-    color: #228B22;
+    color: var(--cge-vert-moyen);
     flex-shrink: 0;
     margin-top: 2px;
 }
 .reset-pwd-title {
     font-weight: 700;
     font-size: 14px;
-    color: #145214;
+    color: var(--cge-vert-moyen);
     margin-bottom: 6px;
 }
 .reset-pwd-desc {
     font-size: 13px;
-    color: #2e7d32;
+    color: var(--cge-vert-moyen);
     line-height: 1.5;
 }

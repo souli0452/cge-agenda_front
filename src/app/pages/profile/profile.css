@@ -6,7 +6,7 @@
     border-radius: 20px;
     overflow: hidden;
     margin-bottom: 24px;
-    background: linear-gradient(135deg, #145214 0%, #228B22 55%, #2e9e2e 100%);
+    background: var(--cge-vert-moyen);
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
     padding: 36px 32px;
     color: white;
@@ -51,9 +51,9 @@
 .pf-online-dot {
     position: absolute; bottom: 4px; right: 4px;
     width: 16px; height: 16px; border-radius: 50%;
-    background: #4caf50;
+    background: var(--cge-vert-moyen);
     border: 2px solid white;
-    box-shadow: 0 0 0 2px rgba(76,175,80,0.4);
+    box-shadow: 0 0 0 2px rgba(0, 150, 64, 0.4);
 }
 
 /* Infos hero */
@@ -204,7 +204,7 @@
 
 .pf-perm i { font-size: 15px; color: var(--text-color-secondary); }
 .pf-perm-on { color: var(--text-color); }
-.pf-perm-on i { color: #4caf50; }
+.pf-perm-on i { color: var(--cge-vert-moyen); }
 
 .pf-empty {
     display: flex; align-items: center; gap: 8px;

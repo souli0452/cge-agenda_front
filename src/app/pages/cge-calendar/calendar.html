@@ -163,8 +163,8 @@
 
         <div class="detail-body">
             <div class="detail-row" *ngIf="selectedEvent.description">
-                <div class="detail-icon-wrap" style="background:#e8f5e9" aria-hidden="true">
-                    <i class="pi pi-align-left" style="color:#228B22" aria-hidden="true"></i>
+                <div class="detail-icon-wrap" style="background:var(--cge-vert-clair)" aria-hidden="true">
+                    <i class="pi pi-align-left" style="color:var(--cge-vert-moyen)" aria-hidden="true"></i>
                 </div>
                 <div>
                     <div class="detail-field-label">Description</div>
@@ -214,7 +214,7 @@
             </div>
             <div class="detail-counters">
                 <div class="counter-card">
-                    <i class="pi pi-users counter-icon" style="color:#228B22" aria-hidden="true"></i>
+                    <i class="pi pi-users counter-icon" style="color:var(--cge-vert-moyen)" aria-hidden="true"></i>
                     <span class="counter-value">{{ selectedEvent.participants?.length || 0 }}</span>
                     <span class="counter-label">participant(s)</span>
                 </div>

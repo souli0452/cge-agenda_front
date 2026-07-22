@@ -19,12 +19,9 @@ import interactionPlugin from '@fullcalendar/interaction';
 import listPlugin from '@fullcalendar/list';
 import frLocale from '@fullcalendar/core/locales/fr';
 
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
-
 import { EventService } from '../../service/event.service';
 import { AgendaYearService } from '../../service/agenda-year.service';
+import { ExportService } from '../../service/export.service';
 import {
     Event,
     EventType,
@@ -76,10 +73,11 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
     legendItems = [
         { type: 'REUNION',    label: 'Réunion',     color: '#3B82F6' },
         { type: 'CONFERENCE', label: 'Conférence',  color: '#8B5CF6' },
-        { type: 'ATELIER',    label: 'Atelier',     color: '#10B981' },
+        { type: 'ATELIER',    label: 'Atelier',     color: 'var(--cge-vert-moyen)' },
         { type: 'SEMINAIRE',  label: 'Séminaire',   color: '#F59E0B' },
         { type: 'FORMATION',  label: 'Formation',   color: '#EF4444' },
         { type: 'MISSION',    label: 'Mission',     color: '#EC4899' },
+        { type: 'AUDIENCE',   label: 'Audience',    color: '#06B6D4' },
         { type: 'AUTRE',      label: 'Autre',       color: '#6B7280' }
     ];
 
@@ -87,7 +85,8 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
         private eventService:       EventService,
         private messageService:     MessageService,
         private router:             Router,
-        private agendaYearService:  AgendaYearService
+        private agendaYearService:  AgendaYearService,
+        private exportService:      ExportService
     ) {
         effect(() => {
             const year = this.agendaYearService.year();
@@ -244,10 +243,11 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
         const colorMap: Record<string, string> = {
             'REUNION':    '#3B82F6',
             'CONFERENCE': '#8B5CF6',
-            'ATELIER':    '#10B981',
+            'ATELIER':    'var(--cge-vert-moyen)',
             'SEMINAIRE':  '#F59E0B',
             'FORMATION':  '#EF4444',
             'MISSION':    '#EC4899',
+            'AUDIENCE':   '#06B6D4',
             'AUTRE':      '#6B7280'
         };
         return colorMap[type] || '#6B7280';
@@ -257,7 +257,7 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
         const colorMap: Record<string, string> = {
             'PLANIFIE':  '#3B82F6',
             'EN_COURS':  '#F59E0B',
-            'TERMINE':   '#10B981',
+            'TERMINE':   'var(--cge-vert-moyen)',
             'ANNULER':   '#EF4444',
             'REPORTER':  '#6B7280'
         };
@@ -423,18 +423,6 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
     }
 
     generatePDF(events: Event[], title: string): void {
-        const doc = new jsPDF('l', 'mm', 'a4');
-
-        doc.setFillColor(34, 139, 34);
-        doc.rect(0, 0, 297, 30, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(22);
-        doc.setFont('helvetica', 'bold');
-        doc.text(title, 148.5, 15, { align: 'center' });
-        doc.setFontSize(12);
-        doc.setFont('helvetica', 'normal');
-        doc.text(`Total: ${events.length} événement(s)`, 148.5, 22, { align: 'center' });
-
         const formatDate = (dateString: string, schedules: any[] = []): string => {
             const date = new Date(dateString);
             if (!schedules || schedules.length === 0) return date.toLocaleDateString('fr-FR');
@@ -443,7 +431,7 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
             return date.toLocaleDateString('fr-FR');
         };
 
-        const tableData = events.map(event => [
+        const rows = events.map(event => [
             event.title,
             this.getTypeLabel(event.type),
             formatDate(event.startDate, event.schedules),
@@ -454,40 +442,28 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
             (event as any).structures?.join(', ') || 'Aucune'
         ]);
 
-        autoTable(doc, {
-            head: [['Titre', 'Type', 'Date début', 'Date fin', 'Statut', 'Lieu', 'Part.', 'Structures']],
-            body: tableData,
-            startY: 35,
-            styles: { fontSize: 9, cellPadding: 3 },
-            headStyles: { fillColor: [34, 139, 34], textColor: [255, 255, 255], fontStyle: 'bold' },
-            alternateRowStyles: { fillColor: [245, 245, 245] },
+        const viewLabel = { day:'jour', week:'semaine', month:'mois', list:'liste' }[this.currentView] || 'calendrier';
+
+        this.exportService.exportTableToPdf({
+            title,
+            subtitle: `Total: ${events.length} événement(s)`,
+            columns: ['Titre', 'Type', 'Date début', 'Date fin', 'Statut', 'Lieu', 'Part.', 'Structures'],
+            rows,
             columnStyles: {
                 0: { cellWidth: 45 }, 1: { cellWidth: 25 },
                 2: { cellWidth: 30 }, 3: { cellWidth: 30 },
                 4: { cellWidth: 25 }, 5: { cellWidth: 35 },
                 6: { cellWidth: 15, halign: 'center' }, 7: { cellWidth: 35 }
-            }
+            },
+            filename: `calendrier_${viewLabel}_${new Date().toISOString().split('T')[0]}.pdf`
         });
-
-        const pageCount = (doc as any).internal.getNumberOfPages();
-        for (let i = 1; i <= pageCount; i++) {
-            doc.setPage(i);
-            doc.setTextColor(150);
-            doc.setFontSize(8);
-            doc.text(
-                `Page ${i} sur ${pageCount} - Généré le ${new Date().toLocaleDateString('fr-FR')}`,
-                148.5, 205, { align: 'center' }
-            );
-        }
-
-        const viewLabel  = { day:'jour', week:'semaine', month:'mois', list:'liste' }[this.currentView] || 'calendrier';
-        doc.save(`calendrier_${viewLabel}_${new Date().toISOString().split('T')[0]}.pdf`);
 
         this.messageService.add({
             severity: 'success', summary: 'Succès',
             detail: `Export PDF ${viewLabel} réussi (${events.length} événement(s))`
         });
     }
+
     exportToExcel(): void {
         const exportDate     = this.calendar ? this.calendar.getDate() : this.currentDate;
         const filteredEvents = this.events.filter(e => {
@@ -498,7 +474,7 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
         });
         const eventsToExport = this.filterEventsByCurrentView(filteredEvents, exportDate);
 
-        const data = eventsToExport.map(e => ({
+        const rows = eventsToExport.map(e => ({
             'Titre':        e.title,
             'Type':         this.getTypeLabel(e.type),
             'Statut':       this.getStatusLabel(e.status),
@@ -509,18 +485,12 @@ export class CgeCalendarComponent implements OnInit, AfterViewInit {
             'Description':  e.description || ''
         }));
 
-        const ws = XLSX.utils.json_to_sheet(data.length ? data : [{}]);
-        if (data.length) {
-            const keys = Object.keys(data[0]);
-            ws['!cols'] = keys.map(k => ({
-                wch: Math.max(k.length, ...data.map(r => String((r as any)[k] ?? '').length))
-            }));
-        }
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Calendrier');
-
         const viewLabel = { day:'jour', week:'semaine', month:'mois', list:'liste' }[this.currentView] || 'calendrier';
-        XLSX.writeFile(wb, `calendrier_${viewLabel}_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+        this.exportService.exportToExcel(
+            [{ name: 'Calendrier', rows }],
+            `calendrier_${viewLabel}_${new Date().toISOString().split('T')[0]}.xlsx`
+        );
 
         this.messageService.add({
             severity: 'success', summary: 'Succès',

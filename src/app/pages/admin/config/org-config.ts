@@ -157,7 +157,7 @@ interface EmailTemplate {
                                                format="hex"
                                                appendTo="body" />
                                 <input pInputText [(ngModel)]="config.couleurPrimaire"
-                                       placeholder="#228B22" style="flex:1" />
+                                       placeholder="#009640" style="flex:1" />
                                 <div class="color-preview"
                                      [style.background]="config.couleurPrimaire">
                                 </div>
@@ -296,7 +296,7 @@ interface EmailTemplate {
                 <!-- Statut + Actions -->
                 <div class="scheduler-status-row">
                     <div class="scheduler-status-info" *ngIf="schedulerConfig.nextScheduledRun">
-                        <i class="pi pi-clock" style="color:#228B22"></i>
+                        <i class="pi pi-clock" style="color:#009640"></i>
                         <span>{{ schedulerConfig.nextScheduledRun }}</span>
                         <span *ngIf="schedulerConfig.updatedAt" class="update-meta">
                             · Modifié le {{ schedulerConfig.updatedAt | date:'dd/MM/yyyy HH:mm' }}
@@ -338,7 +338,7 @@ interface EmailTemplate {
     [resizable]="true">
 
     <div *ngIf="previewLoading" style="padding:40px; text-align:center">
-        <i class="pi pi-spin pi-spinner" style="font-size:2rem; color:#228B22"></i>
+        <i class="pi pi-spin pi-spinner" style="font-size:2rem; color:#009640"></i>
         <p style="margin-top:12px; color:#666">Rendu en cours...</p>
     </div>
 
@@ -369,7 +369,7 @@ export class OrgConfigComponent implements OnInit {
 
     config: OrgConfig = {
         nomOrganisation: '', slogan: '', emailExpediteurNom: '',
-        couleurPrimaire: '#228B22', logoUrl: '', adresse: '', siteWeb: '',
+        couleurPrimaire: '#009640', logoUrl: '', adresse: '', siteWeb: '',
         subjectInvitation: '', subjectValidationRequest: '', subjectValidated: '',
         subjectRejected: '', subjectChangesRequested: '', subjectAmendmentsCorrected: '',
         subjectCancellation: '', subjectPostponement: '', subjectEventUpdate: '',
@@ -377,9 +377,9 @@ export class OrgConfigComponent implements OnInit {
     };
 
     emailTemplates: EmailTemplate[] = [
-        { key: 'invitation',          field: 'subjectInvitation',          label: 'Invitation',               icon: 'pi pi-calendar-plus',   iconColor: '#228B22', description: 'Envoyé quand un participant est invité à un événement' },
+        { key: 'invitation',          field: 'subjectInvitation',          label: 'Invitation',               icon: 'pi pi-calendar-plus',   iconColor: '#009640', description: 'Envoyé quand un participant est invité à un événement' },
         { key: 'validation-request',  field: 'subjectValidationRequest',   label: 'Demande de validation',    icon: 'pi pi-send',            iconColor: '#ff9800', description: 'Envoyé aux CGE pour valider un nouvel événement' },
-        { key: 'validated',           field: 'subjectValidated',           label: 'Événement validé',         icon: 'pi pi-check-circle',    iconColor: '#4caf50', description: 'Confirmé : l\'organisateur est notifié' },
+        { key: 'validated',           field: 'subjectValidated',           label: 'Événement validé',         icon: 'pi pi-check-circle',    iconColor: 'var(--cge-vert-moyen)', description: 'Confirmé : l\'organisateur est notifié' },
         { key: 'rejected',            field: 'subjectRejected',            label: 'Événement rejeté',         icon: 'pi pi-times-circle',    iconColor: '#f44336', description: 'L\'organisateur est notifié du rejet' },
         { key: 'changes-requested',   field: 'subjectChangesRequested',    label: 'Corrections demandées',    icon: 'pi pi-pencil',          iconColor: '#9c27b0', description: 'Le CGE demande des corrections à l\'organisateur' },
         { key: 'amendments-corrected',field: 'subjectAmendmentsCorrected', label: 'Corrections apportées',   icon: 'pi pi-check',           iconColor: '#2196F3', description: 'L\'organisateur a apporté les corrections demandées' },
@@ -517,7 +517,7 @@ export class OrgConfigComponent implements OnInit {
     }
 
     darken(hex: string): string {
-        if (!hex || hex.length < 7) return '#1a6b1a';
+        if (!hex || hex.length < 7) return '#006e2f';
         try {
             const r = Math.max(0, parseInt(hex.slice(1,3), 16) - 40);
             const g = Math.max(0, parseInt(hex.slice(3,5), 16) - 40);

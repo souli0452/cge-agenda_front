@@ -9,19 +9,23 @@ export const EVENTS_ROUTES: Routes = [
     {
         path: 'create',
         loadComponent: () => import('./event-create').then(m => m.EventCreateComponent),
-        canDeactivate: [unsavedChangesGuard]
+        canDeactivate: [unsavedChangesGuard],
+        data: { breadcrumb: 'Créer' }
     },
     {
         path: 'report',
-        loadComponent: () => import('./event-report').then(m => m.EventReportComponent)
+        loadComponent: () => import('./event-report').then(m => m.EventReportComponent),
+        data: { breadcrumb: 'Rapport' }
     },
     {
         path: ':id',
-        loadComponent: () => import('./event-detail').then(m => m.EventDetailComponent)
+        loadComponent: () => import('./event-detail').then(m => m.EventDetailComponent),
+        data: { breadcrumb: 'Détail' }
     },
     {
         path: ':id/edit',
         loadComponent: () => import('./event-edit').then(m => m.EventEditComponent),
-        canDeactivate: [unsavedChangesGuard]
+        canDeactivate: [unsavedChangesGuard],
+        data: { breadcrumb: 'Modifier' }
     }
 ];

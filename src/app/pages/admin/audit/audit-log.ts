@@ -17,6 +17,7 @@ import { InputIconModule }   from 'primeng/inputicon';
 import { MessageService }    from 'primeng/api';
 
 import { AuditService, AuditLog, ActiveUser } from '../../../service/audit.service';
+import { ViewModeToggleComponent } from '../../../shared/view-mode-toggle/view-mode-toggle';
 
 const ACTION_LABELS: Record<string, string> = {
     CREATION_EVENEMENT:   'Création',
@@ -43,7 +44,7 @@ const ACTION_LABELS: Record<string, string> = {
         CommonModule, FormsModule, DatePipe,
         ButtonModule, TableModule, TagModule, ToastModule, TooltipModule,
         SelectModule, InputTextModule, DatePickerModule, CardModule,
-        SkeletonModule, IconFieldModule, InputIconModule
+        SkeletonModule, IconFieldModule, InputIconModule, ViewModeToggleComponent
     ],
     providers: [MessageService],
     styleUrls: ['./audit-log.css'],
@@ -60,14 +61,7 @@ const ACTION_LABELS: Record<string, string> = {
         </div>
         <div class="audit-header-actions">
             <!-- Toggle vue liste / cartes -->
-            <div class="view-toggle">
-                <button class="vt-btn" [class.vt-active]="auditViewMode === 'list'" (click)="auditViewMode = 'list'" title="Vue liste">
-                    <i class="pi pi-list"></i>
-                </button>
-                <button class="vt-btn" [class.vt-active]="auditViewMode === 'card'" (click)="auditViewMode = 'card'" title="Vue cartes">
-                    <i class="pi pi-th-large"></i>
-                </button>
-            </div>
+            <app-view-mode-toggle [(viewMode)]="auditViewMode"></app-view-mode-toggle>
             <p-button label="Rafraîchir" icon="pi pi-refresh" severity="secondary"
                       [outlined]="true" (onClick)="loadAll()" [loading]="loading" />
         </div>
@@ -76,9 +70,9 @@ const ACTION_LABELS: Record<string, string> = {
     <!-- UTILISATEURS ACTIFS (24h) -->
     <div class="card mb-4" *ngIf="activeUsers.length > 0">
         <div class="section-title">
-            <i class="pi pi-users" style="color:#4caf50" aria-hidden="true"></i>
+            <i class="pi pi-users" style="color:var(--cge-vert-moyen)" aria-hidden="true"></i>
             Utilisateurs actifs (24 dernières heures)
-            <span style="background:#e8f5e9;color:#388e3c;border-radius:12px;padding:2px 10px;font-size:12px;">
+            <span style="background:var(--cge-vert-clair);color:var(--cge-vert-moyen);border-radius:12px;padding:2px 10px;font-size:12px;">
                 {{ activeUsers.length }}
             </span>
         </div>
@@ -403,18 +397,18 @@ export class AuditLogComponent implements OnInit, OnDestroy {
 
     getActionStyle(action: string): Record<string, string> {
         const colors: Record<string, [string, string]> = {
-            CREATION_EVENEMENT:      ['#e8f5e9', '#388e3c'],
-            MODIFICATION_EVENEMENT:  ['#e8f5e9', '#1b5e20'],
+            CREATION_EVENEMENT:      ['var(--cge-vert-clair)', 'var(--cge-vert-moyen)'],
+            MODIFICATION_EVENEMENT:  ['var(--cge-vert-clair)', 'var(--cge-vert-moyen)'],
             SUPPRESSION_CORBEILLE:   ['#fff3e0', '#e65100'],
             RESTAURATION_EVENEMENT:  ['#f3e5f5', '#7b1fa2'],
             SUPPRESSION_DEFINITIVE:  ['#ffebee', '#c62828'],
-            VALIDATION_EVENEMENT:    ['#e8f5e9', '#2e7d32'],
+            VALIDATION_EVENEMENT:    ['var(--cge-vert-clair)', 'var(--cge-vert-moyen)'],
             REJET_EVENEMENT:         ['#ffebee', '#c62828'],
             DEMANDE_CORRECTIONS:     ['#fff8e1', '#f57f17'],
-            SOUMISSION_BROUILLON:    ['#f1f8e9', '#558b2f'],
+            SOUMISSION_BROUILLON:    ['var(--cge-vert-clair)', 'var(--cge-vert-moyen)'],
             ANNULATION_EVENEMENT:    ['#fce4ec', '#880e4f'],
-            DELEGATION_PARTICIPATION:['#e8f5e9', '#2e7d32'],
-            AJOUT_PARTICIPANT:       ['#e8f5e9', '#388e3c'],
+            DELEGATION_PARTICIPATION:['var(--cge-vert-clair)', 'var(--cge-vert-moyen)'],
+            AJOUT_PARTICIPANT:       ['var(--cge-vert-clair)', 'var(--cge-vert-moyen)'],
             RETRAIT_PARTICIPANT:     ['#ffebee', '#c62828'],
         };
         const [bg, color] = colors[action] || ['#f5f5f5', '#616161'];

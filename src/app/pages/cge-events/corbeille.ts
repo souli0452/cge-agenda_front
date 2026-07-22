@@ -30,6 +30,7 @@ import {
     getEventStatusSeverity,
     TagSeverity
 } from '../../models';
+import { ViewModeToggleComponent } from '../../shared/view-mode-toggle/view-mode-toggle';
 
 @Component({
     selector: 'app-corbeille',
@@ -39,7 +40,7 @@ import {
         ButtonModule, TableModule, TagModule,
         ToastModule, DialogModule, TooltipModule,
         SkeletonModule, ConfirmDialogModule,
-        TabsModule, BadgeModule
+        TabsModule, BadgeModule, ViewModeToggleComponent
     ],
     providers: [MessageService, ConfirmationService],
     template: `
@@ -67,14 +68,7 @@ import {
                     <i class="pi pi-sync"></i> {{ lastRefresh | date:'HH:mm:ss' }}
                 </span>
                 <!-- Toggle vue liste / cartes -->
-                <div class="view-toggle">
-                    <button class="vt-btn" [class.vt-active]="viewMode === 'list'" (click)="viewMode = 'list'" title="Vue liste">
-                        <i class="pi pi-list"></i>
-                    </button>
-                    <button class="vt-btn" [class.vt-active]="viewMode === 'card'" (click)="viewMode = 'card'" title="Vue cartes">
-                        <i class="pi pi-th-large"></i>
-                    </button>
-                </div>
+                <app-view-mode-toggle [(viewMode)]="viewMode"></app-view-mode-toggle>
                 <p-button label="Rafraîchir" icon="pi pi-refresh"
                           [outlined]="true" (onClick)="loadAll()"
                           [loading]="loadingEvents || loadingParticipants" />
