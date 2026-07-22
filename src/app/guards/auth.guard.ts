@@ -19,10 +19,7 @@ export class AuthGuard extends KeycloakAuthGuard {
     ): Promise<boolean | UrlTree> {
 
         if (!this.authenticated) {
-            await this.keycloak.login({
-                redirectUri: window.location.origin + '/dashboard'
-            });
-            return false;
+            return this.router.parseUrl('/auth/error');
         }
 
         const requiredRoles: string[] = route.data['roles'];
@@ -37,6 +34,6 @@ export class AuthGuard extends KeycloakAuthGuard {
 
         return hasRequiredRole
             ? true
-            : this.router.parseUrl('/access-denied');
+            : this.router.parseUrl('/auth/access');
     }
 }

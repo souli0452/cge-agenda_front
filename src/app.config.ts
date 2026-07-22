@@ -1,5 +1,5 @@
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient,
-         withFetch, withInterceptorsFromDi } from '@angular/common/http';
+         withFetch, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 import { APP_INITIALIZER, ApplicationConfig, ErrorHandler,
          provideZoneChangeDetection, isDevMode } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
@@ -10,26 +10,35 @@ import Aura from '@primeuix/themes/aura';
 import { ConfirmationService } from 'primeng/api';
 import { providePrimeNG } from 'primeng/config';
 
+const ascelcGreenScale = {
+    50:  '#e5f4ec',
+    100: '#bce4cd',
+    200: '#90d1ac',
+    300: '#5fbd87',
+    400: '#2da861',
+    500: '#009640',
+    600: '#008539',
+    700: '#006e2f',
+    800: '#005122',
+    900: '#003416',
+    950: '#001d0c'
+};
+
 const AscelcTheme = definePreset(Aura, {
+    primitive: {
+        // Aligne la palette "green" interne de PrimeNG (utilisée par severity="success"
+        // sur p-tag/p-button/p-message) sur le vert de marque ASCE-LC, au lieu du vert
+        // Tailwind par défaut (#22c55e) qui produisait un vert différent du reste de l'app.
+        green: ascelcGreenScale
+    },
     semantic: {
-        primary: {
-            50:  '#e8f7e8',
-            100: '#c3eac3',
-            200: '#9bdc9b',
-            300: '#6fcc6f',
-            400: '#42bf42',
-            500: '#1AAF1A',
-            600: '#178f17',
-            700: '#136f13',
-            800: '#0e5010',
-            900: '#09350a',
-            950: '#051f05'
-        }
+        primary: ascelcGreenScale
     }
 });
 import { KeycloakService, KeycloakBearerInterceptor } from 'keycloak-angular';
 import { appRoutes } from './app.routes';
 import { initializeKeycloak } from '@/init/keycloak-init.factory';
+import { errorInterceptor } from '@/interceptors/error.interceptor';
 
 class AppErrorHandler implements ErrorHandler {
     handleError(error: any): void {
@@ -48,7 +57,7 @@ export const appConfig: ApplicationConfig = {
                 scrollPositionRestoration: 'enabled'
             })
         ),
-        provideHttpClient(withFetch(), withInterceptorsFromDi()),
+        provideHttpClient(withFetch(), withInterceptors([errorInterceptor]), withInterceptorsFromDi()),
         provideAnimationsAsync(),
         providePrimeNG({
             theme: {

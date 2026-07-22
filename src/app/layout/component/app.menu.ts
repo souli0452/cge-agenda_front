@@ -12,7 +12,7 @@ import { EventService }      from '../../service/event.service';
     imports: [CommonModule, AppMenuitem, RouterModule],
     template: `
         <ul class="layout-menu">
-            <ng-container *ngFor="let item of model; let i = index">
+            <ng-container *ngFor="let item of model; let i = index; trackBy: trackByLabel">
                 <li app-menuitem
                     *ngIf="!item.separator"
                     [item]="item"
@@ -28,6 +28,10 @@ export class AppMenu implements OnInit {
 
     model: MenuItem[] = [];
     pendingCount = 0;
+
+    trackByLabel(index: number, item: MenuItem): string {
+        return item.label ?? `separator-${index}`;
+    }
 
     constructor(
         private authService:  AuthService,

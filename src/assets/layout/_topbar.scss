@@ -12,8 +12,8 @@
     transition: left var(--layout-section-transition-duration);
     display: flex;
     align-items: center;
-    border-bottom: 2px solid var(--p-primary-500, #1AAF1A);
-    box-shadow: 0 2px 12px rgba(26, 175, 26, 0.10);
+    border-bottom: 2px solid var(--p-primary-500, #009640);
+    box-shadow: 0 2px 12px rgba(0, 150, 64, 0.10);
 
     .layout-topbar-logo-container {
         width: 20rem;

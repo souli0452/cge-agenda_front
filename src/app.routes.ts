@@ -20,7 +20,8 @@ export const appRoutes: Routes = [
                         .then(m => m.CgeDashboardComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'] }
+                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                        breadcrumb: 'Tableau de bord' }
             },
             {
                 path: 'validation',
@@ -28,7 +29,7 @@ export const appRoutes: Routes = [
                     import('./app/pages/cge-dashboard/validation-dashboard')
                         .then(m => m.ValidationDashboardComponent),
                 canActivate: [AuthGuard],
-                data: { roles: ['ADMIN', 'CGE'] }
+                data: { roles: ['ADMIN', 'CGE'], breadcrumb: 'Validation CGE' }
             },
             {
                 path: 'events',
@@ -37,7 +38,8 @@ export const appRoutes: Routes = [
                         .then(m => m.EVENTS_ROUTES),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'] }
+                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                        breadcrumb: 'Événements' }
             },
             {
                 path: 'calendar',
@@ -46,7 +48,8 @@ export const appRoutes: Routes = [
                         .then(m => m.CgeCalendarComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'] }
+                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                        breadcrumb: 'Calendrier' }
             },
             {
                 path: 'participants',
@@ -55,7 +58,8 @@ export const appRoutes: Routes = [
                         .then(m => m.PARTICIPANTS_ROUTES),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE'] }
+                                'PROTOCOLE', 'SECRETAIRE'],
+                        breadcrumb: 'Participants' }
             },
             {
                 path: 'statistics',
@@ -63,7 +67,8 @@ export const appRoutes: Routes = [
                     import('./app/pages/cge-statistics/statistics')
                         .then(m => m.CgeStatisticsComponent),
                 canActivate: [AuthGuard],
-                data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET'] }
+                data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET'],
+                        breadcrumb: 'Statistiques' }
             },
             {
                 path: 'corbeille',
@@ -72,7 +77,8 @@ export const appRoutes: Routes = [
                         .then(m => m.CorbeilleComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE'] }
+                                'PROTOCOLE', 'SECRETAIRE'],
+                        breadcrumb: 'Corbeille' }
             },
             {
                 path: 'admin/users',
@@ -80,7 +86,7 @@ export const appRoutes: Routes = [
                     import('./app/pages/admin/users/users')
                         .then(m => m.AdminUsersComponent),
                 canActivate: [AuthGuard],
-                data: { roles: ['ADMIN'] }
+                data: { roles: ['ADMIN'], breadcrumb: 'Administration,Utilisateurs' }
             },
             {
                 path: 'admin/audit',
@@ -88,7 +94,7 @@ export const appRoutes: Routes = [
                     import('./app/pages/admin/audit/audit-log')
                         .then(m => m.AuditLogComponent),
                 canActivate: [AuthGuard],
-                data: { roles: ['ADMIN'] }
+                data: { roles: ['ADMIN'], breadcrumb: "Administration,Journal d'audit" }
             },
             {
                 path: 'admin/config',
@@ -96,7 +102,7 @@ export const appRoutes: Routes = [
                     import('./app/pages/admin/config/org-config')
                         .then(m => m.OrgConfigComponent),
                 canActivate: [AuthGuard],
-                data: { roles: ['ADMIN'] }
+                data: { roles: ['ADMIN'], breadcrumb: 'Administration,Configuration' }
             },
             {
                 path: 'admin/backup',
@@ -104,7 +110,7 @@ export const appRoutes: Routes = [
                     import('./app/pages/admin/backup/backup')
                         .then(m => m.BackupComponent),
                 canActivate: [AuthGuard],
-                data: { roles: ['ADMIN'] }
+                data: { roles: ['ADMIN'], breadcrumb: 'Administration,Sauvegardes BD' }
             },
             {
                 path: 'profile',
@@ -113,7 +119,8 @@ export const appRoutes: Routes = [
                         .then(m => m.ProfileComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'] }
+                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                        breadcrumb: 'Profil' }
             },
             {
                 path: 'settings',
@@ -122,14 +129,8 @@ export const appRoutes: Routes = [
                         .then(m => m.SettingsComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'] }
-            },
-            {
-                path: 'pages',
-                loadChildren: () => import('./app/pages/pages.routes'),
-                canActivate: [AuthGuard],
-                data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'] }
+                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                        breadcrumb: 'Paramètres' }
             }
         ]
     },
