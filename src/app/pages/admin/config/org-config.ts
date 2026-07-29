@@ -15,6 +15,7 @@ import { TooltipModule }     from 'primeng/tooltip';
 import { ColorPickerModule } from 'primeng/colorpicker';
 import { ToggleSwitch }      from 'primeng/toggleswitch';
 import { Select }            from 'primeng/select';
+import { Textarea }          from 'primeng/textarea';
 import { MessageService }    from 'primeng/api';
 
 import { environments }             from '../../../../environments/environments';
@@ -31,7 +32,7 @@ interface OrgConfig {
     siteWeb:                   string;
     subjectInvitation:         string;
     subjectValidationRequest:  string;
-    subjectValidated:          string;
+    subjectNewDocument:        string;
     subjectRejected:           string;
     subjectChangesRequested:   string;
     subjectAmendmentsCorrected:string;
@@ -40,12 +41,24 @@ interface OrgConfig {
     subjectEventUpdate:        string;
     subjectReminder:           string;
     subjectDelegation:         string;
+    bodyInvitation:            string;
+    bodyValidationRequest:     string;
+    bodyNewDocument:           string;
+    bodyRejected:              string;
+    bodyChangesRequested:      string;
+    bodyAmendmentsCorrected:   string;
+    bodyCancellation:          string;
+    bodyPostponement:          string;
+    bodyEventUpdate:           string;
+    bodyReminder:              string;
+    bodyDelegation:            string;
     updatedAt?:                string;
 }
 
 interface EmailTemplate {
     key:         string;
     field:       keyof OrgConfig;
+    bodyField:   keyof OrgConfig;
     label:       string;
     icon:        string;
     iconColor:   string;
@@ -60,7 +73,7 @@ interface EmailTemplate {
         ButtonModule, InputTextModule, TabsModule,
         DividerModule, ToastModule, DialogModule,
         SkeletonModule, TooltipModule, ColorPickerModule,
-        ToggleSwitch, Select
+        ToggleSwitch, Select, Textarea
     ],
     providers: [MessageService],
     styleUrls: ['./org-config.css'],
@@ -93,7 +106,7 @@ interface EmailTemplate {
 
         <p-tablist>
             <p-tab value="0"><i class="pi pi-building" style="margin-right:6px"></i>Organisation</p-tab>
-            <p-tab value="1"><i class="pi pi-envelope" style="margin-right:6px"></i>Sujets des emails</p-tab>
+            <p-tab value="1"><i class="pi pi-envelope" style="margin-right:6px"></i>Modèles d'emails</p-tab>
             <p-tab value="2"><i class="pi pi-bell" style="margin-right:6px"></i>Rappels automatiques</p-tab>
         </p-tablist>
 
@@ -193,7 +206,7 @@ interface EmailTemplate {
 
             <div class="subjects-hint">
                 <i class="pi pi-info-circle"></i>
-                Utilisez <code>{{ '{' }}titre{{ '}' }}</code> pour insérer le titre de l'événement dans le sujet.
+                Utilisez <code>{{ '{' }}titre{{ '}' }}</code> pour insérer le titre de l'événement dans le sujet et le corps du message.
             </div>
 
             <div *ngIf="loading" class="skeleton-form">
@@ -202,29 +215,39 @@ interface EmailTemplate {
 
             <div *ngIf="!loading" class="templates-list">
                 <div *ngFor="let tpl of emailTemplates" class="template-row">
-                    <div class="template-meta">
-                        <div class="template-icon-wrap" [style.background]="tpl.iconColor + '20'">
-                            <i [class]="tpl.icon" [style.color]="tpl.iconColor"></i>
+                    <div class="template-top">
+                        <div class="template-meta">
+                            <div class="template-icon-wrap" [style.background]="tpl.iconColor + '20'">
+                                <i [class]="tpl.icon" [style.color]="tpl.iconColor"></i>
+                            </div>
+                            <div class="template-info">
+                                <div class="template-label">{{ tpl.label }}</div>
+                                <div class="template-desc">{{ tpl.description }}</div>
+                            </div>
                         </div>
-                        <div class="template-info">
-                            <div class="template-label">{{ tpl.label }}</div>
-                            <div class="template-desc">{{ tpl.description }}</div>
+                        <div class="template-subject-wrap">
+                            <input pInputText
+                                   [(ngModel)]="config[tpl.field]"
+                                   [placeholder]="'Sujet : ' + tpl.label"
+                                   class="template-subject-input" />
+                            <p-button
+                                icon="pi pi-eye"
+                                [rounded]="true"
+                                [text]="true"
+                                severity="secondary"
+                                size="small"
+                                pTooltip="Prévisualiser le template"
+                                tooltipPosition="left"
+                                (onClick)="openPreview(tpl.key)" />
                         </div>
                     </div>
-                    <div class="template-subject-wrap">
-                        <input pInputText
-                               [(ngModel)]="config[tpl.field]"
-                               [placeholder]="'Sujet : ' + tpl.label"
-                               class="template-subject-input" />
-                        <p-button
-                            icon="pi pi-eye"
-                            [rounded]="true"
-                            [text]="true"
-                            severity="secondary"
-                            size="small"
-                            pTooltip="Prévisualiser le template"
-                            tooltipPosition="left"
-                            (onClick)="openPreview(tpl.key)" />
+                    <div class="template-body-wrap">
+                        <textarea pTextarea
+                                  [(ngModel)]="config[tpl.bodyField]"
+                                  [placeholder]="'Corps du message : ' + tpl.label"
+                                  rows="2"
+                                  autoResize="true"
+                                  class="template-body-input"></textarea>
                     </div>
                 </div>
             </div>
@@ -370,24 +393,28 @@ export class OrgConfigComponent implements OnInit {
     config: OrgConfig = {
         nomOrganisation: '', slogan: '', emailExpediteurNom: '',
         couleurPrimaire: '#009640', logoUrl: '', adresse: '', siteWeb: '',
-        subjectInvitation: '', subjectValidationRequest: '', subjectValidated: '',
+        subjectInvitation: '', subjectValidationRequest: '', subjectNewDocument: '',
         subjectRejected: '', subjectChangesRequested: '', subjectAmendmentsCorrected: '',
         subjectCancellation: '', subjectPostponement: '', subjectEventUpdate: '',
-        subjectReminder: '', subjectDelegation: ''
+        subjectReminder: '', subjectDelegation: '',
+        bodyInvitation: '', bodyValidationRequest: '', bodyNewDocument: '',
+        bodyRejected: '', bodyChangesRequested: '', bodyAmendmentsCorrected: '',
+        bodyCancellation: '', bodyPostponement: '', bodyEventUpdate: '',
+        bodyReminder: '', bodyDelegation: ''
     };
 
     emailTemplates: EmailTemplate[] = [
-        { key: 'invitation',          field: 'subjectInvitation',          label: 'Invitation',               icon: 'pi pi-calendar-plus',   iconColor: '#009640', description: 'Envoyé quand un participant est invité à un événement' },
-        { key: 'validation-request',  field: 'subjectValidationRequest',   label: 'Demande de validation',    icon: 'pi pi-send',            iconColor: '#ff9800', description: 'Envoyé aux CGE pour valider un nouvel événement' },
-        { key: 'validated',           field: 'subjectValidated',           label: 'Événement validé',         icon: 'pi pi-check-circle',    iconColor: 'var(--cge-vert-moyen)', description: 'Confirmé : l\'organisateur est notifié' },
-        { key: 'rejected',            field: 'subjectRejected',            label: 'Événement rejeté',         icon: 'pi pi-times-circle',    iconColor: '#f44336', description: 'L\'organisateur est notifié du rejet' },
-        { key: 'changes-requested',   field: 'subjectChangesRequested',    label: 'Corrections demandées',    icon: 'pi pi-pencil',          iconColor: '#9c27b0', description: 'Le CGE demande des corrections à l\'organisateur' },
-        { key: 'amendments-corrected',field: 'subjectAmendmentsCorrected', label: 'Corrections apportées',   icon: 'pi pi-check',           iconColor: '#2196F3', description: 'L\'organisateur a apporté les corrections demandées' },
-        { key: 'cancellation',        field: 'subjectCancellation',        label: 'Annulation',               icon: 'pi pi-ban',             iconColor: '#f44336', description: 'Participants notifiés de l\'annulation' },
-        { key: 'postponement',        field: 'subjectPostponement',        label: 'Report',                   icon: 'pi pi-calendar',        iconColor: '#ff9800', description: 'Participants notifiés du report de l\'événement' },
-        { key: 'event-update',        field: 'subjectEventUpdate',         label: 'Mise à jour',              icon: 'pi pi-refresh',         iconColor: '#607d8b', description: 'Modification d\'un événement déjà planifié' },
-        { key: 'reminder',            field: 'subjectReminder',            label: 'Rappel',                   icon: 'pi pi-clock',           iconColor: '#ff9800', description: 'Rappel automatique avant l\'événement' },
-        { key: 'delegation',          field: 'subjectDelegation',          label: 'Délégation',               icon: 'pi pi-user-edit',       iconColor: '#00bcd4', description: 'Notification de délégation de participation' },
+        { key: 'invitation',          field: 'subjectInvitation',          bodyField: 'bodyInvitation',          label: 'Invitation',               icon: 'pi pi-calendar-plus',   iconColor: '#009640', description: 'Envoyé quand un participant est invité à un événement' },
+        { key: 'validation-request',  field: 'subjectValidationRequest',   bodyField: 'bodyValidationRequest',   label: 'Demande de validation',    icon: 'pi pi-send',            iconColor: '#ff9800', description: 'Envoyé aux CGE pour valider un nouvel événement' },
+        { key: 'new-document',        field: 'subjectNewDocument',         bodyField: 'bodyNewDocument',         label: 'Nouveau document disponible', icon: 'pi pi-file',         iconColor: 'var(--cge-vert-moyen)', description: 'Un nouveau document est disponible pour l\'événement' },
+        { key: 'rejected',            field: 'subjectRejected',            bodyField: 'bodyRejected',            label: 'Événement rejeté',         icon: 'pi pi-times-circle',    iconColor: '#f44336', description: 'L\'organisateur est notifié du rejet' },
+        { key: 'changes-requested',   field: 'subjectChangesRequested',    bodyField: 'bodyChangesRequested',    label: 'Corrections demandées',    icon: 'pi pi-pencil',          iconColor: '#9c27b0', description: 'Le CGE demande des corrections à l\'organisateur' },
+        { key: 'amendments-corrected',field: 'subjectAmendmentsCorrected', bodyField: 'bodyAmendmentsCorrected', label: 'Corrections apportées',   icon: 'pi pi-check',           iconColor: '#2196F3', description: 'L\'organisateur a apporté les corrections demandées' },
+        { key: 'cancellation',        field: 'subjectCancellation',        bodyField: 'bodyCancellation',        label: 'Annulation',               icon: 'pi pi-ban',             iconColor: '#f44336', description: 'Participants notifiés de l\'annulation' },
+        { key: 'postponement',        field: 'subjectPostponement',        bodyField: 'bodyPostponement',        label: 'Report',                   icon: 'pi pi-calendar',        iconColor: '#ff9800', description: 'Participants notifiés du report de l\'événement' },
+        { key: 'event-update',        field: 'subjectEventUpdate',         bodyField: 'bodyEventUpdate',         label: 'Mise à jour',              icon: 'pi pi-refresh',         iconColor: '#607d8b', description: 'Modification d\'un événement déjà planifié' },
+        { key: 'reminder',            field: 'subjectReminder',            bodyField: 'bodyReminder',            label: 'Rappel',                   icon: 'pi pi-clock',           iconColor: '#ff9800', description: 'Rappel automatique avant l\'événement' },
+        { key: 'delegation',          field: 'subjectDelegation',          bodyField: 'bodyDelegation',          label: 'Délégation',               icon: 'pi pi-user-edit',       iconColor: '#00bcd4', description: 'Notification de délégation de participation' },
     ];
 
     loadingScheduler  = true;

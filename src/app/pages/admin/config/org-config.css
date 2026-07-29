@@ -64,13 +64,14 @@
 /* Template rows */
 .template-row {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    padding: 14px 0;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 0;
     border-bottom: 1px solid var(--surface-border);
 }
 .template-row:last-child { border-bottom: none; }
+
+.template-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 
 .template-meta { display: flex; align-items: center; gap: 12px; min-width: 220px; }
 .template-icon-wrap {
@@ -83,6 +84,9 @@
 
 .template-subject-wrap { display: flex; align-items: center; gap: 8px; flex: 1; }
 .template-subject-input { flex: 1; }
+
+.template-body-wrap { margin-left: 232px; }
+.template-body-input { width: 100%; font-size: 13px; resize: vertical; }
 
 .skeleton-form { padding: 8px 0; }
 
@@ -202,8 +206,9 @@
     .form-grid-2 { grid-template-columns: 1fr; }
 
     /* Templates email */
-    .template-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .template-top { flex-direction: column; align-items: flex-start; gap: 10px; }
     .template-subject-wrap { width: 100%; }
+    .template-body-wrap { margin-left: 0; }
 
     /* Scheduler */
     .scheduler-toggle-row  { flex-direction: column; align-items: flex-start; }
