@@ -3,8 +3,8 @@ import { takeUntilDestroyed }                   from '@angular/core/rxjs-interop
 import { CommonModule }                          from '@angular/common';
 import { Router }                                from '@angular/router';
 import { FormsModule }                           from '@angular/forms';
-import { interval }                              from 'rxjs';
-import { switchMap }                             from 'rxjs/operators';
+import { interval, of }                          from 'rxjs';
+import { switchMap, catchError }                 from 'rxjs/operators';
 
 import { ButtonModule }        from 'primeng/button';
 import { TableModule }         from 'primeng/table';
@@ -319,9 +319,11 @@ export class CorbeilleComponent implements OnInit {
         interval(this.POLL_MS)
             .pipe(
                 takeUntilDestroyed(this.destroyRef),
-                switchMap(() => this.eventService.getCorbeille())
+                switchMap(() => this.eventService.getCorbeille().pipe(catchError(() => of(null))))
             )
-            .subscribe({ next: d => { this.events = d; this.lastRefresh = new Date(); }, error: () => {} });
+            .subscribe(d => {
+                if (d !== null) { this.events = d; this.lastRefresh = new Date(); }
+            });
     }
 
     get canDeletePermanently(): boolean {

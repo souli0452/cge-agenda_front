@@ -1,6 +1,6 @@
 ﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
@@ -448,6 +448,7 @@ export class ParticipantListComponent implements OnInit, OnDestroy {
   constructor(
     private fb: FormBuilder,
     private router: Router,
+    private route: ActivatedRoute,
     private participantService: ParticipantService,
     private messageService: MessageService,
     private confirmationService: ConfirmationService
@@ -457,6 +458,19 @@ export class ParticipantListComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadPaged();
+
+    const editId = this.route.snapshot.queryParamMap.get('edit');
+    if (editId) {
+      this.participantService.getParticipantById(editId).subscribe({
+        next: (participant) => this.editParticipant(participant),
+        error: () => this.messageService.add({
+          severity: 'error',
+          summary: 'Erreur',
+          detail: 'Participant introuvable'
+        })
+      });
+      this.router.navigate([], { queryParams: {} });
+    }
   }
 
   ngOnDestroy(): void {
@@ -572,7 +586,7 @@ export class ParticipantListComponent implements OnInit, OnDestroy {
         this.messageService.add({
           severity: 'error',
           summary: 'Erreur',
-          detail: err.error?.message || 'Une erreur est survenue'
+          detail: err.error?.message || 'Impossible d\'enregistrer le participant'
         });
         this.saving = false;
       }

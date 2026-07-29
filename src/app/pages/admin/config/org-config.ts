@@ -488,7 +488,7 @@ export class OrgConfigComponent implements OnInit {
             next: (c) => {
                 this.config = c;
                 this.saving = false;
-                this.messageService.add({ severity: 'success', summary: '✅ Enregistré', detail: 'Configuration mise à jour', life: 3000 });
+                this.messageService.add({ severity: 'success', summary: 'Enregistré', detail: 'Configuration mise à jour', life: 3000 });
             },
             error: () => {
                 this.saving = false;

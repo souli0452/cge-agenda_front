@@ -12,8 +12,8 @@ import { AuthService } from '../../service/auth.service';
 import { EventService } from '../../service/event.service';
 import { AgendaYearService } from '../../service/agenda-year.service';
 import { EventStatus } from '../../models/enums';
-import { Subscription, interval } from 'rxjs';
-import { startWith, switchMap } from 'rxjs/operators';
+import { Subscription, interval, of } from 'rxjs';
+import { startWith, switchMap, catchError } from 'rxjs/operators';
 
 @Component({
     selector: 'app-topbar',
@@ -323,13 +323,17 @@ export class AppTopbar implements OnInit, OnDestroy {
     ) {}
 
     async ngOnInit() {
-        if (await this.keycloakService.isLoggedIn()) {
-            const profile = await this.keycloakService.loadUserProfile();
-            this.user = {
-                firstName: profile.firstName || '',
-                lastName:  profile.lastName  || '',
-                username:  profile.username
-            };
+        try {
+            if (await this.keycloakService.isLoggedIn()) {
+                const profile = await this.keycloakService.loadUserProfile();
+                this.user = {
+                    firstName: profile.firstName || '',
+                    lastName:  profile.lastName  || '',
+                    username:  profile.username
+                };
+            }
+        } catch (err) {
+            console.error('Erreur chargement du profil utilisateur:', err);
         }
 
         this.items = [
@@ -340,14 +344,13 @@ export class AppTopbar implements OnInit, OnDestroy {
         if (this.authService.canValidateEvent) {
             this.pollSub = interval(60_000).pipe(
                 startWith(0),
-                switchMap(() => this.eventService.getAllEvents())
-            ).subscribe({
-                next:  events => {
+                switchMap(() => this.eventService.getAllEvents().pipe(catchError(() => of(null))))
+            ).subscribe(events => {
+                if (events !== null) {
                     this.pendingCount = events.filter(
                         e => e.status === EventStatus.EN_ATTENTE_VALIDATION
                     ).length;
-                },
-                error: () => { this.pendingCount = 0; }
+                }
             });
         }
     }

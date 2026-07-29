@@ -165,7 +165,7 @@ export class AppMenu implements OnInit {
            
             { separator: true },
             {
-                label: 'Corbeille',
+                label: 'Archives',
                 items: [{
                     label:      'Corbeille',
                     icon:       'pi pi-fw pi-trash',

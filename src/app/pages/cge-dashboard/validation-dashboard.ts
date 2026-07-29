@@ -515,8 +515,8 @@ export class ValidationDashboardComponent implements OnInit {
             next: () => {
                 this.messageService.add({
                     severity: 'success',
-                    summary: 'Valide',
-                    detail: `"${this.selectedEvent?.title}" valide. Invitations envoyees.`,
+                    summary: 'Validé',
+                    detail: `"${this.selectedEvent?.title}" validé. Invitations envoyées.`,
                     life: 5000
                 });
                 this.validateDialogVisible = false;
@@ -543,8 +543,8 @@ export class ValidationDashboardComponent implements OnInit {
             next: () => {
                 this.messageService.add({
                     severity: 'warn',
-                    summary: 'Modifications demandees',
-                    detail: `Suggestions envoyees au createur de "${this.selectedEvent?.title}"`,
+                    summary: 'Modifications demandées',
+                    detail: `Suggestions envoyées au créateur de "${this.selectedEvent?.title}"`,
                     life: 5000
                 });
                 this.changesDialogVisible = false;
@@ -571,8 +571,8 @@ export class ValidationDashboardComponent implements OnInit {
             next: () => {
                 this.messageService.add({
                     severity: 'error',
-                    summary: 'Rejete',
-                    detail: `"${this.selectedEvent?.title}" rejete. Createur notifie.`,
+                    summary: 'Rejeté',
+                    detail: `"${this.selectedEvent?.title}" rejeté. Créateur notifié.`,
                     life: 5000
                 });
                 this.rejectDialogVisible = false;
@@ -623,7 +623,7 @@ export class ValidationDashboardComponent implements OnInit {
         const labels: Record<string, string> = {
             'DIRECTEUR_CABINET': 'Dir. Cabinet',
             'PROTOCOLE':         'Protocole',
-            'SECRETAIRE':        'Secretaire',
+            'SECRETAIRE':        'Secrétaire',
             'CGE':               'CGE',
             'ADMIN':             'Admin'
         };

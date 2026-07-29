@@ -303,7 +303,9 @@ export class ParticipantDetailComponent implements OnInit {
   }
 
   editParticipant(): void {
-    this.router.navigate(['/participants', this.participant.id, 'edit']);
+    this.router.navigate(['/participants'], {
+      queryParams: { edit: this.participant.id }
+    });
   }
 
   viewEvent(event: any): void {

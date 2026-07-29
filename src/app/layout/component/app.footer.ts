@@ -4,8 +4,7 @@ import { Component } from '@angular/core';
     standalone: true,
     selector: 'app-footer',
     template: `<div class="layout-footer">
-        ASCE-LC
-        <a href="https://primeng.org" target="_blank" rel="noopener noreferrer" class="text-primary font-bold hover:underline">AGENDA</a>
+        ASCE-LC <span class="text-primary font-bold">AGENDA</span>
     </div>`
 })
 export class AppFooter {}

@@ -530,9 +530,9 @@ export class AdminUsersComponent implements OnInit {
                 realmRoles: ['ADMIN']
             },
             {
-                id: '2', username: 'cge.drabo',
+                id: '2', username: 'cge.ascelc',
                 email: 'cge@ascelc.bf',
-                firstName: 'Siakour', lastName: 'DRABO',
+                firstName: 'Agent', lastName: 'CGE',
                 enabled: true, emailVerified: true,
                 createdTimestamp: Date.now(),
                 realmRoles: ['CGE']

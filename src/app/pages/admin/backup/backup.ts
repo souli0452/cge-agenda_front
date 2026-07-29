@@ -233,7 +233,10 @@ export class BackupComponent implements OnInit {
     }
 
     loadConfig() {
-        this.backupService.getConfig().subscribe({ next: c => this.config = c, error: () => {} });
+        this.backupService.getConfig().subscribe({
+            next: c => this.config = c,
+            error: () => this.toast('error', 'Impossible de charger la configuration des sauvegardes')
+        });
     }
 
     saveConfig() {

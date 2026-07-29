@@ -32,6 +32,7 @@ import { FileService }        from '../../service/file.service';
 import { ParticipantService } from '../../service/participant.service';
 import {
     Event, Participant,
+    EventStatus,
     EVENT_TYPE_OPTIONS,
     EVENT_STATUS_OPTIONS,
     PARTICIPANT_TYPE_OPTIONS,
@@ -215,7 +216,12 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
     }
 
     loadCities(countryCode: string): void {
-        getCitiesOfCountry(countryCode).then(cities => this.cities = cities);
+        getCitiesOfCountry(countryCode)
+            .then(cities => this.cities = cities)
+            .catch(err => {
+                console.error('Erreur chargement des villes:', err);
+                this.cities = [];
+            });
     }
 
     onCountryChange(event: any): void {
@@ -230,6 +236,10 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
     }
 
     hasCities(): boolean { return this.cities.length > 0; }
+
+    hasParticipants(): boolean {
+        return (this.eventForm.get('participants')?.value?.length ?? 0) > 0;
+    }
 
     onStartDateChange(): void {
         const startDate = this.eventForm.get('startDate')?.value;
@@ -632,6 +642,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             const eventData: any = {
                 title:          fv.title?.trim(),
                 description:    fv.description?.trim() || null,
+                status:         EventStatus.BROUILLON,
                 type:           fv.type,
                 typeAutreLabel: fv.type === 'AUTRE' ? (fv.typeAutreLabel?.trim() || null) : null,
                 startDate:   this.formatDate(fv.startDate),
@@ -684,8 +695,6 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
                 }));
             }
 
-            console.log('Payload:', JSON.stringify(eventData, null, 2));
-
             const createdEvent = await this.eventService
                 .createEvent(eventData).toPromise();
 
@@ -695,12 +704,13 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
 
             this.messageService.add({
                 severity: 'success',
-                summary: 'Evenement créé !',
+                summary: 'Événement créé',
                 detail: 'Redirection en cours...',
                 life: 3000
             });
 
             this.submitted = true;
+            this.loading = false;
             setTimeout(() => {
                 this.router.navigate(['/events'], {
                     queryParams: {

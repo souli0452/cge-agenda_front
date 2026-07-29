@@ -20,7 +20,7 @@ export const appRoutes: Routes = [
                         .then(m => m.CgeDashboardComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                                'PROTOCOLE', 'SECRETAIRE'],
                         breadcrumb: 'Tableau de bord' }
             },
             {
@@ -38,7 +38,7 @@ export const appRoutes: Routes = [
                         .then(m => m.EVENTS_ROUTES),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                                'PROTOCOLE', 'SECRETAIRE'],
                         breadcrumb: 'Événements' }
             },
             {
@@ -48,7 +48,7 @@ export const appRoutes: Routes = [
                         .then(m => m.CgeCalendarComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                                'PROTOCOLE', 'SECRETAIRE'],
                         breadcrumb: 'Calendrier' }
             },
             {
@@ -119,7 +119,7 @@ export const appRoutes: Routes = [
                         .then(m => m.ProfileComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                                'PROTOCOLE', 'SECRETAIRE'],
                         breadcrumb: 'Profil' }
             },
             {
@@ -129,7 +129,7 @@ export const appRoutes: Routes = [
                         .then(m => m.SettingsComponent),
                 canActivate: [AuthGuard],
                 data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET',
-                                'PROTOCOLE', 'SECRETAIRE', 'USER'],
+                                'PROTOCOLE', 'SECRETAIRE'],
                         breadcrumb: 'Paramètres' }
             }
         ]

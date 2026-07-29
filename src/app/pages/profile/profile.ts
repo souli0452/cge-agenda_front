@@ -153,14 +153,18 @@ export class ProfileComponent implements OnInit {
     ) {}
 
     async ngOnInit(): Promise<void> {
-        if (await this.keycloak.isLoggedIn()) {
-            const profile = await this.keycloak.loadUserProfile();
-            this.firstName = profile.firstName || '';
-            this.lastName  = profile.lastName  || '';
-            this.username  = profile.username  || '';
-            this.email     = profile.email     || '';
+        try {
+            if (await this.keycloak.isLoggedIn()) {
+                const profile = await this.keycloak.loadUserProfile();
+                this.firstName = profile.firstName || '';
+                this.lastName  = profile.lastName  || '';
+                this.username  = profile.username  || '';
+                this.email     = profile.email     || '';
+            }
+            this.allRoles = this.keycloak.getUserRoles() || [];
+        } catch (err) {
+            console.error('Erreur chargement du profil utilisateur:', err);
         }
-        this.allRoles = this.keycloak.getUserRoles() || [];
     }
 
     get fullName(): string {

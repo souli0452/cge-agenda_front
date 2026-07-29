@@ -252,6 +252,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
                     detail: 'Événement modifié avec succès'
                 });
                 this.submitted = true;
+                this.saving = false;
                 setTimeout(() => {
                     this.router.navigate(['/events'], {
                         queryParams: { updated: this.eventId }

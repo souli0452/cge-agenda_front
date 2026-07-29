@@ -791,29 +791,6 @@
   font-weight: 700;
 }
 
-.loader-steps { margin: 30px 0; text-align: left; }
-
-.loader-step {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  margin-bottom: 10px;
-  background: var(--surface-50);
-  border-radius: 10px;
-  border-left: 4px solid var(--primary-color);
-  transition: all 0.3s;
-}
-
-.loader-step i { font-size: 20px; color: var(--primary-color); }
-.loader-step span { font-size: 14px; color: var(--text-color); font-weight: 500; }
-
-.loader-step.pending {
-  opacity: 0.5;
-  border-left-color: var(--surface-300);
-}
-
-.loader-step.pending i { color: var(--surface-300); }
 
 .loader-wait {
   color: var(--text-color-secondary);
@@ -908,7 +885,6 @@
 
   .professional-loader-content { padding: 28px 20px; margin: 12px; max-width: calc(100vw - 40px); }
   .loader-title { font-size: 18px; }
-  .loader-step { padding: 10px 14px; }
 }
 
 

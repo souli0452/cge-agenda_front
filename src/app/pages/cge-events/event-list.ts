@@ -705,7 +705,8 @@ export class EventListComponent implements OnInit, OnDestroy {
 
                 if (createdId) {
                     return this.eventService.getAllEvents().pipe(
-                        map(events => ({ createdId, events }))
+                        map(events => ({ createdId, events })),
+                        catchError(() => of(null))
                     );
                 }
                 if (updatedId) {
@@ -963,7 +964,7 @@ export class EventListComponent implements OnInit, OnDestroy {
         this.confirmationService.confirm({
             message: `Retirer ${participant.firstName} ${participant.lastName} ?`,
             header: 'Confirmation', icon: 'pi pi-exclamation-triangle',
-            acceptLabel: 'Oui', rejectLabel: 'Non',
+            acceptLabel: 'Oui, retirer', rejectLabel: 'Annuler',
             accept: () => this.removeParticipant(participant.id!)
         });
     }
@@ -1052,7 +1053,7 @@ export class EventListComponent implements OnInit, OnDestroy {
         this.confirmationService.confirm({
             message: `Supprimer "${file.fileName}" ?`,
             header: 'Confirmation', icon: 'pi pi-exclamation-triangle',
-            acceptLabel: 'Oui', rejectLabel: 'Non',
+            acceptLabel: 'Oui, supprimer', rejectLabel: 'Annuler',
             accept: () => this.deleteFile(file.id)
         });
     }
@@ -1078,7 +1079,7 @@ export class EventListComponent implements OnInit, OnDestroy {
                 this.cancelDialogVisible = false;
                 this.loadEvents();
             },
-            error: (err) => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible' })
+            error: (err) => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible d\'annuler l\'événement' })
         });
     }
 
@@ -1095,7 +1096,7 @@ export class EventListComponent implements OnInit, OnDestroy {
                 this.postponeDialogVisible = false;
                 this.loadEvents();
             },
-            error: (err) => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible' })
+            error: (err) => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible de reporter l\'événement' })
         });
     }
 
@@ -1238,7 +1239,7 @@ export class EventListComponent implements OnInit, OnDestroy {
                 this.messageService.add({ severity: 'success', summary: 'Succès', detail: 'Événement supprimé' });
                 this.loadEvents();
             },
-            error: (err) => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible' })
+            error: (err) => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible de supprimer l\'événement' })
         });
     }
 

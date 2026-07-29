@@ -979,22 +979,11 @@
         </p-progressSpinner>
       </div>
       <h2 class="loader-title">Création de l'événement en cours...</h2>
-      <div class="loader-steps">
-        <div class="loader-step">
-          <i class="pi pi-check-circle"></i>
-          <span>Enregistrement des données</span>
-        </div>
-        <div class="loader-step">
-          <i class="pi pi-spin pi-spinner"></i>
-          <span>Envoi des emails aux participants</span>
-        </div>
-        <div class="loader-step pending">
-          <i class="pi pi-circle"></i>
-          <span>Génération des invitations</span>
-        </div>
-      </div>
       <p class="loader-wait">
         Veuillez patienter, cela peut prendre quelques instants...
+      </p>
+      <p class="loader-wait" *ngIf="hasParticipants()">
+        Les invitations seront envoyées aux participants dans les prochaines minutes.
       </p>
     </div>
   </div>
