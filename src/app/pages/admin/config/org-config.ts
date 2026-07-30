@@ -207,7 +207,7 @@ interface EmailTemplate {
 
             <div class="subjects-hint">
                 <i class="pi pi-info-circle"></i>
-                Utilisez <code>{{ '{' }}titre{{ '}' }}</code> pour insérer le titre de l'événement dans le sujet et le corps du message.
+                Utilisez <code>{{ '{' }}evenement{{ '}' }}</code> pour insérer le titre de l'événement dans le sujet et le corps du message.
             </div>
 
             <div *ngIf="loading" class="skeleton-form">
