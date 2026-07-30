@@ -63,6 +63,7 @@ interface EmailTemplate {
     icon:        string;
     iconColor:   string;
     description: string;
+    variables:   string[];
 }
 
 @Component({
@@ -248,6 +249,9 @@ interface EmailTemplate {
                                   rows="2"
                                   autoResize="true"
                                   class="template-body-input"></textarea>
+                        <small class="field-hint">
+                            Variables utilisables : <code *ngFor="let v of tpl.variables">{{ '{' }}{{ v }}{{ '}' }} </code>
+                        </small>
                     </div>
                 </div>
             </div>
@@ -404,17 +408,17 @@ export class OrgConfigComponent implements OnInit {
     };
 
     emailTemplates: EmailTemplate[] = [
-        { key: 'invitation',          field: 'subjectInvitation',          bodyField: 'bodyInvitation',          label: 'Invitation',               icon: 'pi pi-calendar-plus',   iconColor: '#009640', description: 'Envoyé quand un participant est invité à un événement' },
-        { key: 'validation-request',  field: 'subjectValidationRequest',   bodyField: 'bodyValidationRequest',   label: 'Demande de validation',    icon: 'pi pi-send',            iconColor: '#ff9800', description: 'Envoyé aux CGE pour valider un nouvel événement' },
-        { key: 'new-document',        field: 'subjectNewDocument',         bodyField: 'bodyNewDocument',         label: 'Nouveau document disponible', icon: 'pi pi-file',         iconColor: 'var(--cge-vert-moyen)', description: 'Un nouveau document est disponible pour l\'événement' },
-        { key: 'rejected',            field: 'subjectRejected',            bodyField: 'bodyRejected',            label: 'Événement rejeté',         icon: 'pi pi-times-circle',    iconColor: '#f44336', description: 'L\'organisateur est notifié du rejet' },
-        { key: 'changes-requested',   field: 'subjectChangesRequested',    bodyField: 'bodyChangesRequested',    label: 'Corrections demandées',    icon: 'pi pi-pencil',          iconColor: '#9c27b0', description: 'Le CGE demande des corrections à l\'organisateur' },
-        { key: 'amendments-corrected',field: 'subjectAmendmentsCorrected', bodyField: 'bodyAmendmentsCorrected', label: 'Corrections apportées',   icon: 'pi pi-check',           iconColor: '#2196F3', description: 'L\'organisateur a apporté les corrections demandées' },
-        { key: 'cancellation',        field: 'subjectCancellation',        bodyField: 'bodyCancellation',        label: 'Annulation',               icon: 'pi pi-ban',             iconColor: '#f44336', description: 'Participants notifiés de l\'annulation' },
-        { key: 'postponement',        field: 'subjectPostponement',        bodyField: 'bodyPostponement',        label: 'Report',                   icon: 'pi pi-calendar',        iconColor: '#ff9800', description: 'Participants notifiés du report de l\'événement' },
-        { key: 'event-update',        field: 'subjectEventUpdate',         bodyField: 'bodyEventUpdate',         label: 'Mise à jour',              icon: 'pi pi-refresh',         iconColor: '#607d8b', description: 'Modification d\'un événement déjà planifié' },
-        { key: 'reminder',            field: 'subjectReminder',            bodyField: 'bodyReminder',            label: 'Rappel',                   icon: 'pi pi-clock',           iconColor: '#ff9800', description: 'Rappel automatique avant l\'événement' },
-        { key: 'delegation',          field: 'subjectDelegation',          bodyField: 'bodyDelegation',          label: 'Délégation',               icon: 'pi pi-user-edit',       iconColor: '#00bcd4', description: 'Notification de délégation de participation' },
+        { key: 'invitation',          field: 'subjectInvitation',          bodyField: 'bodyInvitation',          label: 'Invitation',               icon: 'pi pi-calendar-plus',   iconColor: '#009640', description: 'Envoyé quand un participant est invité à un événement', variables: ['evenement', 'participant', 'date_debut', 'date_fin', 'lieu'] },
+        { key: 'validation-request',  field: 'subjectValidationRequest',   bodyField: 'bodyValidationRequest',   label: 'Demande de validation',    icon: 'pi pi-send',            iconColor: '#ff9800', description: 'Envoyé aux CGE pour valider un nouvel événement', variables: ['evenement', 'date_debut', 'date_fin', 'lieu'] },
+        { key: 'new-document',        field: 'subjectNewDocument',         bodyField: 'bodyNewDocument',         label: 'Nouveau document disponible', icon: 'pi pi-file',         iconColor: 'var(--cge-vert-moyen)', description: 'Un nouveau document est disponible pour l\'événement', variables: ['evenement'] },
+        { key: 'rejected',            field: 'subjectRejected',            bodyField: 'bodyRejected',            label: 'Événement rejeté',         icon: 'pi pi-times-circle',    iconColor: '#f44336', description: 'L\'organisateur est notifié du rejet', variables: ['evenement'] },
+        { key: 'changes-requested',   field: 'subjectChangesRequested',    bodyField: 'bodyChangesRequested',    label: 'Corrections demandées',    icon: 'pi pi-pencil',          iconColor: '#9c27b0', description: 'Le CGE demande des corrections à l\'organisateur', variables: ['evenement'] },
+        { key: 'amendments-corrected',field: 'subjectAmendmentsCorrected', bodyField: 'bodyAmendmentsCorrected', label: 'Corrections apportées',   icon: 'pi pi-check',           iconColor: '#2196F3', description: 'L\'organisateur a apporté les corrections demandées', variables: ['evenement'] },
+        { key: 'cancellation',        field: 'subjectCancellation',        bodyField: 'bodyCancellation',        label: 'Annulation',               icon: 'pi pi-ban',             iconColor: '#f44336', description: 'Participants notifiés de l\'annulation', variables: ['evenement'] },
+        { key: 'postponement',        field: 'subjectPostponement',        bodyField: 'bodyPostponement',        label: 'Report',                   icon: 'pi pi-calendar',        iconColor: '#ff9800', description: 'Participants notifiés du report de l\'événement', variables: ['evenement', 'date_debut', 'date_fin'] },
+        { key: 'event-update',        field: 'subjectEventUpdate',         bodyField: 'bodyEventUpdate',         label: 'Mise à jour',              icon: 'pi pi-refresh',         iconColor: '#607d8b', description: 'Modification d\'un événement déjà planifié', variables: ['evenement', 'date_debut', 'date_fin', 'lieu'] },
+        { key: 'reminder',            field: 'subjectReminder',            bodyField: 'bodyReminder',            label: 'Rappel',                   icon: 'pi pi-clock',           iconColor: '#ff9800', description: 'Rappel automatique avant l\'événement', variables: ['evenement', 'date_debut', 'lieu'] },
+        { key: 'delegation',          field: 'subjectDelegation',          bodyField: 'bodyDelegation',          label: 'Délégation',               icon: 'pi pi-user-edit',       iconColor: '#00bcd4', description: 'Notification de délégation de participation', variables: ['evenement'] },
     ];
 
     loadingScheduler  = true;
