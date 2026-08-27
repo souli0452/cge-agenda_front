@@ -308,7 +308,8 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             case 1: {
                 const s = this.eventForm.get('startDate')?.value;
                 const e = this.eventForm.get('endDate')?.value;
-                return !!(s && e && new Date(e) >= new Date(s));
+                const datesValid = !!(s && e && new Date(e) >= new Date(s));
+                return datesValid && this.isLieuValid();
             }
             case 2:
                 return this.scheduleMode === 'global'
@@ -322,6 +323,25 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         }
     }
 
+    isLieuValid(): boolean {
+        const lieuType = this.eventForm.get('lieuType')?.value;
+        switch (lieuType) {
+            case 'INTERNE': {
+                const salle = this.eventForm.get('salle')?.value;
+                return !!salle && (!this.isAutreSalle || !!this.eventForm.get('nomLieu')?.value);
+            }
+            case 'NATIONAL':
+                return !!this.eventForm.get('ville')?.value;
+            case 'INTERNATIONAL':
+                return !!this.eventForm.get('pays')?.value &&
+                       !!this.eventForm.get('ville')?.value;
+            case 'VIRTUEL':
+                return !!this.eventForm.get('meetingLink')?.value;
+            default:
+                return false;
+        }
+    }
+
     markStepFieldsAsTouched(stepIndex: number): void {
         switch (stepIndex) {
             case 0:
@@ -332,6 +352,23 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             case 1:
                 this.eventForm.get('startDate')?.markAsTouched();
                 this.eventForm.get('endDate')?.markAsTouched();
+                this.eventForm.get('lieuType')?.markAsTouched();
+                switch (this.eventForm.get('lieuType')?.value) {
+                    case 'INTERNE':
+                        this.eventForm.get('salle')?.markAsTouched();
+                        if (this.isAutreSalle) this.eventForm.get('nomLieu')?.markAsTouched();
+                        break;
+                    case 'NATIONAL':
+                        this.eventForm.get('ville')?.markAsTouched();
+                        break;
+                    case 'INTERNATIONAL':
+                        this.eventForm.get('pays')?.markAsTouched();
+                        this.eventForm.get('ville')?.markAsTouched();
+                        break;
+                    case 'VIRTUEL':
+                        this.eventForm.get('meetingLink')?.markAsTouched();
+                        break;
+                }
                 break;
             case 2:
                 if (this.scheduleMode === 'global') {
