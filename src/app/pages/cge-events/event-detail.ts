@@ -373,7 +373,7 @@ import {
 
             <div class="ed-actions-right">
                 <!-- Brouillon : soumettre -->
-                <p-button *ngIf="isBrouillon && !canValidate"
+                <p-button *ngIf="isBrouillon && isCreator"
                           label="Soumettre à validation" icon="pi pi-send" severity="info"
                           [loading]="actionLoading" (onClick)="submitDraft()">
                 </p-button>
