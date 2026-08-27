@@ -274,21 +274,26 @@ import {
                                       severity="secondary" size="small"
                                       pTooltip="Voir détails"
                                       (onClick)="viewEvent(rowEvent)" />
-                            <p-button icon="pi pi-check"
-                                      [rounded]="true" [text]="true"
-                                      severity="success" size="small"
-                                      pTooltip="Valider"
-                                      (onClick)="openValidateDialog(rowEvent)" />
-                            <p-button icon="pi pi-wrench"
-                                      [rounded]="true" [text]="true"
-                                      severity="warn" size="small"
-                                      pTooltip="Demander modifications"
-                                      (onClick)="openChangesDialog(rowEvent)" />
-                            <p-button icon="pi pi-times"
-                                      [rounded]="true" [text]="true"
-                                      severity="danger" size="small"
-                                      pTooltip="Rejeter"
-                                      (onClick)="openRejectDialog(rowEvent)" />
+                            <ng-container *ngIf="!isOwnEvent(rowEvent)">
+                                <p-button icon="pi pi-check"
+                                          [rounded]="true" [text]="true"
+                                          severity="success" size="small"
+                                          pTooltip="Valider"
+                                          (onClick)="openValidateDialog(rowEvent)" />
+                                <p-button icon="pi pi-wrench"
+                                          [rounded]="true" [text]="true"
+                                          severity="warn" size="small"
+                                          pTooltip="Demander modifications"
+                                          (onClick)="openChangesDialog(rowEvent)" />
+                                <p-button icon="pi pi-times"
+                                          [rounded]="true" [text]="true"
+                                          severity="danger" size="small"
+                                          pTooltip="Rejeter"
+                                          (onClick)="openRejectDialog(rowEvent)" />
+                            </ng-container>
+                            <span *ngIf="isOwnEvent(rowEvent)" class="text-xs text-muted-color" pTooltip="Vous ne pouvez pas valider votre propre événement">
+                                <i class="pi pi-lock"></i>
+                            </span>
                         </div>
                     </td>
 
@@ -628,6 +633,11 @@ export class ValidationDashboardComponent implements OnInit {
             'ADMIN':             'Admin'
         };
         return labels[role || ''] || role || '—';
+    }
+
+    isOwnEvent(event: Event): boolean {
+        const email = this.authService.email;
+        return !!email && email.toLowerCase() === ((event as any)?.creatorEmail || '').toLowerCase();
     }
 
     getTypeLabel(type: string):    string      { return EventTypeLabels[type] || type; }

@@ -378,8 +378,8 @@ import {
                           [loading]="actionLoading" (onClick)="submitDraft()">
                 </p-button>
 
-                <!-- CGE : EN_ATTENTE -->
-                <ng-container *ngIf="isEnAttente && canValidate">
+                <!-- CGE : EN_ATTENTE (sauf le créateur — pas d'auto-validation) -->
+                <ng-container *ngIf="isEnAttente && canValidate && !isCreator">
                     <p-button label="Valider" icon="pi pi-check" severity="success"
                               (onClick)="validateDialogVisible = true"></p-button>
                     <p-button label="Modifications" icon="pi pi-wrench" severity="warn"
@@ -388,8 +388,8 @@ import {
                               [outlined]="true" (onClick)="rejectDialogVisible = true"></p-button>
                 </ng-container>
 
-                <!-- CGE : A_CORRIGER -->
-                <p-button *ngIf="isACorriger && canValidate"
+                <!-- CGE : A_CORRIGER (sauf le créateur) -->
+                <p-button *ngIf="isACorriger && canValidate && !isCreator"
                           label="Rejeter définitivement" icon="pi pi-times" severity="danger"
                           [outlined]="true" (onClick)="rejectDialogVisible = true">
                 </p-button>
