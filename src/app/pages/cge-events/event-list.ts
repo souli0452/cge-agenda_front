@@ -750,7 +750,7 @@ export class EventListComponent implements OnInit, OnDestroy {
 
     updateEventStatuses(): void {
         const now = new Date();
-        const PROTECTED = ['ANNULER', 'REPORTER', 'REJETE', 'EN_ATTENTE_VALIDATION', 'TERMINE'];
+        const PROTECTED = ['ANNULER', 'REPORTER', 'REJETE', 'EN_ATTENTE_VALIDATION', 'A_CORRIGER', 'BROUILLON', 'TERMINE'];
 
         this.events.forEach(event => {
             const currentStatus = event.status as string;
