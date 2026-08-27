@@ -1168,17 +1168,7 @@ export class EventDetailComponent implements OnInit {
     }
 
     get heroGradient(): string {
-        const gradients: Record<string, string> = {
-            CONFERENCE:    'linear-gradient(135deg, #0d3b8c 0%, #1565C0 55%, #1e88e5 100%)',
-            SEMINAIRE:     'linear-gradient(135deg, #4a0072 0%, #6A1B9A 55%, #9c27b0 100%)',
-            ATELIER:       'linear-gradient(135deg, #bf360c 0%, #E65100 55%, #f4511e 100%)',
-            REUNION:       'linear-gradient(135deg, var(--p-primary-800) 0%, var(--cge-vert-moyen) 55%, var(--p-primary-300) 100%)',
-            MISSION:       'linear-gradient(135deg, #3e2723 0%, #5D4037 55%, #795548 100%)',
-            AUDIENCE:      'linear-gradient(135deg, #880e4f 0%, #AD1457 55%, #d81b60 100%)',
-            FORMATION:     'linear-gradient(135deg, #004d40 0%, #00695C 55%, #00897b 100%)',
-            AUTRE:         'linear-gradient(135deg, #263238 0%, #546E7A 55%, #78909c 100%)',
-        };
-        return gradients[this.event?.type || ''] || 'linear-gradient(135deg, var(--p-primary-800) 0%, var(--cge-vert-moyen) 55%, var(--p-primary-300) 100%)';
+        return 'linear-gradient(135deg, var(--p-primary-800) 0%, var(--cge-vert-moyen) 55%, var(--p-primary-300) 100%)';
     }
 
     getDelegueInitials(): string {
