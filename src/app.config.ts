@@ -1,6 +1,8 @@
 import { HTTP_INTERCEPTORS, HttpClient, provideHttpClient,
          withFetch, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
-import { APP_INITIALIZER, ApplicationConfig, ErrorHandler,
+import { registerLocaleData } from '@angular/common';
+import localeFr from '@angular/common/locales/fr';
+import { APP_INITIALIZER, ApplicationConfig, ErrorHandler, LOCALE_ID,
          provideZoneChangeDetection, isDevMode } from '@angular/core';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter, withInMemoryScrolling } from '@angular/router';
@@ -40,6 +42,8 @@ import { appRoutes } from './app.routes';
 import { initializeKeycloak } from '@/init/keycloak-init.factory';
 import { errorInterceptor } from '@/interceptors/error.interceptor';
 
+registerLocaleData(localeFr);
+
 class AppErrorHandler implements ErrorHandler {
     handleError(error: any): void {
         if (error?.code === 5104 || error?.message?.includes('NG05104') || error?.message?.includes('app-root')) return;
@@ -49,6 +53,7 @@ class AppErrorHandler implements ErrorHandler {
 
 export const appConfig: ApplicationConfig = {
     providers: [
+        { provide: LOCALE_ID, useValue: 'fr-FR' },
         provideZoneChangeDetection({ eventCoalescing: true }),
         provideRouter(
             appRoutes,
