@@ -306,7 +306,7 @@ import {
 
 <!-- DIALOG : VALIDER -->
 <p-dialog [(visible)]="validateDialogVisible"
-          [modal]="true" [style]="{width: '520px'}"
+          [modal]="true" [style]="{width: '650px'}"
           header="Valider l'événement">
     <div class="dialog-content">
         <div class="event-info-banner banner-green">
@@ -320,7 +320,7 @@ import {
             <label class="block font-semibold mb-2">
                 Commentaire <span class="font-normal text-muted-color">(optionnel)</span>
             </label>
-            <textarea pTextarea [(ngModel)]="validateComment" rows="4"
+            <textarea pTextarea [(ngModel)]="validateComment" rows="6"
                       placeholder="Ajoutez un commentaire pour le créateur..."
                       class="w-full"></textarea>
         </div>
@@ -493,7 +493,7 @@ export class ValidationDashboardComponent implements OnInit {
 
     openValidateDialog(event: Event): void {
         this.selectedEvent         = event;
-        this.validateComment       = '';
+        this.validateComment       = 'RAS';
         this.validateDialogVisible = true;
     }
 

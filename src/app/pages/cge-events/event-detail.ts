@@ -84,7 +84,7 @@ import {
      ================================================ -->
 
 <!-- Valider -->
-<p-dialog [(visible)]="validateDialogVisible" [modal]="true" [style]="{width:'520px'}"
+<p-dialog [(visible)]="validateDialogVisible" [modal]="true" [style]="{width:'650px'}"
           header="Valider l'événement">
     <div class="dlg-body">
         <div class="dlg-banner dlg-green">
@@ -94,7 +94,7 @@ import {
             </div>
         </div>
         <label class="dlg-label">Commentaire <span class="dlg-opt">(optionnel)</span></label>
-        <textarea pTextarea [(ngModel)]="validateComment" rows="4"
+        <textarea pTextarea [(ngModel)]="validateComment" rows="6"
                   placeholder="Commentaire pour le créateur..." class="w-full"></textarea>
         <div class="dlg-info"><i class="pi pi-info-circle"></i>
             Le créateur sera notifié. Les invitations seront envoyées aux participants.</div>
@@ -381,7 +381,7 @@ import {
                 <!-- CGE : EN_ATTENTE (sauf le créateur — pas d'auto-validation) -->
                 <ng-container *ngIf="isEnAttente && canValidate && !isCreator">
                     <p-button label="Valider" icon="pi pi-check" severity="success"
-                              (onClick)="validateDialogVisible = true"></p-button>
+                              (onClick)="openValidateDialog()"></p-button>
                     <p-button label="Modifications" icon="pi pi-wrench" severity="warn"
                               [outlined]="true" (onClick)="changesDialogVisible = true"></p-button>
                     <p-button label="Rejeter" icon="pi pi-times" severity="danger"
@@ -862,6 +862,11 @@ export class EventDetailComponent implements OnInit {
                 this.actionLoading = false;
             }
         });
+    }
+
+    openValidateDialog(): void {
+        this.validateComment       = 'RAS';
+        this.validateDialogVisible = true;
     }
 
     validateEvent(): void {
