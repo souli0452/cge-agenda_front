@@ -23,6 +23,7 @@ import { EventService }       from '../../service/event.service';
 import { FileService }        from '../../service/file.service';
 import { ParticipantService } from '../../service/participant.service';
 import { Event, FileUpload, Participant, endDateAfterStart } from '../../models';
+import { getAllCountries, getCitiesOfCountry } from '../../data/geo-data';
 
 @Component({
     selector: 'app-event-edit',
@@ -93,6 +94,10 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         'Fada N\'Gourma', 'Tenkodogo', 'Dori', 'Autre'
     ].map(v => ({ label: v, value: v }));
 
+    countries: any[] = [];
+    cities:    any[] = [];
+    selectedCountryCode = '';
+
     constructor(
         private fb:                  FormBuilder,
         private route:               ActivatedRoute,
@@ -111,6 +116,7 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
     }
 
     ngOnInit(): void {
+        this.loadCountries();
         this.eventId = this.route.snapshot.paramMap.get('id') || undefined;
         if (this.eventId) {
             this.loadEvent();
@@ -118,6 +124,32 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
             this.loadFiles();
         }
     }
+
+    loadCountries(): void {
+        this.countries = getAllCountries();
+    }
+
+    loadCities(countryCode: string): void {
+        getCitiesOfCountry(countryCode)
+            .then(cities => this.cities = cities)
+            .catch(err => {
+                console.error('Erreur chargement des villes:', err);
+                this.cities = [];
+            });
+    }
+
+    onCountryChange(event: any): void {
+        const country = this.countries.find(c => c.value === event.value);
+        if (country) {
+            this.selectedCountryCode = country.code;
+            this.loadCities(country.code);
+        } else {
+            this.cities = [];
+        }
+        this.eventForm.get('ville')?.setValue('');
+    }
+
+    hasCities(): boolean { return this.cities.length > 0; }
 
    
     initForm(): void {
@@ -136,13 +168,27 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
         }, { validators: endDateAfterStart });
 
         this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
-            this.eventForm.patchValue({
-                salle:       '',
-                ville:       '',
-                pays:        '',
-                nomLieu:     '',
-                meetingLink: ''
-            }, { emitEvent: false });
+            if (type === 'INTERNE') {
+                // Sur site : pays/ville du siège pré-remplis, non modifiables (champs masqués)
+                this.eventForm.patchValue({
+                    salle: '', nomLieu: '', meetingLink: '',
+                    pays: 'Burkina Faso', ville: 'Ouagadougou'
+                }, { emitEvent: false });
+            } else if (type === 'NATIONAL') {
+                // Délocalisé national : pays figé sur le Burkina Faso, ville à choisir, site optionnel
+                this.eventForm.patchValue({
+                    salle: '', nomLieu: '', meetingLink: '',
+                    pays: 'Burkina Faso', ville: ''
+                }, { emitEvent: false });
+            } else {
+                // International : pays/ville libres, choisis via les listes déroulantes
+                // (le pays déclenche le chargement des villes via onCountryChange).
+                // Virtuel / non défini : rien de pertinent.
+                this.eventForm.patchValue({
+                    salle: '', ville: '', pays: '', nomLieu: '', meetingLink: ''
+                }, { emitEvent: false });
+                this.cities = [];
+            }
         });
     }
 
@@ -177,6 +223,15 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
                     nomLieu:     (event as any).nomLieu     || '',
                     meetingLink: event.meetingLink || ''
                 });
+
+                if ((event as any).lieuType === 'INTERNATIONAL' && event.pays) {
+                    const country = this.countries.find(c => c.value === event.pays);
+                    if (country) {
+                        this.selectedCountryCode = country.code;
+                        this.loadCities(country.code);
+                    }
+                }
+
                 this.loading = false;
             },
             error: () => {

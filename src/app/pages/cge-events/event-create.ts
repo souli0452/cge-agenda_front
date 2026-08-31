@@ -30,6 +30,8 @@ import { AutoCompleteModule }    from 'primeng/autocomplete';
 import { EventService }       from '../../service/event.service';
 import { FileService }        from '../../service/file.service';
 import { ParticipantService } from '../../service/participant.service';
+import { EspaceService, Espace } from '../../service/espace.service';
+import { EspaceContextService } from '../../service/espace-context.service';
 import {
     Event, Participant,
     EventStatus,
@@ -110,8 +112,13 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         private participantService: ParticipantService,
         private router:             Router,
         private messageService:     MessageService,
-        private confirmationService: ConfirmationService
+        private confirmationService: ConfirmationService,
+        private espaceService:      EspaceService,
+        private espaceContextService: EspaceContextService
     ) {}
+
+    espaces: Espace[] = [];
+    loadingEspaces = true;
 
     hasUnsavedChanges(): boolean {
         return (this.eventForm?.dirty ?? false) && !this.submitted;
@@ -121,6 +128,24 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         this.initForm();
         this.loadCountries();
         this.loadCities('BF');
+        this.loadMesEspaces();
+    }
+
+    loadMesEspaces(): void {
+        this.loadingEspaces = true;
+        this.espaceService.mesEspaces().subscribe({
+            next: (espaces) => {
+                this.espaces = espaces;
+                const espaceActif = this.espaceContextService.espaceActif();
+                if (espaces.length === 1) {
+                    this.eventForm.get('espaceId')?.setValue(espaces[0].id);
+                } else if (espaceActif && espaces.some(e => e.id === espaceActif)) {
+                    this.eventForm.get('espaceId')?.setValue(espaceActif);
+                }
+                this.loadingEspaces = false;
+            },
+            error: () => { this.loadingEspaces = false; }
+        });
     }
 
     initForm(): void {
@@ -140,7 +165,8 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             participants:    this.fb.array([]),
             lieuType:        [''],
             salle:           [''],
-            nomLieu:         ['']
+            nomLieu:         [''],
+            espaceId:        ['', Validators.required]
         }, { validators: endDateAfterStart });
 
         this.eventForm.get('type')?.valueChanges.subscribe(val => {
@@ -155,16 +181,27 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
         });
 
         this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
-            this.eventForm.patchValue({
-                salle:       '',
-                ville:       '',
-                pays:        '',
-                nomLieu:     '',
-                meetingLink: ''
-            }, { emitEvent: false });
-
-            if (type === 'NATIONAL') {
+            if (type === 'INTERNE') {
+                // Sur site : pays/ville du siège pré-remplis, non modifiables (champs masqués)
+                this.eventForm.patchValue({
+                    salle: '', nomLieu: '', meetingLink: '',
+                    pays: 'Burkina Faso', ville: 'Ouagadougou'
+                }, { emitEvent: false });
+            } else if (type === 'NATIONAL') {
+                // Délocalisé national : pays figé sur le Burkina Faso, ville à choisir, site optionnel
+                this.eventForm.patchValue({
+                    salle: '', nomLieu: '', meetingLink: '',
+                    pays: 'Burkina Faso', ville: ''
+                }, { emitEvent: false });
                 this.loadCities('BF');
+            } else {
+                // International : pays/ville libres, choisis via les listes déroulantes
+                // (le pays déclenche le chargement des villes via onCountryChange).
+                // Virtuel / non défini : rien de pertinent.
+                this.eventForm.patchValue({
+                    salle: '', ville: '', pays: '', nomLieu: '', meetingLink: ''
+                }, { emitEvent: false });
+                this.cities = [];
             }
         });
     }
@@ -304,6 +341,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             case 0:
                 return !!(this.eventForm.get('title')?.valid &&
                           this.eventForm.get('type')?.valid &&
+                          this.eventForm.get('espaceId')?.valid &&
                           (!this.isAutreType || this.eventForm.get('typeAutreLabel')?.valid));
             case 1: {
                 const s = this.eventForm.get('startDate')?.value;
@@ -347,6 +385,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             case 0:
                 this.eventForm.get('title')?.markAsTouched();
                 this.eventForm.get('type')?.markAsTouched();
+                this.eventForm.get('espaceId')?.markAsTouched();
                 if (this.isAutreType) this.eventForm.get('typeAutreLabel')?.markAsTouched();
                 break;
             case 1:
@@ -677,6 +716,7 @@ export class EventCreateComponent implements OnInit, HasUnsavedChanges {
             const fv = this.eventForm.value;
 
             const eventData: any = {
+                espaceId:       fv.espaceId,
                 title:          fv.title?.trim(),
                 description:    fv.description?.trim() || null,
                 status:         EventStatus.BROUILLON,

@@ -71,6 +71,17 @@
 }
 .template-row:last-child { border-bottom: none; }
 
+.jour-ferie-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--surface-border);
+}
+.jour-ferie-row:last-child { border-bottom: none; }
+.jour-ferie-row > span:first-child { font-weight: 600; min-width: 90px; }
+.jour-ferie-row > span:nth-child(2) { flex: 1; }
+
 .template-top { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 
 .template-meta { display: flex; align-items: center; gap: 12px; min-width: 220px; }

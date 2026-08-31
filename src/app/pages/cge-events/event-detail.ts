@@ -19,15 +19,18 @@ import { ImageModule }         from 'primeng/image';
 import { SkeletonModule }      from 'primeng/skeleton';
 import { TextareaModule }      from 'primeng/textarea';
 import { InputTextModule }     from 'primeng/inputtext';
+import { AutoCompleteModule }  from 'primeng/autocomplete';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
-import { EventService }  from '../../service/event.service';
-import { FileService }   from '../../service/file.service';
-import { AuthService }   from '../../service/auth.service';
+import { EventService }       from '../../service/event.service';
+import { FileService }        from '../../service/file.service';
+import { AuthService }        from '../../service/auth.service';
+import { ParticipantService } from '../../service/participant.service';
 import { environments }  from '../../../environments/environments';
 import {
     Event,
     FileUpload,
+    Participant,
     EventTypeLabels,
     EventStatusLabels,
     getEventTypeSeverity,
@@ -43,7 +46,7 @@ import {
         CardModule, ButtonModule, TagModule,
         DividerModule, ToastModule, ConfirmDialogModule,
         TooltipModule, FileUploadModule, DialogModule,
-        ImageModule, SkeletonModule, TextareaModule, InputTextModule
+        ImageModule, SkeletonModule, TextareaModule, InputTextModule, AutoCompleteModule
     ],
     providers: [MessageService, ConfirmationService],
     template: `
@@ -139,15 +142,23 @@ import {
             </div>
         </div>
         <div class="dlg-info mb-3"><i class="pi pi-info-circle"></i>
-            Désignez la personne qui représentera le CGE à cet événement.</div>
+            Désignez la personne qui représentera le CGE à cet événement. Un email lui sera
+            envoyé avec un lien pour accepter ou décliner.</div>
         <div class="dlg-field">
-            <label class="dlg-label">Nom du délégué <span class="text-red-500">*</span></label>
-            <input pInputText [(ngModel)]="delegueNom" class="w-full" placeholder="Prénom et Nom"/>
-        </div>
-        <div class="dlg-field">
-            <label class="dlg-label">Email du délégué <span class="text-red-500">*</span></label>
-            <input pInputText [(ngModel)]="delegueEmail" class="w-full"
-                   placeholder="email@ascelc.bf" type="email"/>
+            <label class="dlg-label">Délégué <span class="text-red-500">*</span></label>
+            <p-autoComplete [(ngModel)]="selectedDelegue"
+                             [suggestions]="delegueSuggestions"
+                             (completeMethod)="onDelegueSearch($event)"
+                             optionLabel="label"
+                             placeholder="Tapez le nom, prénom ou email..."
+                             [minLength]="1" [delay]="300"
+                             [showEmptyMessage]="true" emptyMessage="Aucun participant trouvé"
+                             [forceSelection]="true" styleClass="w-full"
+                             [style]="{'width':'100%'}" appendTo="body">
+                <ng-template #item let-p>
+                    <div>{{ p.firstName }} {{ p.lastName }} — {{ p.email }}</div>
+                </ng-template>
+            </p-autoComplete>
         </div>
         <div class="dlg-field">
             <label class="dlg-label">Motif <span class="dlg-opt">(optionnel)</span></label>
@@ -159,8 +170,29 @@ import {
         <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="delegateDialogVisible = false"/>
         <p-button label="Confirmer la délégation" icon="pi pi-send" severity="help"
                   [loading]="actionLoading"
-                  [disabled]="!delegueNom.trim() || !delegueEmail.trim()"
+                  [disabled]="!selectedDelegue"
                   (onClick)="delegateParticipation()"/>
+    </ng-template>
+</p-dialog>
+
+<!-- Demander une délégation -->
+<p-dialog [(visible)]="demanderDelegationDialogVisible" [modal]="true" [style]="{width:'540px'}"
+          header="Demander une délégation">
+    <div class="dlg-body">
+        <div class="dlg-banner dlg-purple">
+            <i class="pi pi-user-plus"></i>
+            <div><strong>{{ event?.title }}</strong></div>
+        </div>
+        <div class="dlg-info mb-3"><i class="pi pi-info-circle"></i>
+            Le créateur sera invité à désigner un délégué pour cet événement.</div>
+        <label class="dlg-label">Motif</label>
+        <textarea pTextarea [(ngModel)]="demanderDelegationMotif" rows="4"
+                  placeholder="Expliquer pourquoi une délégation est nécessaire..." class="w-full"></textarea>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="demanderDelegationDialogVisible = false"/>
+        <p-button label="Envoyer la demande" icon="pi pi-send" [loading]="actionLoading"
+                  [disabled]="!demanderDelegationMotif.trim()" (onClick)="demanderDelegation()"/>
     </ng-template>
 </p-dialog>
 
@@ -373,37 +405,40 @@ import {
 
             <div class="ed-actions-right">
                 <!-- Brouillon : soumettre -->
-                <p-button *ngIf="isBrouillon && isCreator"
+                <p-button *ngIf="hasAction('SOUMETTRE')"
                           label="Soumettre à validation" icon="pi pi-send" severity="info"
                           [loading]="actionLoading" (onClick)="submitDraft()">
                 </p-button>
 
                 <!-- CGE : EN_ATTENTE (sauf le créateur — pas d'auto-validation) -->
-                <ng-container *ngIf="isEnAttente && canValidate && !isCreator">
-                    <p-button label="Valider" icon="pi pi-check" severity="success"
-                              (onClick)="openValidateDialog()"></p-button>
-                    <p-button label="Modifications" icon="pi pi-wrench" severity="warn"
-                              [outlined]="true" (onClick)="changesDialogVisible = true"></p-button>
-                    <p-button label="Rejeter" icon="pi pi-times" severity="danger"
-                              [outlined]="true" (onClick)="rejectDialogVisible = true"></p-button>
-                </ng-container>
-
-                <!-- CGE : A_CORRIGER (sauf le créateur) -->
-                <p-button *ngIf="isACorriger && canValidate && !isCreator"
-                          label="Rejeter définitivement" icon="pi pi-times" severity="danger"
-                          [outlined]="true" (onClick)="rejectDialogVisible = true">
-                </p-button>
+                <p-button *ngIf="hasAction('VALIDER')"
+                          label="Valider" icon="pi pi-check" severity="success"
+                          (onClick)="openValidateDialog()"></p-button>
+                <p-button *ngIf="hasAction('DEMANDER_MODIFICATIONS')"
+                          label="Modifications" icon="pi pi-wrench" severity="warn"
+                          [outlined]="true" (onClick)="changesDialogVisible = true"></p-button>
+                <p-button *ngIf="hasAction('REJETER')"
+                          label="Rejeter" icon="pi pi-times" severity="danger"
+                          [outlined]="true" (onClick)="rejectDialogVisible = true"></p-button>
 
                 <!-- CGE : PLANIFIE / EN_COURS -->
-                <ng-container *ngIf="isOperational && canValidate">
-                    <p-button label="Observation" icon="pi pi-comment" severity="info"
-                              [outlined]="true" (onClick)="openObservationDialog()"></p-button>
-                    <p-button label="Déléguer" icon="pi pi-user-plus" severity="help"
-                              [outlined]="true" (onClick)="openDelegateDialog()"></p-button>
-                </ng-container>
+                <p-button *ngIf="hasAction('AJOUTER_OBSERVATION')"
+                          label="Observation" icon="pi pi-comment" severity="info"
+                          [outlined]="true" (onClick)="openObservationDialog()"></p-button>
+                <p-button *ngIf="hasAction('DEMANDER_DELEGATION')"
+                          label="Demander délégation" icon="pi pi-user-plus" severity="help"
+                          [outlined]="true" (onClick)="openDemanderDelegationDialog()"></p-button>
+                <p-button *ngIf="hasAction('DELEGUER')"
+                          label="Déléguer" icon="pi pi-user-plus" severity="help"
+                          [outlined]="true" (onClick)="openDelegateDialog()"></p-button>
+
+                <!-- Rejeté : dupliquer en brouillon -->
+                <p-button *ngIf="hasAction('DUPLIQUER_EN_BROUILLON')"
+                          label="Dupliquer en brouillon" icon="pi pi-copy" severity="secondary"
+                          [outlined]="true" [loading]="actionLoading" (onClick)="dupliquerEnBrouillon()"></p-button>
 
                 <!-- Modifier -->
-                <p-button *ngIf="!isEnAttente && event?.status !== 'ANNULER' && event?.status !== 'TERMINE' && event?.status !== 'REJETE'"
+                <p-button *ngIf="hasAction('MODIFIER')"
                           label="Modifier" icon="pi pi-pencil" [outlined]="true"
                           (onClick)="editEvent()"></p-button>
 
@@ -411,6 +446,11 @@ import {
                 <p-button label="Liste émargement" icon="pi pi-download"
                           severity="secondary" [outlined]="true"
                           (onClick)="downloadAttendance()"></p-button>
+
+                <!-- Export calendrier -->
+                <p-button label="Ajouter à mon calendrier" icon="pi pi-calendar-plus"
+                          severity="secondary" [outlined]="true"
+                          (onClick)="downloadIcs()"></p-button>
             </div>
         </div>
 
@@ -727,16 +767,19 @@ export class EventDetailComponent implements OnInit {
     delegateDialogVisible    = false;
     observationDialogVisible = false;
     compteRenduDialogVisible = false;
+    demanderDelegationDialogVisible = false;
     validateComment   = '';
     changeSuggestions = '';
     rejectReason      = '';
-    delegueNom        = '';
-    delegueEmail      = '';
     delegueMotif      = '';
     observationText   = '';
     crPoints          = '';
     crDecisions       = '';
     crActions         = '';
+    demanderDelegationMotif = '';
+
+    selectedDelegue: any = null;
+    delegueSuggestions: any[] = [];
 
     showAllSchedules = false;
     @ViewChild('hiddenFileInput') hiddenFileInput!: ElementRef;
@@ -749,7 +792,8 @@ export class EventDetailComponent implements OnInit {
         private authService:         AuthService,
         private messageService:      MessageService,
         private confirmationService: ConfirmationService,
-        private sanitizer:           DomSanitizer
+        private sanitizer:           DomSanitizer,
+        private participantService:  ParticipantService
     ) {}
 
     ngOnInit(): void {
@@ -793,6 +837,26 @@ export class EventDetailComponent implements OnInit {
     get isCreator(): boolean {
         const email = this.authService.email;
         return !!email && email.toLowerCase() === ((this.event as any)?.creatorEmail || '').toLowerCase();
+    }
+
+    hasAction(action: string): boolean {
+        return !!this.event?.actionsDisponibles?.includes(action);
+    }
+
+    dupliquerEnBrouillon(): void {
+        if (!this.eventId) return;
+        this.actionLoading = true;
+        this.eventService.dupliquerEnBrouillon(this.eventId).subscribe({
+            next: (dup: any) => {
+                this.messageService.add({ severity: 'success', summary: 'Dupliqué', detail: 'Un nouveau brouillon a été créé à partir de cet événement.', life: 5000 });
+                this.actionLoading = false;
+                this.router.navigate(['/events', dup.id]);
+            },
+            error: (err: any) => {
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible de dupliquer' });
+                this.actionLoading = false;
+            }
+        });
     }
 
     get canWriteCompteRendu(): boolean { return this.isTermine && (this.canValidate || this.isCreator); }
@@ -973,22 +1037,57 @@ export class EventDetailComponent implements OnInit {
     }
 
     openDelegateDialog(): void {
-        this.delegueNom   = this.event?.delegueNom   || '';
-        this.delegueEmail = this.event?.delegueEmail || '';
+        this.selectedDelegue = this.event?.delegueNom
+            ? { firstName: this.event.delegueNom, lastName: '', email: this.event.delegueEmail, label: `${this.event.delegueNom} — ${this.event.delegueEmail}` }
+            : null;
+        this.delegueSuggestions = [];
         this.delegueMotif = this.event?.delegueMotif || '';
         this.delegateDialogVisible = true;
     }
 
+    onDelegueSearch(event: { query: string }): void {
+        const q = event.query?.trim();
+        if (!q) { this.delegueSuggestions = []; return; }
+        this.participantService.autocompleteParticipants(q).subscribe({
+            next: (results: Participant[]) => {
+                this.delegueSuggestions = results.map(p => ({ ...p, label: `${p.firstName} ${p.lastName} — ${p.email}` }));
+            },
+            error: () => { this.delegueSuggestions = []; }
+        });
+    }
+
     delegateParticipation(): void {
-        if (!this.eventId || !this.delegueNom.trim() || !this.delegueEmail.trim()) return;
+        if (!this.eventId || !this.selectedDelegue) return;
+        const nom = `${this.selectedDelegue.firstName} ${this.selectedDelegue.lastName}`.trim();
+        const email = this.selectedDelegue.email;
         this.actionLoading = true;
-        this.eventService.delegateParticipation(this.eventId, this.delegueNom, this.delegueEmail, this.delegueMotif).subscribe({
+        this.eventService.delegateParticipation(this.eventId, nom, email, this.delegueMotif).subscribe({
             next: () => {
-                this.messageService.add({ severity: 'success', summary: 'Délégation enregistrée', detail: `${this.delegueNom} désigné(e) comme délégué(e).`, life: 4000 });
+                this.messageService.add({ severity: 'success', summary: 'Délégation enregistrée', detail: `${nom} désigné(e) comme délégué(e), email envoyé.`, life: 4000 });
                 this.delegateDialogVisible = false; this.actionLoading = false; this.loadEvent();
             },
             error: (err: any) => {
                 this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible d\'enregistrer la délégation' });
+                this.actionLoading = false;
+            }
+        });
+    }
+
+    openDemanderDelegationDialog(): void {
+        this.demanderDelegationMotif = '';
+        this.demanderDelegationDialogVisible = true;
+    }
+
+    demanderDelegation(): void {
+        if (!this.eventId || !this.demanderDelegationMotif.trim()) return;
+        this.actionLoading = true;
+        this.eventService.demanderDelegation(this.eventId, this.demanderDelegationMotif).subscribe({
+            next: () => {
+                this.messageService.add({ severity: 'success', summary: 'Demande envoyée', detail: 'Le créateur a été invité à désigner un délégué.', life: 4000 });
+                this.demanderDelegationDialogVisible = false; this.actionLoading = false; this.loadEvent();
+            },
+            error: (err: any) => {
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible d\'envoyer la demande' });
                 this.actionLoading = false;
             }
         });
@@ -1083,6 +1182,21 @@ export class EventDetailComponent implements OnInit {
                 const url = window.URL.createObjectURL(blob);
                 const a   = document.createElement('a');
                 a.href = url; a.download = `liste_emargement_${this.eventId}.pdf`;
+                document.body.appendChild(a); a.click();
+                document.body.removeChild(a);
+                window.URL.revokeObjectURL(url);
+            },
+            error: () => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Échec du téléchargement', life: 3000 })
+        });
+    }
+
+    downloadIcs(): void {
+        if (!this.eventId) return;
+        this.eventService.exportIcs(this.eventId).subscribe({
+            next: (blob: Blob) => {
+                const url = window.URL.createObjectURL(blob);
+                const a   = document.createElement('a');
+                a.href = url; a.download = `evenement_${this.eventId}.ics`;
                 document.body.appendChild(a); a.click();
                 document.body.removeChild(a);
                 window.URL.revokeObjectURL(url);

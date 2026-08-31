@@ -16,10 +16,15 @@ import { ColorPickerModule } from 'primeng/colorpicker';
 import { ToggleSwitch }      from 'primeng/toggleswitch';
 import { Select }            from 'primeng/select';
 import { Textarea }          from 'primeng/textarea';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { DatePickerModule }  from 'primeng/datepicker';
 import { MessageService }    from 'primeng/api';
 
 import { environments }             from '../../../../environments/environments';
 import { SchedulerConfigService, SchedulerConfig } from '../../../service/scheduler-config.service';
+import { SlaConfigService, EventTypeSla } from '../../../service/sla-config.service';
+import { JourFerieService, JourFerie } from '../../../service/jour-ferie.service';
+import { EventTypeLabels } from '../../../models/enums';
 
 interface OrgConfig {
     id?:                       string;
@@ -41,6 +46,8 @@ interface OrgConfig {
     subjectEventUpdate:        string;
     subjectReminder:           string;
     subjectDelegation:         string;
+    subjectEventValidatedCreator:  string;
+    subjectEventValidatedProtocole:string;
     bodyInvitation:            string;
     bodyValidationRequest:     string;
     bodyNewDocument:           string;
@@ -52,6 +59,10 @@ interface OrgConfig {
     bodyEventUpdate:           string;
     bodyReminder:              string;
     bodyDelegation:            string;
+    bodyEventValidatedCreator:  string;
+    bodyEventValidatedProtocole:string;
+    heureDebutOuvrable?:       string;
+    heureFinOuvrable?:         string;
     updatedAt?:                string;
 }
 
@@ -74,7 +85,7 @@ interface EmailTemplate {
         ButtonModule, InputTextModule, TabsModule,
         DividerModule, ToastModule, DialogModule,
         SkeletonModule, TooltipModule, ColorPickerModule,
-        ToggleSwitch, Select, Textarea
+        ToggleSwitch, Select, Textarea, InputNumberModule, DatePickerModule
     ],
     providers: [MessageService],
     styleUrls: ['./org-config.css'],
@@ -109,6 +120,7 @@ interface EmailTemplate {
             <p-tab value="0"><i class="pi pi-building" style="margin-right:6px"></i>Organisation</p-tab>
             <p-tab value="1"><i class="pi pi-envelope" style="margin-right:6px"></i>Modèles d'emails</p-tab>
             <p-tab value="2"><i class="pi pi-bell" style="margin-right:6px"></i>Rappels automatiques</p-tab>
+            <p-tab value="3"><i class="pi pi-hourglass" style="margin-right:6px"></i>Délais de validation</p-tab>
         </p-tablist>
 
         <p-tabpanels>
@@ -143,6 +155,7 @@ interface EmailTemplate {
                                placeholder="Ex: Autorité Supérieure de Contrôle d'État..."
                                class="w-full" />
                     </div>
+
 
                     <div class="form-grid-2">
                         <div class="form-field">
@@ -351,6 +364,101 @@ interface EmailTemplate {
             </div>
         </p-tabpanel>
 
+        <p-tabpanel value="3">
+            <div class="form-section">
+                <h3 class="section-title">Plage horaire ouvrée</h3>
+                <p class="field-hint" style="margin-bottom:16px">
+                    Utilisée pour le calcul des échéances de validation et des relances (jours ouvrés = lundi-vendredi, hors jours fériés).
+                </p>
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label class="dlg-label">Début</label>
+                        <p-datepicker [(ngModel)]="heureDebutOuvrable" timeOnly="true" hourFormat="24" class="w-full" appendTo="body" />
+                    </div>
+                    <div class="form-field">
+                        <label class="dlg-label">Fin</label>
+                        <p-datepicker [(ngModel)]="heureFinOuvrable" timeOnly="true" hourFormat="24" class="w-full" appendTo="body" />
+                    </div>
+                </div>
+                <p-button label="Enregistrer les horaires" icon="pi pi-save" size="small"
+                          [loading]="savingHoraires" (onClick)="saveHorairesOuvres()" />
+            </div>
+
+            <p-divider />
+
+            <div class="form-section">
+                <h3 class="section-title">Délai de validation par type d'événement</h3>
+                <p class="field-hint" style="margin-bottom:16px">
+                    L'échéance de validation d'un événement soumis est le plus proche entre
+                    "soumission + délai en heures ouvrables" et "début de l'événement - délai avant événement".
+                </p>
+                <div *ngIf="loadingSla" class="skeleton-form">
+                    <p-skeleton height="44px" styleClass="mb-3" *ngFor="let i of [1,2,3,4]" />
+                </div>
+                <div *ngIf="!loadingSla" class="templates-list">
+                    <div *ngFor="let sla of slaList" class="template-row">
+                        <div class="template-top">
+                            <div class="template-meta">
+                                <div class="template-info">
+                                    <div class="template-label">{{ eventTypeLabels[sla.eventType] || sla.eventType }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-grid-2" style="margin-top:8px">
+                            <div class="form-field">
+                                <label class="dlg-label">Délai (heures ouvrables)</label>
+                                <p-inputNumber [(ngModel)]="sla.delaiHeuresOuvrables" [min]="1" class="w-full" />
+                            </div>
+                            <div class="form-field">
+                                <label class="dlg-label">Délai avant l'événement (heures)</label>
+                                <p-inputNumber [(ngModel)]="sla.delaiAvantEvenementHeures" [min]="1" class="w-full" />
+                            </div>
+                        </div>
+                        <div style="display:flex;justify-content:flex-end;margin-top:8px">
+                            <p-button label="Enregistrer" icon="pi pi-save" size="small"
+                                      [loading]="savingSla === sla.eventType"
+                                      (onClick)="saveSla(sla)" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <p-divider />
+
+            <div class="form-section">
+                <h3 class="section-title">Jours fériés</h3>
+                <p class="field-hint" style="margin-bottom:16px">
+                    Exclus du calcul des heures ouvrables pour les échéances de validation et les relances.
+                </p>
+                <div class="form-grid-2">
+                    <div class="form-field">
+                        <label class="dlg-label">Date</label>
+                        <p-datepicker [(ngModel)]="newJourFerieDate" dateFormat="dd/mm/yy" class="w-full" appendTo="body" />
+                    </div>
+                    <div class="form-field">
+                        <label class="dlg-label">Libellé <span class="dlg-opt">(optionnel)</span></label>
+                        <input pInputText [(ngModel)]="newJourFerieLibelle" class="w-full" placeholder="Ex: Fête de l'indépendance" />
+                    </div>
+                </div>
+                <p-button label="Ajouter" icon="pi pi-plus" size="small"
+                          [disabled]="!newJourFerieDate" [loading]="savingJourFerie"
+                          (onClick)="addJourFerie()" />
+
+                <div *ngIf="loadingJoursFeries" class="skeleton-form" style="margin-top:16px">
+                    <p-skeleton height="36px" styleClass="mb-2" *ngFor="let i of [1,2,3]" />
+                </div>
+                <div *ngIf="!loadingJoursFeries" class="jours-feries-list" style="margin-top:16px">
+                    <div *ngFor="let jf of joursFeries" class="jour-ferie-row">
+                        <span>{{ jf.date | date:'dd/MM/yyyy' }}</span>
+                        <span class="field-hint">{{ jf.libelle }}</span>
+                        <p-button icon="pi pi-trash" severity="danger" [text]="true" size="small"
+                                  (onClick)="deleteJourFerie(jf)" />
+                    </div>
+                    <div *ngIf="joursFeries.length === 0" class="field-hint">Aucun jour férié configuré</div>
+                </div>
+            </div>
+        </p-tabpanel>
+
         </p-tabpanels>
     </p-tabs>
 </div>
@@ -401,10 +509,12 @@ export class OrgConfigComponent implements OnInit {
         subjectRejected: '', subjectChangesRequested: '', subjectAmendmentsCorrected: '',
         subjectCancellation: '', subjectPostponement: '', subjectEventUpdate: '',
         subjectReminder: '', subjectDelegation: '',
+        subjectEventValidatedCreator: '', subjectEventValidatedProtocole: '',
         bodyInvitation: '', bodyValidationRequest: '', bodyNewDocument: '',
         bodyRejected: '', bodyChangesRequested: '', bodyAmendmentsCorrected: '',
         bodyCancellation: '', bodyPostponement: '', bodyEventUpdate: '',
-        bodyReminder: '', bodyDelegation: ''
+        bodyReminder: '', bodyDelegation: '',
+        bodyEventValidatedCreator: '', bodyEventValidatedProtocole: ''
     };
 
     emailTemplates: EmailTemplate[] = [
@@ -419,6 +529,8 @@ export class OrgConfigComponent implements OnInit {
         { key: 'event-update',        field: 'subjectEventUpdate',         bodyField: 'bodyEventUpdate',         label: 'Mise à jour',              icon: 'pi pi-refresh',         iconColor: '#607d8b', description: 'Modification d\'un événement déjà planifié', variables: ['evenement', 'date_debut', 'date_fin', 'lieu'] },
         { key: 'reminder',            field: 'subjectReminder',            bodyField: 'bodyReminder',            label: 'Rappel',                   icon: 'pi pi-clock',           iconColor: '#ff9800', description: 'Rappel automatique avant l\'événement', variables: ['evenement', 'date_debut', 'lieu'] },
         { key: 'delegation',          field: 'subjectDelegation',          bodyField: 'bodyDelegation',          label: 'Délégation',               icon: 'pi pi-user-edit',       iconColor: '#00bcd4', description: 'Notification de délégation de participation', variables: ['evenement'] },
+        { key: 'event-validated-creator',   field: 'subjectEventValidatedCreator',   bodyField: 'bodyEventValidatedCreator',   label: 'Événement validé (créateur)',  icon: 'pi pi-check-circle', iconColor: 'var(--cge-vert-moyen)', description: 'Copie de confirmation envoyée au créateur à la validation', variables: ['evenement'] },
+        { key: 'event-validated-protocole', field: 'subjectEventValidatedProtocole', bodyField: 'bodyEventValidatedProtocole', label: 'Événement validé (protocole)', icon: 'pi pi-shield',      iconColor: 'var(--cge-vert-moyen)', description: 'Envoyé à la cellule protocole à la validation', variables: ['evenement'] },
     ];
 
     loadingScheduler  = true;
@@ -499,18 +611,139 @@ export class OrgConfigComponent implements OnInit {
         private http:                   HttpClient,
         private messageService:         MessageService,
         private sanitizer:              DomSanitizer,
-        private schedulerConfigService: SchedulerConfigService
+        private schedulerConfigService: SchedulerConfigService,
+        private slaConfigService:       SlaConfigService,
+        private jourFerieService:       JourFerieService
     ) {}
 
     ngOnInit(): void {
         this.http.get<OrgConfig>(`${environments.apiUrl}/admin/config`).subscribe({
-            next:  (c) => { this.config = c; this.loading = false; },
+            next:  (c) => {
+                this.config = c;
+                this.heureDebutOuvrable = this.parseIsoTime(c.heureDebutOuvrable) || this.parseIsoTime('07:30:00');
+                this.heureFinOuvrable   = this.parseIsoTime(c.heureFinOuvrable)   || this.parseIsoTime('17:00:00');
+                this.loading = false;
+            },
             error: ()  => { this.loading = false; }
         });
         this.schedulerConfigService.getConfig().subscribe({
             next:  (c) => { this.schedulerConfig = c; this.loadingScheduler = false; },
             error: ()  => { this.loadingScheduler = false; }
         });
+        this.loadSla();
+        this.loadJoursFeries();
+    }
+
+    eventTypeLabels = EventTypeLabels;
+
+    heureDebutOuvrable: Date | null = null;
+    heureFinOuvrable: Date | null = null;
+    savingHoraires = false;
+
+    private parseIsoTime(value: string | null | undefined): Date | null {
+        if (!value) return null;
+        const [h, m] = value.split(':').map(Number);
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        return d;
+    }
+
+    private toIsoTime(d: Date): string {
+        return `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:00`;
+    }
+
+    saveHorairesOuvres(): void {
+        if (!this.heureDebutOuvrable || !this.heureFinOuvrable) return;
+        this.savingHoraires = true;
+        const payload = {
+            ...this.config,
+            heureDebutOuvrable: this.toIsoTime(this.heureDebutOuvrable),
+            heureFinOuvrable: this.toIsoTime(this.heureFinOuvrable)
+        };
+        this.http.put<OrgConfig>(`${environments.apiUrl}/admin/config`, payload).subscribe({
+            next: (c) => {
+                this.config = c;
+                this.savingHoraires = false;
+                this.messageService.add({ severity: 'success', summary: 'Enregistré', detail: 'Horaires ouvrés mis à jour', life: 3000 });
+            },
+            error: () => {
+                this.savingHoraires = false;
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible d\'enregistrer les horaires' });
+            }
+        });
+    }
+
+    slaList: EventTypeSla[] = [];
+    loadingSla = true;
+    savingSla: string | null = null;
+
+    joursFeries: JourFerie[] = [];
+    loadingJoursFeries = true;
+    newJourFerieDate: Date | null = null;
+    newJourFerieLibelle = '';
+    savingJourFerie = false;
+
+    loadSla(): void {
+        this.loadingSla = true;
+        this.slaConfigService.getAll().subscribe({
+            next:  (list) => { this.slaList = list; this.loadingSla = false; },
+            error: ()     => { this.loadingSla = false; }
+        });
+    }
+
+    saveSla(sla: EventTypeSla): void {
+        this.savingSla = sla.eventType;
+        this.slaConfigService.update(sla.eventType, sla).subscribe({
+            next: () => {
+                this.savingSla = null;
+                this.messageService.add({ severity: 'success', summary: 'Enregistré', detail: 'Délai mis à jour', life: 3000 });
+            },
+            error: () => {
+                this.savingSla = null;
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible d\'enregistrer le délai' });
+            }
+        });
+    }
+
+    loadJoursFeries(): void {
+        this.loadingJoursFeries = true;
+        this.jourFerieService.getAll().subscribe({
+            next:  (list) => { this.joursFeries = list; this.loadingJoursFeries = false; },
+            error: ()     => { this.loadingJoursFeries = false; }
+        });
+    }
+
+    addJourFerie(): void {
+        if (!this.newJourFerieDate) return;
+        this.savingJourFerie = true;
+        const date = this.toIsoDate(this.newJourFerieDate);
+        this.jourFerieService.create({ date, libelle: this.newJourFerieLibelle }).subscribe({
+            next: () => {
+                this.savingJourFerie = false;
+                this.newJourFerieDate = null;
+                this.newJourFerieLibelle = '';
+                this.loadJoursFeries();
+            },
+            error: () => {
+                this.savingJourFerie = false;
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible d\'ajouter ce jour férié' });
+            }
+        });
+    }
+
+    deleteJourFerie(jf: JourFerie): void {
+        if (!jf.id) return;
+        this.jourFerieService.delete(jf.id).subscribe({
+            next: () => { this.joursFeries = this.joursFeries.filter(j => j.id !== jf.id); },
+            error: () => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de supprimer' })
+        });
+    }
+
+    private toIsoDate(d: Date): string {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
     }
 
     save(): void {

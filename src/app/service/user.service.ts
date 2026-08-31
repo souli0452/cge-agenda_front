@@ -13,6 +13,7 @@ export interface KeycloakUser {
     emailVerified:    boolean;
     createdTimestamp: number;
     realmRoles?:      string[];
+    mfaRequired?:     boolean;
 }
 
 export interface KcRole {
@@ -29,6 +30,7 @@ export interface UserPayload {
     role:      string;
     enabled:   boolean;
     password?: string;
+    requireMfa?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

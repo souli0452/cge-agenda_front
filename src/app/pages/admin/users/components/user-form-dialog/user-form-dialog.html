@@ -1,7 +1,8 @@
 <p-dialog [(visible)]="visible"
           [modal]="true"
           [header]="editMode ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'"
-          [style]="{ width: '520px' }"
+          [style]="{ width: '720px' }"
+          [breakpoints]="{ '960px': '90vw' }"
           [draggable]="false"
           (onHide)="close()">
 
@@ -21,33 +22,41 @@
             </div>
         </div>
 
-        <div class="form-field">
-            <label class="field-label" for="uf-email">Email <span class="text-red-500">*</span></label>
-            <input pInputText id="uf-email" type="email" formControlName="email" class="w-full" />
-            @if (form.get('email')?.errors?.['email'] && form.get('email')?.touched) {
-                <small class="field-error">Format email invalide</small>
-            }
+        <div class="form-row-2">
+            <div class="form-field">
+                <label class="field-label" for="uf-email">Email <span class="text-red-500">*</span></label>
+                <input pInputText id="uf-email" type="email" formControlName="email" class="w-full" />
+                @if (form.get('email')?.errors?.['email'] && form.get('email')?.touched) {
+                    <small class="field-error">Format email invalide</small>
+                }
+            </div>
+            <div class="form-field">
+                <label class="field-label" for="uf-role">Rôle <span class="text-red-500">*</span></label>
+                <p-select id="uf-role" [options]="roleOptions" formControlName="role"
+                          placeholder="Sélectionner un rôle" class="w-full" appendTo="body">
+                </p-select>
+            </div>
         </div>
 
         @if (!editMode) {
-            <div class="form-field">
-                <label class="field-label" for="uf-username">Nom d'utilisateur <span class="text-red-500">*</span></label>
-                <input pInputText id="uf-username" formControlName="username" class="w-full" />
-            </div>
+            <div class="form-row-2">
+                <div class="form-field">
+                    <label class="field-label" for="uf-username">Nom d'utilisateur <span class="text-red-500">*</span></label>
+                    <input pInputText id="uf-username" formControlName="username" class="w-full" />
+                </div>
 
-            <div class="form-field">
-                <label class="field-label" for="uf-password">Mot de passe <span class="text-red-500">*</span></label>
-                <input pInputText id="uf-password" type="password" formControlName="password" class="w-full" />
-                <small class="field-hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Minimum 8 caractères</small>
+                <div class="form-field">
+                    <label class="field-label" for="uf-password">Mot de passe <span class="text-red-500">*</span></label>
+                    <div class="password-row">
+                        <input pInputText id="uf-password" type="text" formControlName="password" class="w-full" />
+                        <p-button label="Défaut" [text]="true" size="small"
+                                  pTooltip="Remplir avec le mot de passe par défaut (Asce@2026)"
+                                  (onClick)="useDefaultPassword()"></p-button>
+                    </div>
+                    <small class="field-hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Minimum 8 caractères — envoyé par email à l'utilisateur, à changer à la première connexion</small>
+                </div>
             </div>
         }
-
-        <div class="form-field">
-            <label class="field-label" for="uf-role">Rôle <span class="text-red-500">*</span></label>
-            <p-select id="uf-role" [options]="roleOptions" formControlName="role"
-                      placeholder="Sélectionner un rôle" class="w-full" appendTo="body">
-            </p-select>
-        </div>
 
         <div class="form-field">
             <label class="field-label">Statut du compte</label>
@@ -63,6 +72,13 @@
                     <i class="pi pi-times-circle" aria-hidden="true"></i> Inactif
                 </div>
             </div>
+        </div>
+
+        <div class="form-field">
+            <p-checkbox formControlName="requireMfa" [binary]="true" inputId="uf-mfa"></p-checkbox>
+            <label for="uf-mfa" class="ml-2">Exiger la double authentification (TOTP) à la prochaine connexion</label>
+            <br>
+            <small class="field-hint"><i class="pi pi-info-circle" aria-hidden="true"></i> L'utilisateur devra installer une application d'authentification (Google Authenticator, etc.) avant de pouvoir se connecter</small>
         </div>
     </form>
 

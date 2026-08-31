@@ -41,6 +41,26 @@
         <p>Commencez par définir l'événement : son titre, description et type.</p>
       </div>
 
+      <div class="form-group" *ngIf="!loadingEspaces && espaces.length === 0">
+        <div class="phase-intro" style="background:#fdecea;border-color:#f5c6cb;">
+          <i class="pi pi-exclamation-triangle" style="color:#b71c1c"></i>
+          <p>Vous n'êtes propriétaire ni gestionnaire d'aucun espace agenda. Contactez un administrateur.</p>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="espaces.length > 1">
+        <h3 class="group-title">
+          <i class="pi pi-briefcase"></i>
+          Espace agenda
+        </h3>
+        <div class="form-field">
+          <label class="field-label">Créer cet événement pour <span class="text-red-500">*</span></label>
+          <p-select [options]="espaces" formControlName="espaceId"
+                    optionLabel="nom" optionValue="id"
+                    placeholder="Choisir un espace" class="w-full" appendTo="body" />
+        </div>
+      </div>
+
       <div class="form-group">
         <h3 class="group-title">
           <i class="pi pi-bookmark"></i>

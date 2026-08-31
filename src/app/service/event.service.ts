@@ -105,10 +105,21 @@ export class EventService {
         return this.http.patch<Event>(`${this.apiUrl}/submit/${id}`, null);
     }
 
+    dupliquerEnBrouillon(id: string): Observable<Event> {
+        return this.http.post<Event>(`${this.apiUrl}/${id}/dupliquer`, null);
+    }
+
     addObservation(id: string, observation: string): Observable<Event> {
         const params = new HttpParams().set('observation', observation);
         return this.http.patch<Event>(
             `${this.apiUrl}/${id}/observation`, null, { params }
+        );
+    }
+
+    demanderDelegation(id: string, motif: string): Observable<Event> {
+        const params = new HttpParams().set('motif', motif);
+        return this.http.patch<Event>(
+            `${this.apiUrl}/${id}/demander-delegation`, null, { params }
         );
     }
 
@@ -182,6 +193,13 @@ export class EventService {
     generateAttendanceSheet(eventId: string): Observable<Blob> {
         return this.http.get(
             `${this.apiUrl}/attendance-sheet/${eventId}`,
+            { responseType: 'blob' }
+        );
+    }
+
+    exportIcs(eventId: string): Observable<Blob> {
+        return this.http.get(
+            `${this.apiUrl}/ical/${eventId}`,
             { responseType: 'blob' }
         );
     }

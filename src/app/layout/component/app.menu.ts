@@ -105,6 +105,11 @@ export class AppMenu implements OnInit {
                         label:      'Participants',
                         icon:       'pi pi-fw pi-users',
                         routerLink: ['/participants']
+                    },
+                    {
+                        label:      'Mon équipe',
+                        icon:       'pi pi-fw pi-user-plus',
+                        routerLink: ['/mon-equipe']
                     }
                 ]
             },
@@ -131,6 +136,16 @@ export class AppMenu implements OnInit {
                         label:      'Utilisateurs',
                         icon:       'pi pi-fw pi-id-card',
                         routerLink: ['/admin/users']
+                    },
+                    {
+                        label:      'Espaces',
+                        icon:       'pi pi-fw pi-briefcase',
+                        routerLink: ['/admin/espaces']
+                    },
+                    {
+                        label:      'Rôles & permissions',
+                        icon:       'pi pi-fw pi-shield',
+                        routerLink: ['/admin/permissions']
                     },
                     {
                         label:      'Journal d\'audit',

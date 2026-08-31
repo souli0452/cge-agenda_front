@@ -218,6 +218,11 @@ import {
                                 <i class="pi pi-exclamation-triangle"></i>
                                 Urgent — {{ getDaysUntilStart(rowEvent) }} jour(s)
                             </span>
+                            <span class="badge-champs-modifies" *ngIf="rowEvent.champsModifies"
+                                  [pTooltip]="'Resoumis après corrections'">
+                                <i class="pi pi-pencil"></i>
+                                Modifié : {{ rowEvent.champsModifies }}
+                            </span>
                         </div>
                     </td>
 
@@ -274,7 +279,7 @@ import {
                                       severity="secondary" size="small"
                                       pTooltip="Voir détails"
                                       (onClick)="viewEvent(rowEvent)" />
-                            <ng-container *ngIf="!isOwnEvent(rowEvent)">
+                            <ng-container *ngIf="hasAction(rowEvent, 'VALIDER')">
                                 <p-button icon="pi pi-check"
                                           [rounded]="true" [text]="true"
                                           severity="success" size="small"
@@ -291,7 +296,7 @@ import {
                                           pTooltip="Rejeter"
                                           (onClick)="openRejectDialog(rowEvent)" />
                             </ng-container>
-                            <span *ngIf="isOwnEvent(rowEvent)" class="text-xs text-muted-color" pTooltip="Vous ne pouvez pas valider votre propre événement">
+                            <span *ngIf="!hasAction(rowEvent, 'VALIDER')" class="text-xs text-muted-color" pTooltip="Vous ne pouvez pas valider votre propre événement">
                                 <i class="pi pi-lock"></i>
                             </span>
                         </div>
@@ -635,9 +640,8 @@ export class ValidationDashboardComponent implements OnInit {
         return labels[role || ''] || role || '—';
     }
 
-    isOwnEvent(event: Event): boolean {
-        const email = this.authService.email;
-        return !!email && email.toLowerCase() === ((event as any)?.creatorEmail || '').toLowerCase();
+    hasAction(event: Event, action: string): boolean {
+        return !!(event as any)?.actionsDisponibles?.includes(action);
     }
 
     getTypeLabel(type: string):    string      { return EventTypeLabels[type] || type; }

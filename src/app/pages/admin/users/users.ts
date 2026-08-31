@@ -31,6 +31,7 @@ interface UserFormData {
     password:  string;
     role:      string;
     enabled:   boolean;
+    requireMfa: boolean;
 }
 
 @Component({
@@ -624,7 +625,8 @@ export class AdminUsersComponent implements OnInit {
             lastName:  user.lastName   || '',
             password:  '',
             role:      this.getPrimaryRole(user),
-            enabled:   user.enabled
+            enabled:   user.enabled,
+            requireMfa: user.mfaRequired ?? false
         };
         this.userDialogVisible = true;
     }
@@ -638,7 +640,8 @@ export class AdminUsersComponent implements OnInit {
                 lastName:  data.lastName,
                 password:  data.password  || '',
                 role:      data.role,
-                enabled:   data.enabled
+                enabled:   data.enabled,
+                requireMfa: data.requireMfa
             };
             this.saveUser();
         } else {
@@ -649,7 +652,8 @@ export class AdminUsersComponent implements OnInit {
                 lastName:  data.lastName,
                 password:  data.password,
                 role:      data.role,
-                enabled:   data.enabled
+                enabled:   data.enabled,
+                requireMfa: data.requireMfa
             };
             this.saveUser();
         }
@@ -671,7 +675,8 @@ export class AdminUsersComponent implements OnInit {
             firstName: this.userForm.firstName,
             lastName:  this.userForm.lastName,
             enabled:   this.userForm.enabled,
-            role:      this.userForm.role
+            role:      this.userForm.role,
+            requireMfa: this.userForm.requireMfa
         };
 
         if (!this.editMode) {
@@ -925,7 +930,7 @@ export class AdminUsersComponent implements OnInit {
             username: '', email: '',
             firstName: '', lastName: '',
             password: '', role: 'SECRETAIRE',
-            enabled: true
+            enabled: true, requireMfa: false
         };
     }
 

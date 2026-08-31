@@ -190,17 +190,29 @@
               <label class="field-label">
                 Pays <span class="text-red-500">*</span>
               </label>
-              <input pInputText formControlName="pays"
-                     placeholder="Ex: Côte d'Ivoire, France, Maroc..."
-                     class="w-full" />
+              <p-select [options]="countries"
+                        formControlName="pays"
+                        optionLabel="label" optionValue="value"
+                        placeholder="Sélectionnez le pays"
+                        [filter]="true" filterPlaceholder="Rechercher..."
+                        styleClass="w-full"
+                        (onChange)="onCountryChange($event)" />
             </div>
             <div class="grid-2-cols">
               <div class="form-field">
                 <label class="field-label">
                   Ville <span class="text-red-500">*</span>
                 </label>
-                <input pInputText formControlName="ville"
-                       placeholder="Ex: Abidjan, Paris, Rabat..."
+                <p-select *ngIf="hasCities()"
+                          [options]="cities"
+                          formControlName="ville"
+                          optionLabel="label" optionValue="value"
+                          placeholder="Sélectionnez la ville"
+                          [filter]="true"
+                          styleClass="w-full" />
+                <input *ngIf="!hasCities()" pInputText
+                       formControlName="ville"
+                       placeholder="Saisissez la ville"
                        class="w-full" />
               </div>
               <div class="form-field">

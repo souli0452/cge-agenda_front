@@ -89,6 +89,40 @@ export const appRoutes: Routes = [
                 data: { roles: ['ADMIN'], breadcrumb: 'Administration,Utilisateurs' }
             },
             {
+                path: 'admin/espaces',
+                loadComponent: () =>
+                    import('./app/pages/admin/espaces/espaces')
+                        .then(m => m.AdminEspacesComponent),
+                canActivate: [AuthGuard],
+                data: { roles: ['ADMIN'], breadcrumb: 'Administration,Espaces' }
+            },
+            {
+                path: 'mon-equipe',
+                loadComponent: () =>
+                    import('./app/pages/espace-equipe/mon-equipe-redirect')
+                        .then(m => m.MonEquipeRedirectComponent),
+                canActivate: [AuthGuard],
+                data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET', 'PROTOCOLE', 'SECRETAIRE'],
+                        breadcrumb: 'Mon équipe' }
+            },
+            {
+                path: 'espaces/:id/equipe',
+                loadComponent: () =>
+                    import('./app/pages/espace-equipe/espace-equipe')
+                        .then(m => m.EspaceEquipeComponent),
+                canActivate: [AuthGuard],
+                data: { roles: ['ADMIN', 'CGE', 'DIRECTEUR_CABINET', 'PROTOCOLE', 'SECRETAIRE'],
+                        breadcrumb: 'Mon équipe' }
+            },
+            {
+                path: 'admin/permissions',
+                loadComponent: () =>
+                    import('./app/pages/admin/permissions/role-permissions')
+                        .then(m => m.RolePermissionsComponent),
+                canActivate: [AuthGuard],
+                data: { roles: ['ADMIN'], breadcrumb: 'Administration,Rôles & permissions' }
+            },
+            {
                 path: 'admin/audit',
                 loadComponent: () =>
                     import('./app/pages/admin/audit/audit-log')

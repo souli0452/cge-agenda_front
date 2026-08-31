@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
 import { KeycloakService } from 'keycloak-angular';
 import { environments } from '../../environments/environments';
+import { PermissionService } from './permission.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
 
-    constructor(private keycloak: KeycloakService) {}
+    constructor(private keycloak: KeycloakService, private permissionService: PermissionService) {}
     hasRole(role: string): boolean {
         return this.keycloak.isUserInRole(role);
     }
@@ -24,38 +25,38 @@ export class AuthService {
     get isSecretaire(): boolean { return this.hasRole('SECRETAIRE'); }
     get isDelegue():    boolean { return this.hasRole('DELEGUE'); }
     get isUser():       boolean { return this.hasRole('USER'); }
+
+    /**
+     * Droits calculés à partir des permissions dynamiques (table role_permission,
+     * éditable dans l'écran admin "Rôles & permissions"), résolues au démarrage
+     * via PermissionService.chargerMesPermissions() (voir keycloak-init.factory.ts).
+     */
     get canCreateEvent(): boolean {
-        return this.hasAnyRole(
-            'ADMIN', 'CGE',
-            'DIRECTEUR_CABINET', 'PROTOCOLE', 'SECRETAIRE'
-        );
+        return this.permissionService.has('EVENT_CREATE');
     }
 
     get canEditEvent(): boolean {
-        return this.hasAnyRole(
-            'ADMIN', 'CGE',
-            'DIRECTEUR_CABINET', 'PROTOCOLE', 'SECRETAIRE'
-        );
+        return this.permissionService.has('EVENT_EDIT');
     }
 
     get canValidateEvent(): boolean {
-        return this.hasAnyRole('ADMIN', 'CGE');
+        return this.permissionService.has('EVENT_VALIDATE');
     }
 
     get canDeleteEvent(): boolean {
-        return this.hasRole('ADMIN');
+        return this.permissionService.has('EVENT_DELETE');
     }
 
     get canCancelOrPostpone(): boolean {
-        return this.hasAnyRole('ADMIN', 'CGE', 'DIRECTEUR_CABINET');
+        return this.permissionService.has('EVENT_CANCEL_POSTPONE');
     }
 
     get canDelegate(): boolean {
-        return this.hasAnyRole('ADMIN', 'CGE');
+        return this.permissionService.has('EVENT_DELEGATE');
     }
 
     get canExportPdf(): boolean {
-        return this.hasAnyRole('ADMIN', 'CGE', 'DIRECTEUR_CABINET');
+        return this.permissionService.has('EVENT_EXPORT_PDF');
     }
 
     get isReadOnly(): boolean {

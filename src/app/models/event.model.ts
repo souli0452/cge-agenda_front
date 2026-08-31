@@ -26,6 +26,7 @@ export interface Event {
     participants?: Participant[];
     structures?: string[];
     changeSuggestions?: string;
+    champsModifies?: string;
     rejectionReason?: string;
     validationComment?: string;
     creatorEmail?: string;
@@ -37,4 +38,9 @@ export interface Event {
     estDelegue?: boolean;
     delegueDate?: string;
     delegueParEmail?: string;
+    dupliqueeDeId?: string;
+    actionsDisponibles?: string[];
+    delegationConfirmee?: boolean | null;
+    observationType?: 'CORRECTION' | 'DELEGATION_DEMANDEE';
+    espaceId?: string;
 }

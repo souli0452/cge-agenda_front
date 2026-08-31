@@ -49,6 +49,7 @@ import { ViewModeToggleComponent } from '../../shared/view-mode-toggle/view-mode
 import { EventRowActionsComponent } from './components/event-row-actions/event-row-actions';
 import { environments } from '../../../environments/environments';
 import { AgendaYearService } from '../../service/agenda-year.service';
+import { EspaceContextService } from '../../service/espace-context.service';
 
 @Component({
     selector: 'app-event-list',
@@ -682,12 +683,17 @@ export class EventListComponent implements OnInit, OnDestroy {
         private confirmationService: ConfirmationService,
         private messageService:      MessageService,
         private agendaYearService:   AgendaYearService,
+        private espaceContextService: EspaceContextService,
         private exportService:       ExportService,
         private destroyRef:          DestroyRef
     ) {
         effect(() => {
             const _year = this.agendaYearService.year();
             if (this.eventsLoaded) this.loadEvents();
+        });
+        effect(() => {
+            const _espace = this.espaceContextService.espaceActif();
+            if (this.eventsLoaded) this.applyFilters();
         });
     }
 
@@ -1102,21 +1108,22 @@ export class EventListComponent implements OnInit, OnDestroy {
 
     applyFilters(): void {
         this.mobilePage = 0;
+        const espaceActif = this.espaceContextService.espaceActif();
         this.filteredEvents = this.events.filter(event => {
             const kw = this.searchKeyword?.toLowerCase();
             const matchesKeyword = !kw || event.title.toLowerCase().includes(kw) || event.description?.toLowerCase().includes(kw);
             const matchesType    = !this.selectedType   || event.type   === this.selectedType;
             const matchesStatus  = !this.selectedStatus || event.status === this.selectedStatus;
-            return matchesKeyword && matchesType && matchesStatus;
+            const matchesEspace  = !espaceActif || event.espaceId === espaceActif;
+            return matchesKeyword && matchesType && matchesStatus && matchesEspace;
         });
     }
 
     resetFilters(): void {
-        this.mobilePage     = 0;
         this.searchKeyword  = '';
         this.selectedType   = null;
         this.selectedStatus = null;
-        this.filteredEvents = this.events;
+        this.applyFilters();
     }
 
     get mobileEvents(): Event[] {

@@ -6,6 +6,8 @@ import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { DividerModule } from 'primeng/divider';
+import { TooltipModule } from 'primeng/tooltip';
+import { CheckboxModule } from 'primeng/checkbox';
 
 const ROLE_OPTIONS = [
     { label: 'Administrateur',      value: 'ADMIN' },
@@ -23,9 +25,13 @@ const ROLE_OPTIONS = [
     imports: [
         CommonModule, ReactiveFormsModule,
         Dialog, ButtonModule, InputTextModule,
-        SelectModule, DividerModule
+        SelectModule, DividerModule, TooltipModule, CheckboxModule
     ],
-    templateUrl: './user-form-dialog.html'
+    templateUrl: './user-form-dialog.html',
+    styles: [`
+        .password-row { display: flex; align-items: center; gap: 6px; }
+        .password-row input { flex: 1; }
+    `]
 })
 export class UserFormDialogComponent implements OnChanges {
     @Input() user:     any | null = null;
@@ -57,8 +63,16 @@ export class UserFormDialogComponent implements OnChanges {
             role:      [user?.realmRoles?.[0] || user?.roles?.[0] || '', Validators.required],
             enabled:   [user?.enabled ?? true],
             password:  [{ value: '', disabled: this.editMode },
-                        this.editMode ? [] : [Validators.required, Validators.minLength(8)]]
+                        this.editMode ? [] : [Validators.required, Validators.minLength(8)]],
+            requireMfa: [user?.mfaRequired ?? false]
         });
+    }
+
+    readonly defaultPassword = 'Asce@2026';
+
+    useDefaultPassword(): void {
+        this.form.get('password')?.setValue(this.defaultPassword);
+        this.form.get('password')?.markAsDirty();
     }
 
     submit(): void {

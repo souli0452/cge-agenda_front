@@ -7,18 +7,19 @@ import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '../service/layout.service';
 import { MenuModule } from 'primeng/menu';
 import { AvatarModule } from 'primeng/avatar';
+import { PopoverModule, Popover } from 'primeng/popover';
 import { KeycloakService } from 'keycloak-angular';
 import { AuthService } from '../../service/auth.service';
-import { EventService } from '../../service/event.service';
 import { AgendaYearService } from '../../service/agenda-year.service';
-import { EventStatus } from '../../models/enums';
+import { EspaceContextService } from '../../service/espace-context.service';
+import { NotificationService, AppNotification } from '../../service/notification.service';
 import { Subscription, interval, of } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator, MenuModule, AvatarModule],
+    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator, MenuModule, AvatarModule, PopoverModule],
     styles: [`
         // Styles pour le logo dans la topbar
         .layout-topbar-logo {
@@ -148,6 +149,75 @@ import { startWith, switchMap, catchError } from 'rxjs/operators';
             to   { transform: scale(1); }
         }
 
+        .notif-panel {
+            display: flex;
+            flex-direction: column;
+            max-height: 420px;
+        }
+        .notif-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--surface-200, #e4e4e7);
+        }
+        .notif-mark-all {
+            background: none;
+            border: none;
+            color: var(--p-primary-color, #009640);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+        }
+        .notif-panel-body {
+            overflow-y: auto;
+        }
+        .notif-empty {
+            padding: 1.5rem 1rem;
+            text-align: center;
+            color: var(--text-color-secondary);
+            font-size: 0.85rem;
+        }
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.65rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--surface-100, #f4f4f5);
+            transition: background 0.15s;
+        }
+        .notif-item:hover {
+            background: var(--surface-100, #f4f4f5);
+        }
+        .notif-item--unread {
+            background: var(--surface-50, #fafafa);
+        }
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+        .notif-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .notif-message {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 2px;
+            white-space: normal;
+        }
+        .notif-date {
+            font-size: 0.72rem;
+            color: var(--text-color-secondary);
+        }
+
         /* ── Sélecteur d'année ───────────────────────────────── */
         .year-selector {
             display:       flex;
@@ -210,6 +280,31 @@ import { startWith, switchMap, catchError } from 'rxjs/operators';
             padding:        1px 4px;
             margin-left:    2px;
         }
+
+        /* ── Sélecteur d'espace ──────────────────────────────── */
+        .espace-selector {
+            display:       flex;
+            align-items:   center;
+            gap:           6px;
+            background:    var(--surface-100, #f4f4f5);
+            border:        1px solid var(--surface-200, #e4e4e7);
+            border-radius: 6px;
+            padding:       2px 8px;
+        }
+        .espace-selector i {
+            font-size: 0.8rem;
+            color:     var(--text-color-secondary);
+        }
+        .espace-select {
+            border:      none;
+            background:  transparent;
+            font-size:   0.8rem;
+            font-weight: 600;
+            color:       var(--text-color);
+            max-width:   160px;
+            cursor:      pointer;
+            outline:     none;
+        }
     `],
     template: `
         <div class="layout-topbar">
@@ -271,16 +366,53 @@ import { startWith, switchMap, catchError } from 'rxjs/operators';
             </button>
         </div>
 
-        <!-- Badge notification événements en attente — visible CGE / ADMIN uniquement -->
-        <a *ngIf="authService.canValidateEvent"
-           routerLink="/validation"
-           class="layout-topbar-action notification-bell"
-           [attr.aria-label]="pendingCount > 0 ? pendingCount + ' événement(s) en attente de validation' : 'Validation CGE'">
+        <!-- Sélecteur d'espace (utilisateurs membres de plusieurs espaces) -->
+        <div class="espace-selector" *ngIf="espaceContextService.mesEspaces().length > 1"
+             title="Filtrer par espace">
+            <i class="pi pi-sitemap" aria-hidden="true"></i>
+            <select class="espace-select" [value]="espaceContextService.espaceActif() || ''"
+                    (change)="onEspaceChange($event)" aria-label="Espace actif">
+                <option value="">Tous mes espaces</option>
+                <option *ngFor="let e of espaceContextService.mesEspaces()" [value]="e.id">{{ e.nom }}</option>
+            </select>
+        </div>
+
+        <!-- Notifications -->
+        <button type="button"
+                class="layout-topbar-action notification-bell"
+                (click)="toggleNotifications($event, notifPanel)"
+                [attr.aria-label]="unreadCount > 0 ? unreadCount + ' notification(s) non lue(s)' : 'Notifications'">
             <i class="pi pi-bell" aria-hidden="true"></i>
-            <span *ngIf="pendingCount > 0" class="notification-badge" aria-hidden="true">
-                {{ pendingCount > 99 ? '99+' : pendingCount }}
+            <span *ngIf="unreadCount > 0" class="notification-badge" aria-hidden="true">
+                {{ unreadCount > 99 ? '99+' : unreadCount }}
             </span>
-        </a>
+        </button>
+
+<p-popover #notifPanel appendTo="body" [style]="{width: '380px'}">
+    <div class="notif-panel">
+        <div class="notif-panel-header">
+            <span>Notifications</span>
+            <button type="button" class="notif-mark-all" *ngIf="unreadCount > 0" (click)="marquerToutesLues()">
+                Tout marquer lu
+            </button>
+        </div>
+        <div class="notif-panel-body">
+            <div *ngIf="loadingNotifications" class="notif-empty">Chargement…</div>
+            <div *ngIf="!loadingNotifications && notifications.length === 0" class="notif-empty">
+                Aucune notification
+            </div>
+            <div *ngFor="let n of notifications"
+                 class="notif-item" [class.notif-item--unread]="!n.lue"
+                 (click)="openNotification(n, notifPanel)">
+                <span class="notif-dot" *ngIf="!n.lue"></span>
+                <div class="notif-item-content">
+                    <p class="notif-message">{{ n.message }}</p>
+                    <span class="notif-date">{{ n.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</p-popover>
 
 <p-menu #menu [popup]="true" [model]="items" appendTo="body"></p-menu>
 
@@ -309,7 +441,9 @@ export class AppTopbar implements OnInit, OnDestroy {
 
     public user: any = { firstName: '', lastName: '' };
     items: MenuItem[] | undefined;
-    pendingCount = 0;
+    unreadCount = 0;
+    notifications: AppNotification[] = [];
+    loadingNotifications = false;
 
     private pollSub?: Subscription;
 
@@ -317,10 +451,16 @@ export class AppTopbar implements OnInit, OnDestroy {
         public layoutService:    LayoutService,
         private keycloakService: KeycloakService,
         public authService:      AuthService,
-        private eventService:    EventService,
+        private notificationService: NotificationService,
         public agendaYearService: AgendaYearService,
+        public espaceContextService: EspaceContextService,
         private router:          Router
     ) {}
+
+    onEspaceChange(event: Event): void {
+        const value = (event.target as HTMLSelectElement).value;
+        this.espaceContextService.setEspaceActif(value || null);
+    }
 
     async ngOnInit() {
         try {
@@ -341,18 +481,43 @@ export class AppTopbar implements OnInit, OnDestroy {
             { label: 'Déconnexion',   icon: 'pi pi-sign-out', command: () => this.keycloakService.logout() }
         ];
 
-        if (this.authService.canValidateEvent) {
-            this.pollSub = interval(60_000).pipe(
-                startWith(0),
-                switchMap(() => this.eventService.getAllEvents().pipe(catchError(() => of(null))))
-            ).subscribe(events => {
-                if (events !== null) {
-                    this.pendingCount = events.filter(
-                        e => e.status === EventStatus.EN_ATTENTE_VALIDATION
-                    ).length;
-                }
+        this.pollSub = interval(60_000).pipe(
+            startWith(0),
+            switchMap(() => this.notificationService.countNonLues().pipe(catchError(() => of(null))))
+        ).subscribe(count => {
+            if (count !== null) {
+                this.unreadCount = count;
+            }
+        });
+    }
+
+    toggleNotifications(event: Event, panel: Popover): void {
+        panel.toggle(event);
+        this.loadingNotifications = true;
+        this.notificationService.getMesNotifications().subscribe({
+            next: (list) => { this.notifications = list; this.loadingNotifications = false; },
+            error: () => { this.loadingNotifications = false; }
+        });
+    }
+
+    openNotification(notif: AppNotification, panel: Popover): void {
+        if (!notif.lue) {
+            this.notificationService.marquerLue(notif.id).subscribe(() => {
+                notif.lue = true;
+                this.unreadCount = Math.max(0, this.unreadCount - 1);
             });
         }
+        panel.hide();
+        if (notif.eventId) {
+            this.router.navigate(['/events', notif.eventId]);
+        }
+    }
+
+    marquerToutesLues(): void {
+        this.notificationService.marquerToutesLues().subscribe(() => {
+            this.notifications.forEach(n => n.lue = true);
+            this.unreadCount = 0;
+        });
     }
 
     ngOnDestroy(): void {

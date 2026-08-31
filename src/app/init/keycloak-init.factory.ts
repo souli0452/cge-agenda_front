@@ -1,8 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { KeycloakService } from 'keycloak-angular';
 import { environments } from '../../environments/environments';
+import { PermissionService } from '../service/permission.service';
+import { EspaceContextService } from '../service/espace-context.service';
 
-export function initializeKeycloak(keycloak: KeycloakService, http: HttpClient) {
+export function initializeKeycloak(keycloak: KeycloakService, http: HttpClient, permissionService: PermissionService, espaceContextService: EspaceContextService) {
     return () =>
         keycloak.init({
             config: {
@@ -29,6 +31,9 @@ export function initializeKeycloak(keycloak: KeycloakService, http: HttpClient) 
             if (authenticated) {
                 http.post(`${environments.apiUrl}/auth/track-login`, null)
                     .subscribe({ error: () => {} });
+                espaceContextService.charger();
+                return permissionService.chargerMesPermissions().toPromise();
             }
+            return undefined;
         });
 }
