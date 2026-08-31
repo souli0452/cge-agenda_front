@@ -158,3 +158,77 @@
     overflow: hidden;
     transition: max-height 1s ease-in-out;
 }
+
+/* ============================================================
+   SIDEBAR ASCE-LC — Identité visuelle verte (#009640)
+   ============================================================ */
+.layout-sidebar {
+    background: linear-gradient(180deg,
+        #009640 0%,
+        #008539 60%,
+        #006e2f 100%
+    ) !important;
+    border: none !important;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
+}
+
+.layout-sidebar .layout-menu {
+
+    /* Labels de section (catégories) */
+    .layout-root-menuitem > .layout-menuitem-root-text {
+        color: rgba(255, 255, 255, 0.50);
+        font-size: 0.68rem;
+        letter-spacing: 0.12em;
+        font-weight: 700;
+        padding-left: 0.25rem;
+    }
+
+    /* Liens de navigation */
+    ul a {
+        color: rgba(255, 255, 255, 0.88);
+        border-radius: 8px;
+        transition: background-color 0.15s ease, box-shadow 0.15s ease;
+
+        .layout-menuitem-icon {
+            color: rgba(255, 255, 255, 0.65);
+            transition: color 0.15s ease;
+        }
+
+        .layout-menuitem-text { color: rgba(255, 255, 255, 0.88); }
+
+        /* Hover */
+        &:hover {
+            background-color: rgba(255, 255, 255, 0.14);
+            color: #ffffff;
+            .layout-menuitem-icon { color: #FCD116; }
+            .layout-menuitem-text { color: #ffffff; }
+        }
+
+        /* Route active */
+        &.active-route {
+            background-color: rgba(0, 0, 0, 0.18);
+            box-shadow: inset 3px 0 0 #FCD116;
+            color: #ffffff;
+            font-weight: 700;
+            .layout-menuitem-icon { color: #FCD116; }
+            .layout-menuitem-text { color: #ffffff; }
+        }
+
+        /* Focus clavier */
+        &:focus-visible {
+            outline: 2px solid rgba(255, 255, 255, 0.60);
+            outline-offset: -2px;
+        }
+    }
+}
+
+.layout-sidebar .menu-separator {
+    border-top: 1px solid rgba(255, 255, 255, 0.14);
+    margin: 0.375rem 0.5rem;
+}
+
+@media (min-width: 992px) {
+    .layout-wrapper.layout-overlay .layout-sidebar {
+        border-right: none !important;
+    }
+}

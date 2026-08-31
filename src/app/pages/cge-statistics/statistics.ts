@@ -1,23 +1,17 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
-// PrimeNG
 import { Card } from 'primeng/card';
 import { Button } from 'primeng/button';
 import { ChartModule } from 'primeng/chart';
 import { Select } from 'primeng/select';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
-
-// Services
 import { StatsService } from '../../service/stats.service';
 import { DashboardStats } from '../../models';
 import { EventService } from '../../service/event.service';
 import { ParticipantService } from '../../service/participant.service';
 import { Event, Participant, EventTypeLabels, EventStatusLabels } from '../../models';
-
-// PDF
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
@@ -54,17 +48,12 @@ export class CgeStatisticsComponent implements OnInit {
         totalGlobal: 0
     };
     
-    // Données locales
     events: Event[] = [];
     participants: Participant[] = [];
-    
-    // Charts
     typeChartData: any;
     statusChartData: any;
     monthlyChartData: any;
     chartOptions: any;
-
-    // Filtres
     selectedYear: number = new Date().getFullYear();
     yearOptions: { label: string; value: number }[] = [];
 
@@ -119,9 +108,7 @@ export class CgeStatisticsComponent implements OnInit {
             this.stats = stats || null;
             this.events = events || [];
             this.participants = participants || [];
-            
-            console.log(`📊 Chargé: ${this.events.length} événements totaux`);
-            
+
             this.calculateLocalStats();
             this.prepareCharts();
             this.loading = false;
@@ -138,15 +125,10 @@ export class CgeStatisticsComponent implements OnInit {
 
     
     calculateLocalStats(): void {
-        console.log(`🔍 Calcul stats pour l'année ${this.selectedYear}`);
-        
-        
         const filteredEvents = this.events.filter(e => {
             const eventYear = new Date(e.startDate).getFullYear();
             return eventYear === this.selectedYear;
         });
-
-        console.log(`📋 ${filteredEvents.length} événements trouvés pour ${this.selectedYear}`);
 
         this.yearStats.totalEvents = filteredEvents.length;
         
@@ -183,13 +165,6 @@ export class CgeStatisticsComponent implements OnInit {
         this.topParticipants = Object.values(participantCount)
             .sort((a, b) => b.count - a.count)
             .slice(0, 10);
-        
-        console.log(`📊 Stats ${this.selectedYear}:`, {
-            événements: this.yearStats.totalEvents,
-            participants: this.yearStats.totalParticipants,
-            àVenir: this.yearStats.upcomingEvents,
-            topParticipants: this.topParticipants.length
-        });
     }
 
     prepareCharts(): void {
@@ -208,8 +183,8 @@ export class CgeStatisticsComponent implements OnInit {
         );
         const typeData = Object.values(typeCount);
         const typeColors = [
-            '#3B82F6', '#8B5CF6', '#10B981', '#F59E0B', 
-            '#EF4444', '#EC4899', '#6B7280'
+            '#009640', '#008539', '#006e2f', '#005122',
+            '#2da861', '#5fbd87', '#90d1ac', '#bce4cd'
         ];
 
         this.typeChartData = {
@@ -232,7 +207,7 @@ export class CgeStatisticsComponent implements OnInit {
             status => EventStatusLabels[status] || status
         );
         const statusData = Object.values(statusCount);
-        const statusColors = ['#3B82F6', '#F59E0B', '#10B981', '#EF4444', '#6B7280'];
+        const statusColors = ['#009640', '#008539', '#006e2f', '#2da861', '#90d1ac'];
 
         this.statusChartData = {
             labels: statusLabels,
@@ -251,8 +226,6 @@ export class CgeStatisticsComponent implements OnInit {
             monthlyData[month]++;
         });
 
-        console.log(`📊 Données mensuelles ${this.selectedYear}:`, monthlyData);
-
         this.monthlyChartData = {
             labels: [
                 'Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin',
@@ -261,8 +234,8 @@ export class CgeStatisticsComponent implements OnInit {
             datasets: [{
                 label: `Événements ${this.selectedYear}`,
                 data: monthlyData,
-                backgroundColor: 'rgba(34, 139, 34, 0.2)',
-                borderColor: '#228B22',
+                backgroundColor: 'rgba(0, 150, 64, 0.15)',
+                borderColor: '#009640',
                 borderWidth: 3,
                 fill: true,
                 tension: 0.4
@@ -271,7 +244,6 @@ export class CgeStatisticsComponent implements OnInit {
     }
 
     onYearChange(): void {
-        console.log(`🔄 Changement d'année vers: ${this.selectedYear}`);
         this.calculateLocalStats();
         this.prepareCharts();
     }
@@ -283,17 +255,17 @@ export class CgeStatisticsComponent implements OnInit {
         doc.setFont('helvetica');
 
         // Header
-        doc.setFillColor(34, 139, 34);
+        doc.setFillColor(0, 150, 64);
         doc.rect(0, 0, 210, 40, 'F');
 
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(24);
         doc.setFont('helvetica', 'bold');
-        doc.text('Statistiques des Evenements', 105, 20, { align: 'center' });
+        doc.text('Statistiques des Événements', 105, 20, { align: 'center' });
 
         doc.setFontSize(12);
         doc.setFont('helvetica', 'normal');
-        doc.text(`Annee : ${this.selectedYear}`, 105, 30, { align: 'center' });
+        doc.text(`Année : ${this.selectedYear}`, 105, 30, { align: 'center' });
 
         // Stats générales
         let yPos = 50;
@@ -307,10 +279,10 @@ export class CgeStatisticsComponent implements OnInit {
         doc.setFont('helvetica', 'normal');
 
         const generalStats = [
-            [`Total evenements ${this.selectedYear}`, this.yearStats.totalEvents.toString()],
+            [`Total événements ${this.selectedYear}`, this.yearStats.totalEvents.toString()],
             [`Total participants actifs`, this.yearStats.totalParticipants.toString()],
-            [`Evenements a venir`, this.yearStats.upcomingEvents.toString()],
-            [`Total global (toutes annees)`, this.yearStats.totalGlobal.toString()]
+            [`Événements à venir`, this.yearStats.upcomingEvents.toString()],
+            [`Total global (toutes années)`, this.yearStats.totalGlobal.toString()]
         ];
 
         autoTable(doc, {
@@ -332,7 +304,7 @@ export class CgeStatisticsComponent implements OnInit {
         // Événements par type
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text('Repartition par type', 20, yPos);
+        doc.text('Répartition par type', 20, yPos);
 
         yPos += 10;
         
@@ -358,7 +330,7 @@ export class CgeStatisticsComponent implements OnInit {
                 theme: 'striped',
                 styles: { font: 'helvetica' },
                 headStyles: { 
-                    fillColor: [34, 139, 34],
+                    fillColor: [0, 150, 64],
                     font: 'helvetica',
                     fontStyle: 'bold'
                 }
@@ -379,13 +351,13 @@ export class CgeStatisticsComponent implements OnInit {
             ]);
 
             autoTable(doc, {
-                head: [['Participant', 'Evenements']],
+                head: [['Participant', 'Événements']],
                 body: participantData,
                 startY: yPos,
                 theme: 'grid',
                 styles: { font: 'helvetica' },
                 headStyles: { 
-                    fillColor: [34, 139, 34],
+                    fillColor: [0, 150, 64],
                     font: 'helvetica',
                     fontStyle: 'bold'
                 }
@@ -411,8 +383,8 @@ export class CgeStatisticsComponent implements OnInit {
 
         this.messageService.add({
             severity: 'success',
-            summary: 'Export reussi',
-            detail: `Statistiques ${this.selectedYear} exportees en PDF`
+            summary: 'Export réussi',
+            detail: `Statistiques ${this.selectedYear} exportées en PDF`
         });
     }
 }

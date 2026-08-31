@@ -1,0 +1,274 @@
+<button *ngIf="!isProd" class="db-grid-toggle" (click)="toggleGrid()" [attr.aria-pressed]="gridVisible"
+        pTooltip="Alt+G" tooltipPosition="left">
+    <span class="db-toggle-dot"></span>
+    <span>{{ gridVisible ? 'Masquer grille' : 'Grille MB' }}</span>
+</button>
+
+<div class="db-shell">
+    <div class="db-wrap">
+
+        <div class="mb-grid db-grid">
+            <div class="mb-band">
+                <div style="grid-column: 1 / 9" class="db-header-left">
+                    <p class="db-eyebrow">CGE AGENDA — {{ currentYear }}</p>
+                    <h1 class="db-title">Tableau de bord</h1>
+                    <p class="db-subtitle">
+                        Gestion et suivi des événements institutionnels
+                    </p>
+                </div>
+                <div style="grid-column: 9 / 13" class="db-header-right">
+                    <p-button
+                        label="Nouvel événement"
+                        icon="pi pi-plus"
+                        severity="success"
+                        [raised]="true"
+                        (onClick)="createEvent()">
+                    </p-button>
+                </div>
+            </div>
+            <div class="mb-band">
+                <hr style="grid-column: 1 / 13" class="db-rule" />
+            </div>
+            <div class="mb-band">
+                <div style="grid-column: 1 / 4" class="card mb-0 kpi-card kpi-card--blue">
+                    <div class="kpi-value">{{ stats?.totalEvents || 0 }}</div>
+                    <div class="kpi-label">Total Événements</div>
+                    <div class="kpi-meta">
+                        <i class="pi pi-calendar" aria-hidden="true"></i>
+                        <span>{{ stats?.upcomingEventsCount || 0 }} à venir</span>
+                    </div>
+                </div>
+
+                <div style="grid-column: 4 / 7" class="card mb-0 kpi-card kpi-card--amber">
+                    <div class="kpi-value">{{ stats?.totalParticipants || 0 }}</div>
+                    <div class="kpi-label">Participants</div>
+                    <div class="kpi-meta">
+                        <i class="pi pi-users" aria-hidden="true"></i>
+                        <span>participants uniques</span>
+                    </div>
+                </div>
+
+                <div style="grid-column: 7 / 10" class="card mb-0 kpi-card kpi-card--teal">
+                    <div class="kpi-value">{{ getStatusCount('EN_COURS') }}</div>
+                    <div class="kpi-label">En Cours</div>
+                    <div class="kpi-meta">
+                        <i class="pi pi-clock" aria-hidden="true"></i>
+                        <span>événements actifs</span>
+                    </div>
+                </div>
+
+                <div style="grid-column: 10 / 13" class="card mb-0 kpi-card kpi-card--violet">
+                    <div class="kpi-value">{{ getStatusCount('TERMINE') }}</div>
+                    <div class="kpi-label">Terminés</div>
+                    <div class="kpi-meta">
+                        <i class="pi pi-check-circle" aria-hidden="true"></i>
+                        <span>événements complétés</span>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-band">
+                <div style="grid-column: 1 / 7" class="card">
+                    <div class="db-chart-hd">
+                        <h2 class="db-chart-title">Événements par Type</h2>
+                        <span class="db-chart-sub">
+                            {{ stats?.totalEvents || 0 }} événements au total
+                        </span>
+                    </div>
+                    <p-chart
+                        type="doughnut"
+                        [data]="chartDataByType"
+                        [options]="doughnutOptions"
+                        height="320px">
+                    </p-chart>
+                </div>
+
+                <div style="grid-column: 7 / 13" class="card">
+                    <div class="db-chart-hd">
+                        <h2 class="db-chart-title">Évolution mensuelle</h2>
+                        <span class="db-chart-sub">Par statut — {{ currentYear }}</span>
+                    </div>
+                    <p-chart
+                        type="bar"
+                        [data]="chartDataByStatusMonth"
+                        [options]="barOptionsMonth"
+                        height="320px">
+                    </p-chart>
+                </div>
+            </div>
+
+            <div class="mb-band">
+                <div style="grid-column: 1 / 13" class="card">
+                    <div class="db-table-hd">
+                        <div>
+                            <h2 class="db-chart-title">Événements Récents</h2>
+                            <p class="db-chart-sub m-0">
+                                Les {{ recentEvents.length }} derniers événements créés
+                            </p>
+                        </div>
+                        <p-button
+                            label="Voir tout"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            [text]="true"
+                            (onClick)="viewAllEvents()">
+                        </p-button>
+                    </div>
+
+                    <p-table
+                        [value]="recentEvents"
+                        [loading]="loading"
+                        responsiveLayout="scroll"
+                        styleClass="p-datatable-sm p-datatable-striped"
+                        [tableStyle]="{'min-width': '60rem'}">
+
+                        <ng-template pTemplate="header">
+                            <tr>
+                                <th scope="col" style="width:30%">Événement</th>
+                                <th scope="col" style="width:15%">Type</th>
+                                <th scope="col" style="width:15%">Date</th>
+                                <th scope="col" style="width:12%">Statut</th>
+                                <th scope="col" style="width:10%" class="text-center">Participants</th>
+                                <th scope="col" style="width:18%">Actions</th>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="body" let-event>
+                            <tr class="cursor-pointer"
+                                tabindex="0"
+                                role="button"
+                                [attr.aria-label]="'Voir les détails de ' + event.title"
+                                (click)="viewEvent(event.id)"
+                                (keydown.enter)="viewEvent(event.id)"
+                                (keydown.space)="$event.preventDefault(); viewEvent(event.id)">
+                                <td>
+                                    <div class="flex flex-col gap-1">
+                                        <span class="font-semibold text-surface-900 dark:text-surface-0">
+                                            {{ event.title }}
+                                        </span>
+                                        <span class="text-xs text-muted-color" *ngIf="event.description">
+                                            {{ event.description | slice:0:60 }}{{ event.description.length > 60 ? '…' : '' }}
+                                        </span>
+                                        <div class="flex items-center gap-1 mt-1" *ngIf="event.ville || event.pays">
+                                            <i class="pi pi-map-marker text-xs text-muted-color" aria-hidden="true"></i>
+                                            <span class="text-xs text-muted-color">
+                                                {{ event.ville }}{{ event.ville && event.pays ? ', ' : '' }}{{ event.pays }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p-tag
+                                        [value]="getTypeLabel(event.type)"
+                                        [severity]="getTypeSeverity(event.type)"
+                                        [rounded]="true">
+                                    </p-tag>
+                                </td>
+                                <td>
+                                    <div class="flex flex-col gap-1">
+                                        <div class="flex items-center gap-2">
+                                            <i class="pi pi-calendar text-sm text-muted-color" aria-hidden="true"></i>
+                                            <span class="font-medium">{{ event.startDate | date:'dd/MM/yyyy' }}</span>
+                                        </div>
+                                        <span class="text-xs text-muted-color"
+                                              *ngIf="event.endDate !== event.startDate">
+                                            → {{ event.endDate | date:'dd/MM/yyyy' }}
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <p-tag
+                                        [value]="getStatusLabel(event.status)"
+                                        [severity]="getStatusSeverity(event.status)"
+                                        [rounded]="true">
+                                    </p-tag>
+                                </td>
+                                <td class="text-center">
+                                    <div class="inline-flex items-center gap-2 bg-primary/10 text-primary rounded-border px-3 py-1">
+                                        <i class="pi pi-users text-sm" aria-hidden="true"></i>
+                                        <span class="font-semibold">{{ event.participants?.length || 0 }}</span>
+                                    </div>
+                                </td>
+                                <td (click)="$event.stopPropagation()">
+                                    <div class="flex gap-1">
+                                        <p-button icon="pi pi-eye" [rounded]="true" [text]="true"
+                                                  severity="secondary" size="small"
+                                                  ariaLabel="Voir les détails" pTooltip="Voir détails"
+                                                  tooltipPosition="top"
+                                                  (onClick)="viewEvent(event.id)">
+                                        </p-button>
+                                        <p-button icon="pi pi-pencil" [rounded]="true" [text]="true"
+                                                  severity="secondary" size="small"
+                                                  ariaLabel="Modifier l'événement" pTooltip="Modifier"
+                                                  tooltipPosition="top"
+                                                  (onClick)="editEvent(event.id)">
+                                        </p-button>
+                                        <p-button icon="pi pi-download" [rounded]="true" [text]="true"
+                                                  severity="help" size="small"
+                                                  ariaLabel="Télécharger la liste d'émargement"
+                                                  pTooltip="Liste émargement" tooltipPosition="top"
+                                                  (onClick)="downloadAttendance(event.id)">
+                                        </p-button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="emptymessage">
+                            <tr>
+                                <td colspan="6" class="text-center py-12">
+                                    <div class="flex flex-col items-center gap-3">
+                                        <i class="pi pi-calendar-times text-6xl text-muted-color" aria-hidden="true"></i>
+                                        <p class="text-surface-900 dark:text-surface-0 font-semibold text-lg m-0 mb-2">
+                                            Aucun événement
+                                        </p>
+                                        <p-button label="Créer un événement" icon="pi pi-plus"
+                                                  (onClick)="createEvent()">
+                                        </p-button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </ng-template>
+
+                        <ng-template pTemplate="loadingbody">
+                            <tr>
+                                <td colspan="6" class="text-center py-8" aria-label="Chargement en cours">
+                                    <i class="pi pi-spin pi-spinner text-4xl text-primary" aria-hidden="true"></i>
+                                </td>
+                            </tr>
+                        </ng-template>
+                    </p-table>
+                </div>
+            </div>
+
+            <div class="mb-band db-stats-band">
+                <div style="grid-column: 1 / 4" class="db-stat">
+                    <span class="db-stat-num db-stat--blue">{{ getStatusCount('PLANIFIE') }}</span>
+                    <span class="db-stat-lbl">Planifiés</span>
+                </div>
+                <div style="grid-column: 4 / 7" class="db-stat">
+                    <span class="db-stat-num db-stat--amber">{{ getStatusCount('EN_COURS') }}</span>
+                    <span class="db-stat-lbl">En Cours</span>
+                </div>
+                <div style="grid-column: 7 / 10" class="db-stat">
+                    <span class="db-stat-num db-stat--green">{{ getStatusCount('TERMINE') }}</span>
+                    <span class="db-stat-lbl">Terminés</span>
+                </div>
+                <div style="grid-column: 10 / 13" class="db-stat">
+                    <span class="db-stat-num db-stat--red">
+                        {{ getStatusCount('ANNULER') + getStatusCount('REPORTER') }}
+                    </span>
+                    <span class="db-stat-lbl">Annulés / Reportés</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mb-guides" aria-hidden="true">
+            <div class="mb-cols" id="mb-cols-db"></div>
+            <div class="mb-rows"></div>
+            <div class="mb-mline l"></div>
+            <div class="mb-mline r"></div>
+        </div>
+
+    </div>
+</div>

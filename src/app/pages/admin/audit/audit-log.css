@@ -1,0 +1,198 @@
+.audit-page { padding: 0; }
+
+.audit-header {
+    background: var(--cge-vert-moyen);
+    border-radius: 16px;
+    padding: 24px 28px;
+    margin-bottom: 24px;
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+    position: relative;
+    overflow: hidden;
+}
+.audit-header::after {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 50%;
+    pointer-events: none;
+}
+.audit-header h2 {
+    margin: 0; font-size: 22px; font-weight: 700;
+    color: #ffffff !important;
+    text-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.audit-header p  {
+    margin: 4px 0 0; font-size: 13px;
+    color: rgba(255,255,255,0.82) !important;
+}
+
+.active-users-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 12px;
+    margin-bottom: 24px;
+}
+.user-card {
+    background: var(--surface-card);
+    border-radius: 10px;
+    padding: 14px 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.07);
+    border-left: 4px solid var(--cge-vert-moyen);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.user-card .avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--cge-vert-moyen);
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 16px; flex-shrink: 0;
+}
+.user-card .info { min-width: 0; }
+.user-card .name { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-card .email { font-size: 11px; color: var(--text-color-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-card .last  { font-size: 11px; color: var(--cge-vert-moyen); margin-top: 2px; }
+
+.filters-bar {
+    background: var(--surface-card);
+    padding: 16px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-end;
+}
+.filters-bar > * { flex: 1 1 180px; min-width: 140px; }
+
+.action-tag {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 10px; border-radius: 12px;
+    font-size: 12px; font-weight: 600;
+}
+
+.ip-chip {
+    background: var(--surface-100);
+    border: 1px solid var(--surface-300);
+    border-radius: 8px;
+    padding: 2px 8px;
+    font-family: monospace;
+    font-size: 12px;
+    color: var(--text-color-secondary);
+}
+
+.section-title {
+    font-size: 16px; font-weight: 700;
+    color: var(--primary-color);
+    margin-bottom: 14px;
+    display: flex; align-items: center; gap: 8px;
+}
+
+:host ::ng-deep {
+    .p-datatable .p-datatable-thead > tr > th {
+        background: var(--cge-vert-moyen) !important;
+        color: white !important;
+        font-weight: 600 !important;
+        padding: 10px 12px !important;
+    }
+    .p-datatable .p-datatable-tbody > tr > td { padding: 10px 12px; }
+}
+
+@media (max-width: 768px) {
+    .audit-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 18px 16px;
+    }
+    .audit-header h2 { font-size: 18px; }
+
+    .active-users-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .filters-bar {
+        flex-direction: column;
+        padding: 12px;
+    }
+    .filters-bar > * {
+        flex: 1 1 100%;
+        min-width: unset;
+        width: 100%;
+    }
+
+    :host ::ng-deep .p-datatable-wrapper { overflow-x: auto !important; }
+
+    /* Mobile : cartes toujours visibles, tableau toujours caché */
+    .audit-mobile-cards { display: flex !important; flex-direction: column !important; }
+    .audit-desktop-table { display: none !important; }
+}
+
+/* Conteneur boutons header audit — fond blanc */
+.audit-header-actions {
+    display: flex; align-items: center; gap: 10px;
+    background: white;
+    border-radius: 12px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* ── Cartes audit (mobile + desktop toggle) ────────────── */
+.audit-mobile-cards { display: none; flex-direction: column; gap: 12px; margin-top: 12px; }
+
+/* Desktop mode carte → grille 2 colonnes */
+.audit-mobile-cards.audit-cards-desktop {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+.audit-mobile-cards.audit-cards-desktop .audit-mobile-pag { grid-column: 1 / -1; }
+
+/* Tableau caché en mode carte */
+.audit-table-hidden { display: none !important; }
+
+.audit-card {
+    background: var(--surface-card);
+    border-radius: 14px;
+    border: 1px solid var(--surface-border);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    overflow: hidden;
+}
+.auc-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--surface-border);
+    gap: 12px;
+}
+.auc-date { text-align: right; flex-shrink: 0; }
+.auc-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
+.auc-row { display: flex; align-items: center; gap: 8px; font-size: 13px; flex-wrap: wrap; }
+.auc-icon { font-size: 13px; color: var(--primary-color); flex-shrink: 0; width: 14px; }
+.auc-role {
+    font-size: 11px; padding: 2px 8px; border-radius: 8px;
+    background: var(--surface-100); color: var(--text-color-secondary);
+}
+.auc-details { color: var(--text-color-secondary); font-size: 12px; }
+
+.audit-mobile-pag {
+    display: flex; align-items: center; justify-content: center;
+    gap: 12px; padding: 12px 8px;
+    border-top: 1px solid var(--surface-border); margin-top: 4px;
+}
+.mob-pag-btn {
+    width: 36px; height: 36px; border-radius: 50%;
+    border: 1px solid var(--surface-border);
+    background: var(--surface-card); color: var(--text-color);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 14px; transition: all 0.15s;
+}
+.mob-pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.mob-pag-btn:not(:disabled):hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+.mob-pag-info { font-size: 13px; color: var(--text-color-secondary); text-align: center; }

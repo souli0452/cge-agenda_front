@@ -1,31 +1,34 @@
 import { Component, Renderer2, ViewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { filter, Subscription } from 'rxjs';
+import { filter } from 'rxjs';
 import { AppTopbar } from './app.topbar';
 import { AppSidebar } from './app.sidebar';
 import { AppFooter } from './app.footer';
+import { AppBreadcrumb } from './app.breadcrumb';
 import { LayoutService } from '../service/layout.service';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
 
 @Component({
     selector: 'app-layout',
     standalone: true,
-    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter],
+    imports: [CommonModule, AppTopbar, AppSidebar, RouterModule, AppFooter, AppBreadcrumb, ConfirmDialogModule],
     template: `<div class="layout-wrapper" [ngClass]="containerClass">
         <app-topbar></app-topbar>
         <app-sidebar></app-sidebar>
         <div class="layout-main-container">
             <div class="layout-main">
+                <app-breadcrumb></app-breadcrumb>
                 <router-outlet></router-outlet>
             </div>
             <app-footer></app-footer>
         </div>
         <div class="layout-mask animate-fadein"></div>
+        <p-confirmDialog></p-confirmDialog>
     </div> `
 })
 export class AppLayout {
-    overlayMenuOpenSubscription: Subscription;
-
     menuOutsideClickListener: any;
 
     @ViewChild(AppSidebar) appSidebar!: AppSidebar;
@@ -37,7 +40,7 @@ export class AppLayout {
         public renderer: Renderer2,
         public router: Router
     ) {
-        this.overlayMenuOpenSubscription = this.layoutService.overlayOpen$.subscribe(() => {
+        this.layoutService.overlayOpen$.pipe(takeUntilDestroyed()).subscribe(() => {
             if (!this.menuOutsideClickListener) {
                 this.menuOutsideClickListener = this.renderer.listen('document', 'click', (event) => {
                     if (this.isOutsideClicked(event)) {
@@ -51,7 +54,10 @@ export class AppLayout {
             }
         });
 
-        this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe(() => {
+        this.router.events.pipe(
+            filter((event) => event instanceof NavigationEnd),
+            takeUntilDestroyed()
+        ).subscribe(() => {
             this.hideMenu();
         });
     }
@@ -100,10 +106,6 @@ export class AppLayout {
     }
 
     ngOnDestroy() {
-        if (this.overlayMenuOpenSubscription) {
-            this.overlayMenuOpenSubscription.unsubscribe();
-        }
-
         if (this.menuOutsideClickListener) {
             this.menuOutsideClickListener();
         }

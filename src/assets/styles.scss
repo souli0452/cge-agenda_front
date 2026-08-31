@@ -3,6 +3,151 @@
 @use './layout/layout.scss';
 @use 'primeicons/primeicons.css';
 @use './demo/demo.scss';
+:root {
+    /* ================================================================
+       THEME ASCE-LC — Couleur primaire verte du logo (#009640)
+       500 base  → #009640
+       600 hover → #008539
+       700 actif → #006e2f
+       50 clair  → #e5f4ec
+       ================================================================ */
+    --p-primary-50:  #e5f4ec;
+    --p-primary-100: #bce4cd;
+    --p-primary-200: #90d1ac;
+    --p-primary-300: #5fbd87;
+    --p-primary-400: #2da861;
+    --p-primary-500: #009640;
+    --p-primary-600: #008539;
+    --p-primary-700: #006e2f;
+    --p-primary-800: #005122;
+    --p-primary-900: #003416;
+    --p-primary-950: #001d0c;
+    --p-primary-color:          #009640;
+    --p-primary-contrast-color: #ffffff;
+    --primary-color:            #009640;
+    --primary-contrast-color:   #ffffff;
+    --p-focus-ring-color:       rgba(0, 150, 64, 0.25);
+
+    /* ---- Couleurs de marque ASCE-LC ---- */
+    --cge-vert:        #009640;
+    --cge-vert-moyen:  #009640;
+    --cge-vert-clair:  #e5f4ec;
+    --cge-or:          #D97706;
+    --cge-or-clair:    #FEF3C7;
+    --cge-danger:      #DC2626;
+    --cge-info:        #3B82F6;
+    --cge-warning:     #F59E0B;
+
+    /* ---- Typographie ---- */
+    --font-xs:   0.6875rem;
+    --font-sm:   0.8125rem;
+    --font-base: 0.9375rem;
+    --font-lg:   1.0625rem;
+    --font-xl:   1.25rem;
+    --font-2xl:  1.5rem;
+    --font-3xl:  2rem;
+
+    /* ---- Espacements ---- */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+
+    
+    --bl:      8px;          /* unité de base (baseline unit)          */
+    --lh:      24px;         /* interlignage = 3 × --bl                */
+    --cols:    12;           /* nombre de colonnes                     */
+    --gutter:  24px;         /* gouttière = 3 × --bl                   */
+    --margin:  48px;         /* marge latérale = 6 × --bl              */
+    --pad:     64px;         /* padding vertical section = 8 × --bl    */
+    --maxw:    1440px;       /* largeur max du contenu                 */
+
+    /* Couleurs overlay grille (dev uniquement) */
+    --mb-col-fill:  rgba(0, 150, 64, 0.06);   /* fond colonne          */
+    --mb-col-edge:  rgba(0, 150, 64, 0.30);   /* bord colonne / marge  */
+    --mb-base-maj:  rgba(0,  120, 100, 0.28);  /* ligne baseline majeure */
+    --mb-base-min:  rgba(0,  120, 100, 0.10);  /* ligne baseline mineure */
+}
+
+/* ============================================================
+   BREADCRUMB GLOBAL
+   ============================================================ */
+.app-breadcrumb {
+    display: block;
+    margin-bottom: 1rem;
+
+    .p-breadcrumb {
+        background: transparent;
+        border: none;
+        padding: 0;
+    }
+}
+
+/* ============================================================
+   KPI CARDS — Tableau de bord
+   ============================================================ */
+.kpi-card {
+    position: relative;
+    padding: 1.75rem 1.5rem 1.5rem 2rem !important;
+    border-left: 4px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(0, 0, 0, 0.1) !important;
+}
+
+.kpi-card--blue   { border-left-color: #3B82F6; }
+.kpi-card--amber  { border-left-color: #D97706; }
+.kpi-card--teal   { border-left-color: var(--cge-vert-moyen); }
+.kpi-card--violet { border-left-color: #8B5CF6; }
+
+.kpi-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-color);
+    line-height: 1;
+    margin-bottom: 0.375rem;
+    letter-spacing: -0.025em;
+    font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+}
+
+.kpi-label {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    color: var(--text-color-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    margin-bottom: 0.75rem;
+}
+
+.kpi-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    color: var(--text-color-secondary);
+}
+
+.kpi-meta i { font-size: 0.75rem; }
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
 
 .layout-topbar {
     height: 64px !important;
@@ -71,19 +216,140 @@
     color: white !important;
 }
 
-/* Mobile */
 @media (max-width: 768px) {
-    .layout-topbar-logo span {
-        display: none;
-    }
-
-    .layout-topbar-logo img {
-        height: 32px !important;
+    :root {
+        --margin:  16px;
+        --pad:     24px;
+        --gutter:  12px;
     }
 }
 
+@media (max-width: 768px) {
+    .mb-grid {
+        display:       flex !important;
+        flex-direction: column !important;
+        padding:       var(--pad) var(--margin) !important;
+        gap:           16px !important;
+    }
+    .mb-band {
+        display:       flex !important;
+        flex-direction: column !important;
+        gap:           12px !important;
+        width:         100% !important;
+    }
+    .mb-band > * { grid-column: unset !important; width: 100% !important; }
+}
+
+html, body {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
+@media (max-width: 768px) {
+
+    /* ── Topbar ─────────────────────────────────────────── */
+    .layout-topbar-logo span { display: none; }
+    .layout-topbar-logo img  { height: 32px !important; }
+
+    .layout-main-container {
+        padding-top: 5rem !important;
+        padding-left: 10px !important;
+        padding-right: 10px !important;
+    }
+
+    /* ── Tables : scroll horizontal ────────────────────── */
+    .p-datatable-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+    /* Empêcher le texte de se casser — force le scroll horizontal */
+    .p-datatable .p-datatable-thead > tr > th,
+    .p-datatable .p-datatable-tbody > tr > td {
+        white-space: nowrap;
+    }
+
+    /* ── Touch targets (min 44px) ───────────────────────── */
+    .p-button { min-height: 44px !important; }
+
+    /* font-size 16px évite le zoom automatique d'iOS Safari sur les inputs */
+    .p-inputtext,
+    .p-textarea,
+    input[type="text"],
+    input[type="email"],
+    input[type="search"],
+    input[type="number"],
+    textarea {
+        font-size: 16px !important;
+        min-height: 44px !important;
+    }
+
+    /* ── Pagination ─────────────────────────────────────── */
+    .p-paginator {
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        padding: 10px 8px !important;
+        gap: 2px !important;
+    }
+    .p-paginator .p-paginator-first,
+    .p-paginator .p-paginator-last { display: none !important; }
+    .p-paginator-element { min-width: 36px !important; height: 36px !important; }
+
+    /* ── Dialogues — pleine largeur ─────────────────────── */
+    .p-dialog {
+        width: 95vw !important;
+        max-width: 95vw !important;
+        margin: 0 !important;
+        border-radius: 16px !important;
+    }
+    .p-dialog .p-dialog-header { padding: 14px 16px !important; }
+    .p-dialog .p-dialog-content { padding: 14px 16px !important; }
+    .p-dialog .p-dialog-footer {
+        padding: 12px 16px !important;
+        display: flex !important;
+        gap: 8px !important;
+    }
+    .p-dialog .p-dialog-footer .p-button {
+        flex: 1 !important;
+        justify-content: center !important;
+    }
+
+    /* ── Dropdown/Select — hauteur limitée ──────────────── */
+    .p-select-overlay { max-height: 55vh !important; overflow-y: auto !important; }
+
+    /* ── Toast ──────────────────────────────────────────── */
+    .p-toast { width: calc(100vw - 24px) !important; max-width: calc(100vw - 24px) !important; }
+    .p-toast .p-toast-detail { font-size: 13px !important; }
+
+    /* ── Tags / Badges ──────────────────────────────────── */
+    .p-tag {
+        font-size: 0.7rem !important;
+        padding: 0.2rem 0.45rem !important;
+        white-space: nowrap;
+    }
+
+    /* ── KPI Cards (dashboard) ──────────────────────────── */
+    .kpi-card { padding: 1.25rem 1rem 1rem 1.25rem !important; }
+    .kpi-value { font-size: 2rem; }
+    .kpi-label { font-size: 0.625rem; white-space: nowrap; }
+
+    /* ── Autocomplete ───────────────────────────────────── */
+    .p-autocomplete-overlay { max-height: 50vh !important; overflow-y: auto !important; }
+
+    /* ── Texte conditionnel mobile ──────────────────────── */
+    .hidden-mobile  { display: none !important; }
+    .visible-mobile { display: inline !important; }
+
+    /* Badges rejet/amendement : autoriser le retour à la ligne */
+    .rejection-badge, .amendment-badge { white-space: normal !important; }
+
+}
+
+/* Sur desktop : texte complet visible, version courte cachée */
+.visible-mobile { display: none; }
+.hidden-mobile  { display: inline; }
+
 .layout-menu {
-    font-size: 1.125rem !important; 
+    font-size: 1.125rem !important;
 }
 
 .layout-menu .layout-menuitem-text {
@@ -106,3 +372,225 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration:        0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration:       0.01ms !important;
+        scroll-behavior:           auto !important;
+    }
+}
+
+
+.mb-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    column-gap:  var(--gutter);
+    row-gap:     var(--lh);
+    max-width:   var(--maxw);
+    margin:      0 auto;
+    padding:     var(--pad) var(--margin);
+    position:    relative;
+}
+
+/* Bande horizontale — re-expose les colonnes via subgrid */
+.mb-band {
+    grid-column:             1 / -1;
+    display:                 grid;
+    grid-template-columns:   subgrid;
+    column-gap:              var(--gutter);
+    row-gap:                 var(--lh);
+    align-items:             start;
+}
+@supports not (grid-template-columns: subgrid) {
+    .mb-band {
+        grid-template-columns: repeat(var(--cols), 1fr);
+    }
+}
+
+/* Rythme vertical — multiples de --bl (8px) */
+.mb-lh-1 { line-height: var(--lh); }
+.mb-mt-1 { margin-top: var(--bl); }
+.mb-mt-2 { margin-top: calc(2 * var(--bl)); }
+.mb-mt-3 { margin-top: calc(3 * var(--bl)); }
+.mb-mt-6 { margin-top: calc(6 * var(--bl)); }
+
+
+.mb-guides {
+    position:       absolute;
+    inset:          0;
+    pointer-events: none;
+    z-index:        9999;
+    opacity:        0;
+    transition:     opacity 0.25s ease;
+}
+body.mb-grid-on .mb-guides { opacity: 1; }
+
+.mb-guides .mb-cols {
+    position:              absolute;
+    top: 0; bottom: 0;
+    left:                  var(--margin);
+    right:                 var(--margin);
+    display:               grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    column-gap:            var(--gutter);
+}
+.mb-guides .mb-col {
+    background:  var(--mb-col-fill);
+    box-shadow:  inset 1px 0 0 var(--mb-col-edge),
+                 inset -1px 0 0 var(--mb-col-edge);
+    position:    relative;
+}
+.mb-guides .mb-col span {
+    position:    absolute;
+    top:         calc(4 * var(--bl));
+    left: 0; right: 0;
+    text-align:  center;
+    font-family: monospace;
+    font-size:   10px;
+    line-height: 1;
+    color:       var(--cge-vert-moyen);
+    opacity:     0.7;
+}
+.mb-guides .mb-rows {
+    position:         absolute;
+    left:             var(--margin);
+    right:            var(--margin);
+    top:              var(--pad);
+    bottom:           0;
+    background-image:
+        repeating-linear-gradient(to bottom, var(--mb-base-maj) 0 1px, transparent 1px var(--lh)),
+        repeating-linear-gradient(to bottom, var(--mb-base-min) 0 1px, transparent 1px var(--bl));
+}
+.mb-guides .mb-mline {
+    position:   absolute;
+    top: 0; bottom: 0;
+    width:      1px;
+    background: var(--mb-col-edge);
+}
+.mb-guides .mb-mline.l { left:  var(--margin); }
+.mb-guides .mb-mline.r { right: var(--margin); }
+
+@media (max-width: 480px) {
+    .layout-config-menu { display: none !important; }
+    .layout-topbar { padding: 0 0.5rem !important; }
+    .layout-topbar-actions { gap: 4px !important; }
+    .layout-topbar-action { width: 36px !important; height: 36px !important; }
+}
+
+/* ================================================================
+   OVERRIDES THEME ASCE-LC — PrimeNG green primary #009640
+   Couvre : boutons, inputs, toggles, checkboxes, radio, pagination,
+            select, autocomplete, liens actifs, topbar accent
+   ================================================================ */
+
+/* --- Boutons primary --- */
+.p-button:not(.p-button-outlined):not(.p-button-text):not(.p-button-link):not([severity]) {
+    background: #009640 !important;
+    border-color: #009640 !important;
+    color: #ffffff !important;
+    &:hover  { background: #008539 !important; border-color: #008539 !important; }
+    &:active { background: #006e2f !important; border-color: #006e2f !important; }
+    &:disabled, &.p-disabled { background: #90d1ac !important; border-color: #90d1ac !important; opacity: 0.65; }
+}
+
+/* --- Bouton custom btn-ascelc --- */
+.btn-ascelc.p-button {
+    background: #009640 !important;
+    border-color: #009640 !important;
+    color: #ffffff !important;
+    &:hover  { background: #008539 !important; border-color: #008539 !important; }
+    &:active { background: #006e2f !important; border-color: #006e2f !important; }
+}
+
+/* --- Input focus --- */
+.p-inputtext:focus,
+.p-textarea:focus,
+.p-autocomplete-input:focus {
+    border-color: #009640 !important;
+    box-shadow: 0 0 0 3px rgba(0, 150, 64, 0.20) !important;
+    outline: none !important;
+}
+
+/* --- Select / Dropdown focus --- */
+.p-select:focus-within,
+.p-select.p-focus {
+    border-color: #009640 !important;
+    box-shadow: 0 0 0 3px rgba(0, 150, 64, 0.20) !important;
+}
+
+/* --- Checkbox actif --- */
+.p-checkbox .p-checkbox-box.p-highlight {
+    background: #009640 !important;
+    border-color: #009640 !important;
+}
+.p-checkbox:not(.p-disabled):has(.p-checkbox-input:hover) .p-checkbox-box {
+    border-color: #009640 !important;
+}
+
+/* --- Radio actif --- */
+.p-radiobutton .p-radiobutton-box.p-highlight {
+    background: #009640 !important;
+    border-color: #009640 !important;
+}
+
+/* --- Toggle / InputSwitch actif --- */
+.p-toggleswitch.p-toggleswitch-checked .p-toggleswitch-slider {
+    background: #009640 !important;
+}
+.p-inputswitch.p-inputswitch-checked .p-inputswitch-slider {
+    background: #009640 !important;
+}
+
+/* --- Pagination active --- */
+.p-paginator .p-paginator-page.p-highlight {
+    background: #009640 !important;
+    border-color: #009640 !important;
+    color: #ffffff !important;
+}
+
+/* --- Tabs actif --- */
+.p-tablist .p-tab.p-tab-active {
+    color: #009640 !important;
+    border-color: #009640 !important;
+}
+
+/* --- Badge / Tag primary --- */
+.p-badge:not([severity]),
+.p-tag:not([severity]) {
+    background: #009640 !important;
+    color: #ffffff !important;
+}
+
+/* --- Lien actif dans le menu principal --- */
+.layout-menu ul a.active-route {
+    color: #009640 !important;
+}
+
+/* --- Topbar : logo texte en vert --- */
+.layout-topbar .layout-topbar-logo { color: #009640 !important; }
+
+/* --- Barre de progression --- */
+.p-progressbar .p-progressbar-value { background: #009640 !important; }
+
+/* --- Steps actif --- */
+.p-steps .p-steps-item.p-steps-current .p-steps-number {
+    background: #009640 !important;
+    border-color: #009640 !important;
+    color: #ffffff !important;
+}
+.p-steps .p-steps-item.p-steps-completed .p-steps-number {
+    background: #008539 !important;
+    border-color: #008539 !important;
+    color: #ffffff !important;
+}
+
+/* --- Timeline point --- */
+.p-timeline-event-marker { background: #009640 !important; border-color: #009640 !important; }
+
+/* --- Chip actif / sélectionné --- */
+.p-chip { border-color: #009640; }
+.p-chip:hover { background: #e5f4ec; }

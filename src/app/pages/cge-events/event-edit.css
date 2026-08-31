@@ -1,3 +1,56 @@
+.lieu-type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.lieu-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 12px;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+  background: white;
+}
+
+.lieu-option:hover {
+  border-color: var(--cge-vert-moyen);
+  background: var(--cge-vert-clair);
+  transform: translateY(-2px);
+}
+
+.lieu-option.selected {
+  border-color: var(--cge-vert-moyen);
+  background: var(--cge-vert-clair);
+  box-shadow: 0 0 0 3px rgba(0, 150, 64, 0.15);
+}
+
+.lieu-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+  color: var(--cge-vert-moyen);
+}
+
+.lieu-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.lieu-desc {
+  font-size: 11px;
+  color: #666;
+}
+
+/* ============================================ */
+/* STYLES EXISTANTS — conservés                 */
+/* ============================================ */
 
 .event-edit-container {
   max-width: 1200px;
@@ -15,11 +68,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+.header-left { display: flex; align-items: center; gap: 16px; }
 
 .header-left h1 {
   display: flex;
@@ -28,12 +77,10 @@
   margin: 0;
   font-size: 28px;
   font-weight: 700;
-  color: #228B22;
+  color: var(--cge-vert-moyen);
 }
 
-.header-left h1 i {
-  font-size: 32px;
-}
+.header-left h1 i { font-size: 32px; }
 
 .step-content {
   background: white;
@@ -47,27 +94,22 @@
   align-items: center;
   gap: 12px;
   padding: 16px 20px;
-  background: #E8F5E9;
-  border-left: 4px solid #228B22;
+  background: var(--cge-vert-clair);
+  border-left: 4px solid var(--cge-vert-moyen);
   border-radius: 8px;
   margin-bottom: 32px;
 }
 
-.phase-intro i {
-  font-size: 22px;
-  color: #228B22;
-}
+.phase-intro i { font-size: 22px; color: var(--cge-vert-moyen); }
 
 .phase-intro p {
   margin: 0;
   font-size: 14px;
-  color: #2E7D32;
+  color: var(--cge-vert-moyen);
   line-height: 1.5;
 }
 
-.form-group {
-  margin-bottom: 40px;
-}
+.form-group { margin-bottom: 40px; }
 
 .group-title {
   display: flex;
@@ -75,19 +117,15 @@
   gap: 10px;
   font-size: 18px;
   font-weight: 700;
-  color: #228B22;
+  color: var(--cge-vert-moyen);
   margin: 0 0 20px 0;
   padding-bottom: 12px;
-  border-bottom: 3px solid #228B22;
+  border-bottom: 3px solid var(--cge-vert-moyen);
 }
 
-.group-title i {
-  font-size: 22px;
-}
+.group-title i { font-size: 22px; }
 
-.form-field {
-  margin-bottom: 20px;
-}
+.form-field { margin-bottom: 20px; }
 
 .field-label {
   display: block;
@@ -104,12 +142,6 @@
   padding: 8px 0;
 }
 
-.required {
-  color: #dc3545 !important;
-  font-weight: 700;
-  font-size: 16px;
-  margin-left: 2px;
-}
 
 .field-hint {
   display: flex;
@@ -120,10 +152,7 @@
   margin-top: 6px;
 }
 
-.field-hint i {
-  font-size: 13px;
-  color: #228B22;
-}
+.field-hint i { font-size: 13px; color: var(--cge-vert-moyen); }
 
 .field-error {
   display: block;
@@ -139,18 +168,14 @@
   gap: 20px;
 }
 
-.participant-list {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+.participant-list { display: flex; flex-direction: column; gap: 16px; }
 
 .participant-card {
   background: #f8f9fa;
   border: 1px solid #e0e0e0;
   border-radius: 10px;
   padding: 20px;
-  border-left: 4px solid #228B22;
+  border-left: 4px solid var(--cge-vert-moyen);
 }
 
 .participant-card-header {
@@ -166,7 +191,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #228B22;
+  background: var(--cge-vert-moyen);
   color: white;
   padding: 6px 14px;
   border-radius: 16px;
@@ -192,33 +217,22 @@
 }
 
 .file-card:hover {
-  border-color: #228B22;
+  border-color: var(--cge-vert-moyen);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.file-icon {
-  font-size: 40px;
-}
-
-.file-info {
-  flex: 1;
-  min-width: 0;
-}
+.file-info { flex: 1; min-width: 0; }
 
 .file-name {
   font-weight: 600;
   font-size: 14px;
   color: #333;
-  margin-bottom: 4px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.file-size {
-  font-size: 12px;
-  color: #999;
-}
+.file-size { font-size: 12px; color: #999; }
 
 .empty-state {
   text-align: center;
@@ -229,23 +243,9 @@
   margin-top: 20px;
 }
 
-.empty-state-icon {
-  font-size: 64px;
-  color: #d0d0d0;
-  margin-bottom: 16px;
-}
-
-.empty-state-title {
-  font-size: 17px;
-  font-weight: 600;
-  color: #666;
-  margin-bottom: 8px;
-}
-
-.empty-state-desc {
-  font-size: 13px;
-  color: #999;
-}
+.empty-state-icon { font-size: 64px; color: #d0d0d0; margin-bottom: 16px; }
+.empty-state-title { font-size: 17px; font-weight: 600; color: #666; margin-bottom: 8px; }
+.empty-state-desc  { font-size: 13px; color: #999; }
 
 .step-actions {
   display: flex;
@@ -257,32 +257,29 @@
 }
 
 .btn-ascelc {
-  background: #228B22 !important;
+  background: var(--cge-vert-moyen) !important;
   color: white !important;
   font-weight: 700 !important;
   font-size: 15px !important;
   padding: 12px 28px !important;
   border-radius: 8px !important;
   border: none !important;
-  box-shadow: 0 4px 12px rgba(34, 139, 34, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(0, 150, 64, 0.3) !important;
   transition: all 0.3s !important;
 }
 
 .btn-ascelc:hover:not(:disabled) {
-  background: #1a6b1a !important;
+  background: var(--p-primary-700) !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 6px 16px rgba(34, 139, 34, 0.4) !important;
 }
 
 .btn-ascelc:disabled {
   background: #cccccc !important;
   color: #888 !important;
   box-shadow: none !important;
-  cursor: not-allowed !important;
   opacity: 0.6 !important;
 }
 
-/* PrimeNG customization */
 :host ::ng-deep {
   .p-inputtext, .p-textarea {
     font-size: 14px;
@@ -293,14 +290,8 @@
   }
 
   .p-inputtext:focus, .p-textarea:focus {
-    border-color: #228B22;
-    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
-  }
-
-  .p-inputtext.ng-invalid.ng-touched,
-  .p-textarea.ng-invalid.ng-touched {
-    border-color: #dc3545 !important;
-    background: #fff5f5;
+    border-color: var(--cge-vert-moyen);
+    box-shadow: 0 0 0 3px rgba(0, 150, 64, 0.1);
   }
 
   .p-inputtext-lg {
@@ -314,34 +305,68 @@
   }
 
   .p-select:focus, .p-select.p-focus {
-    border-color: #228B22;
-    box-shadow: 0 0 0 3px rgba(34, 139, 34, 0.1);
+    border-color: var(--cge-vert-moyen);
+    box-shadow: 0 0 0 3px rgba(0, 150, 64, 0.1);
   }
 }
 
 @media (max-width: 768px) {
-  .event-edit-container {
-    padding: 16px;
+  /* ── Conteneur ── */
+  .event-edit-container { padding: 12px 8px; }
+
+  /* ── En-tête ── */
+  .page-header { padding: 16px; }
+  .header-left { flex-wrap: wrap; gap: 10px; }
+  .header-left h1 { font-size: 20px; }
+  .header-left h1 i { font-size: 22px; }
+
+  /* ── Contenu étape ── */
+  .step-content { padding: 16px; }
+  .phase-intro { padding: 12px 14px; gap: 10px; margin-bottom: 20px; }
+  .phase-intro i { font-size: 18px; }
+  .phase-intro p { font-size: 13px; }
+  .form-group { margin-bottom: 24px; }
+  .group-title { font-size: 16px; margin-bottom: 14px; padding-bottom: 10px; }
+  .group-title i { font-size: 18px; }
+
+  /* ── Grilles → colonne unique ── */
+  .grid-2-cols { grid-template-columns: 1fr; gap: 14px; }
+
+  /* ── Lieu : 2 colonnes compactes ── */
+  .lieu-type-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 10px !important; }
+  .lieu-option { padding: 14px 10px; }
+  .lieu-icon { font-size: 24px; margin-bottom: 6px; }
+  .lieu-label { font-size: 12px; }
+  .lieu-desc { font-size: 10px; }
+
+  /* ── Participants ── */
+  .participant-card { padding: 14px; }
+  .participant-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
   }
 
-  .step-content {
-    padding: 20px;
-  }
+  /* ── Fichiers ── */
+  .files-grid { grid-template-columns: 1fr; gap: 10px; }
 
-  .grid-2-cols {
-    grid-template-columns: 1fr;
-  }
+  /* ── Empty state ── */
+  .empty-state { padding: 32px 16px; }
+  .empty-state-icon { font-size: 44px; }
 
+  /* ── Actions (boutons bas de page) ── */
   .step-actions {
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    margin-top: 24px;
+    padding-top: 18px;
   }
+  .step-actions > *,
+  .step-actions .p-button,
+  .step-actions .btn-ascelc { width: 100% !important; justify-content: center !important; }
 
-  .step-actions button {
-    width: 100%;
-  }
-
-  .files-grid {
-    grid-template-columns: 1fr;
-  }
+  /* ── Bouton principal ── */
+  .btn-ascelc { padding: 12px 20px !important; font-size: 14px !important; }
 }

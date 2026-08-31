@@ -1,7 +1,7 @@
 import { Component, HostBinding, Input } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { animate, state, style, transition, trigger } from '@angular/animations';
-import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { CommonModule } from '@angular/common';
 import { RippleModule } from 'primeng/ripple';
@@ -9,7 +9,6 @@ import { MenuItem } from 'primeng/api';
 import { LayoutService } from '../service/layout.service';
 
 @Component({
-    // eslint-disable-next-line @angular-eslint/component-selector
     selector: '[app-menuitem]',
     imports: [CommonModule, RouterModule, RippleModule],
     template: `
@@ -44,7 +43,7 @@ import { LayoutService } from '../service/layout.service';
             </a>
 
             <ul *ngIf="item.items && item.visible !== false" [@children]="submenuAnimation">
-                <ng-template ngFor let-child let-i="index" [ngForOf]="item.items">
+                <ng-template ngFor let-child let-i="index" [ngForOf]="item.items" [ngForTrackBy]="trackByLabel">
                     <li app-menuitem [item]="child" [index]="i" [parentKey]="key" [class]="child['badgeClass']"></li>
                 </ng-template>
             </ul>
@@ -80,17 +79,17 @@ export class AppMenuitem {
 
     active = false;
 
-    menuSourceSubscription: Subscription;
-
-    menuResetSubscription: Subscription;
-
     key: string = '';
+
+    trackByLabel(index: number, item: MenuItem): string {
+        return item.label ?? `separator-${index}`;
+    }
 
     constructor(
         public router: Router,
         private layoutService: LayoutService
     ) {
-        this.menuSourceSubscription = this.layoutService.menuSource$.subscribe((value) => {
+        this.layoutService.menuSource$.pipe(takeUntilDestroyed()).subscribe((value) => {
             Promise.resolve(null).then(() => {
                 if (value.routeEvent) {
                     this.active = value.key === this.key || value.key.startsWith(this.key + '-') ? true : false;
@@ -102,11 +101,14 @@ export class AppMenuitem {
             });
         });
 
-        this.menuResetSubscription = this.layoutService.resetSource$.subscribe(() => {
+        this.layoutService.resetSource$.pipe(takeUntilDestroyed()).subscribe(() => {
             this.active = false;
         });
 
-        this.router.events.pipe(filter((event) => event instanceof NavigationEnd)).subscribe((params) => {
+        this.router.events.pipe(
+            filter((event) => event instanceof NavigationEnd),
+            takeUntilDestroyed()
+        ).subscribe((params) => {
             if (this.item.routerLink) {
                 this.updateActiveStateFromRoute();
             }
@@ -130,18 +132,15 @@ export class AppMenuitem {
     }
 
     itemClick(event: Event) {
-        // avoid processing disabled items
         if (this.item.disabled) {
             event.preventDefault();
             return;
         }
 
-        // execute command
         if (this.item.command) {
             this.item.command({ originalEvent: event, item: this.item });
         }
 
-        // toggle active state
         if (this.item.items) {
             this.active = !this.active;
         }
@@ -158,13 +157,4 @@ export class AppMenuitem {
         return this.active && !this.root;
     }
 
-    ngOnDestroy() {
-        if (this.menuSourceSubscription) {
-            this.menuSourceSubscription.unsubscribe();
-        }
-
-        if (this.menuResetSubscription) {
-            this.menuResetSubscription.unsubscribe();
-        }
-    }
 }

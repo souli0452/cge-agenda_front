@@ -1,19 +1,25 @@
-import { Component, OnInit} from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MenuItem } from 'primeng/api';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { StyleClassModule } from 'primeng/styleclass';
 import { AppConfigurator } from './app.configurator';
 import { LayoutService } from '../service/layout.service';
-import { MenuModule } from 'primeng/menu'; // Pour p-menu
-import { AvatarModule } from 'primeng/avatar'; // Pour p-avatar
+import { MenuModule } from 'primeng/menu';
+import { AvatarModule } from 'primeng/avatar';
+import { PopoverModule, Popover } from 'primeng/popover';
 import { KeycloakService } from 'keycloak-angular';
+import { AuthService } from '../../service/auth.service';
+import { AgendaYearService } from '../../service/agenda-year.service';
+import { EspaceContextService } from '../../service/espace-context.service';
+import { NotificationService, AppNotification } from '../../service/notification.service';
+import { Subscription, interval, of } from 'rxjs';
+import { startWith, switchMap, catchError } from 'rxjs/operators';
 
 @Component({
     selector: 'app-topbar',
     standalone: true,
-    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator,MenuModule, 
-        AvatarModule,],
+    imports: [RouterModule, CommonModule, StyleClassModule, AppConfigurator, MenuModule, AvatarModule, PopoverModule],
     styles: [`
         // Styles pour le logo dans la topbar
         .layout-topbar-logo {
@@ -22,7 +28,7 @@ import { KeycloakService } from 'keycloak-angular';
             justify-content: center;
             text-decoration: none;
             padding: 0 1rem;
-            transition: all 0.3s ease;
+            transition: opacity 0.3s ease;
         }
 
         .layout-topbar-logo:hover {
@@ -46,6 +52,16 @@ import { KeycloakService } from 'keycloak-angular';
 
         .topbar-logo-img:hover {
             transform: scale(1.02);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .topbar-logo-img {
+                animation: none;
+                transition: none;
+            }
+            .notification-badge {
+                animation: none;
+            }
         }
 
         // Ajustements pour le conteneur du logo
@@ -96,12 +112,207 @@ import { KeycloakService } from 'keycloak-angular';
             // Si vous avez besoin d'ajuster le logo en mode sombre
             // filter: brightness(1.1);
         }
+
+        .notification-bell {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #ef4444;
+            color: #fff;
+            border-radius: 9999px;
+            font-size: 0.62rem;
+            font-weight: 700;
+            min-width: 17px;
+            height: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            line-height: 1;
+            pointer-events: none;
+            border: 2px solid var(--surface-card, #fff);
+            box-shadow: 0 1px 4px rgba(239,68,68,.4);
+            animation: badgePop .2s ease-out;
+        }
+
+        @keyframes badgePop {
+            from { transform: scale(0); }
+            to   { transform: scale(1); }
+        }
+
+        .notif-panel {
+            display: flex;
+            flex-direction: column;
+            max-height: 420px;
+        }
+        .notif-panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            border-bottom: 1px solid var(--surface-200, #e4e4e7);
+        }
+        .notif-mark-all {
+            background: none;
+            border: none;
+            color: var(--p-primary-color, #009640);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0;
+        }
+        .notif-panel-body {
+            overflow-y: auto;
+        }
+        .notif-empty {
+            padding: 1.5rem 1rem;
+            text-align: center;
+            color: var(--text-color-secondary);
+            font-size: 0.85rem;
+        }
+        .notif-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            padding: 0.65rem 1rem;
+            cursor: pointer;
+            border-bottom: 1px solid var(--surface-100, #f4f4f5);
+            transition: background 0.15s;
+        }
+        .notif-item:hover {
+            background: var(--surface-100, #f4f4f5);
+        }
+        .notif-item--unread {
+            background: var(--surface-50, #fafafa);
+        }
+        .notif-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            margin-top: 6px;
+            flex-shrink: 0;
+        }
+        .notif-item-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .notif-message {
+            font-size: 0.85rem;
+            line-height: 1.4;
+            margin-bottom: 2px;
+            white-space: normal;
+        }
+        .notif-date {
+            font-size: 0.72rem;
+            color: var(--text-color-secondary);
+        }
+
+        /* ── Sélecteur d'année ───────────────────────────────── */
+        .year-selector {
+            display:       flex;
+            align-items:   center;
+            gap:           2px;
+            background:    var(--surface-100, #f4f4f5);
+            border:        1px solid var(--surface-200, #e4e4e7);
+            border-radius: 6px;
+            padding:       2px 4px;
+            transition:    background 0.2s, border-color 0.2s;
+        }
+        .year-selector--past {
+            background:   #FEF3C7;
+            border-color: #FCD34D;
+        }
+        .year-btn {
+            display:         flex;
+            align-items:     center;
+            justify-content: center;
+            width:           24px;
+            height:          24px;
+            border:          none;
+            background:      transparent;
+            border-radius:   4px;
+            cursor:          pointer;
+            color:           var(--text-color-secondary);
+            transition:      background 0.15s, color 0.15s;
+            font-size:       0.75rem;
+            padding:         0;
+        }
+        .year-btn:hover:not(:disabled) {
+            background: var(--surface-200, #e4e4e7);
+            color:      var(--text-color);
+        }
+        .year-btn:disabled {
+            opacity: 0.35;
+            cursor:  not-allowed;
+        }
+        .year-label {
+            font-size:      0.875rem;
+            font-weight:    700;
+            font-variant-numeric: tabular-nums;
+            min-width:      40px;
+            text-align:     center;
+            cursor:         pointer;
+            color:          var(--text-color);
+            letter-spacing: 0.02em;
+            user-select:    none;
+            padding:        0 4px;
+        }
+        .year-selector--past .year-label { color: #92400E; }
+        .year-past-badge {
+            font-size:      9px;
+            font-weight:    700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color:          #92400E;
+            background:     #FDE68A;
+            border-radius:  3px;
+            padding:        1px 4px;
+            margin-left:    2px;
+        }
+
+        /* ── Sélecteur d'espace ──────────────────────────────── */
+        .espace-selector {
+            display:       flex;
+            align-items:   center;
+            gap:           6px;
+            background:    var(--surface-100, #f4f4f5);
+            border:        1px solid var(--surface-200, #e4e4e7);
+            border-radius: 6px;
+            padding:       2px 8px;
+        }
+        .espace-selector i {
+            font-size: 0.8rem;
+            color:     var(--text-color-secondary);
+        }
+        .espace-select {
+            border:      none;
+            background:  transparent;
+            font-size:   0.8rem;
+            font-weight: 600;
+            color:       var(--text-color);
+            max-width:   160px;
+            cursor:      pointer;
+            outline:     none;
+        }
     `],
     template: `
         <div class="layout-topbar">
             <div class="layout-topbar-logo-container">
-                <button class="layout-menu-button layout-topbar-action" (click)="layoutService.onMenuToggle()">
-                    <i class="pi pi-bars"></i>
+                <button class="layout-menu-button layout-topbar-action"
+                        aria-label="Ouvrir le menu de navigation"
+                        (click)="layoutService.onMenuToggle()">
+                    <i class="pi pi-bars" aria-hidden="true"></i>
                 </button>
                 <a class="layout-topbar-logo" routerLink="/">
                     <img src="assets/images/logo-asce-lcnav.png" alt="ASCE-LC Logo" class="topbar-logo-img" />
@@ -110,12 +321,15 @@ import { KeycloakService } from 'keycloak-angular';
 
             <div class="layout-topbar-actions">
                 <div class="layout-config-menu">
-                    <button type="button" class="layout-topbar-action" (click)="toggleDarkMode()">
-                        <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }"></i>
+                    <button type="button" class="layout-topbar-action"
+                            [attr.aria-label]="layoutService.isDarkTheme() ? 'Passer en mode clair' : 'Passer en mode sombre'"
+                            (click)="toggleDarkMode()">
+                        <i [ngClass]="{ 'pi ': true, 'pi-moon': layoutService.isDarkTheme(), 'pi-sun': !layoutService.isDarkTheme() }" aria-hidden="true"></i>
                     </button>
                     <div class="relative">
                         <button
                             class="layout-topbar-action layout-topbar-action-highlight"
+                            aria-label="Personnaliser le thème"
                             pStyleClass="@next"
                             enterFromClass="hidden"
                             enterActiveClass="animate-scalein"
@@ -123,27 +337,99 @@ import { KeycloakService } from 'keycloak-angular';
                             leaveActiveClass="animate-fadeout"
                             [hideOnOutsideClick]="true"
                         >
-                            <i class="pi pi-palette"></i>
+                            <i class="pi pi-palette" aria-hidden="true"></i>
                         </button>
                         <app-configurator />
                     </div>
                 </div>
 
-        
+        <!-- Sélecteur d'année -->
+        <div class="year-selector" [class.year-selector--past]="!agendaYearService.isCurrentYear()"
+             [title]="yearSelectorTitle">
+            <button class="year-btn"
+                    (click)="agendaYearService.prev()"
+                    [disabled]="agendaYearService.year() <= 2020"
+                    aria-label="Année précédente">
+                <i class="pi pi-chevron-left" aria-hidden="true"></i>
+            </button>
+            <span class="year-label"
+                  (click)="agendaYearService.resetToCurrentYear()"
+                  [title]="yearLabelTitle">
+                {{ agendaYearService.year() }}
+            </span>
+            <span *ngIf="!agendaYearService.isCurrentYear()" class="year-past-badge" aria-hidden="true">ARCHIVE</span>
+            <button class="year-btn"
+                    (click)="agendaYearService.next()"
+                    [disabled]="agendaYearService.isCurrentYear()"
+                    aria-label="Année suivante">
+                <i class="pi pi-chevron-right" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Sélecteur d'espace (utilisateurs membres de plusieurs espaces) -->
+        <div class="espace-selector" *ngIf="espaceContextService.mesEspaces().length > 1"
+             title="Filtrer par espace">
+            <i class="pi pi-sitemap" aria-hidden="true"></i>
+            <select class="espace-select" [value]="espaceContextService.espaceActif() || ''"
+                    (change)="onEspaceChange($event)" aria-label="Espace actif">
+                <option value="">Tous mes espaces</option>
+                <option *ngFor="let e of espaceContextService.mesEspaces()" [value]="e.id">{{ e.nom }}</option>
+            </select>
+        </div>
+
+        <!-- Notifications -->
+        <button type="button"
+                class="layout-topbar-action notification-bell"
+                (click)="toggleNotifications($event, notifPanel)"
+                [attr.aria-label]="unreadCount > 0 ? unreadCount + ' notification(s) non lue(s)' : 'Notifications'">
+            <i class="pi pi-bell" aria-hidden="true"></i>
+            <span *ngIf="unreadCount > 0" class="notification-badge" aria-hidden="true">
+                {{ unreadCount > 99 ? '99+' : unreadCount }}
+            </span>
+        </button>
+
+<p-popover #notifPanel appendTo="body" [style]="{width: '380px'}">
+    <div class="notif-panel">
+        <div class="notif-panel-header">
+            <span>Notifications</span>
+            <button type="button" class="notif-mark-all" *ngIf="unreadCount > 0" (click)="marquerToutesLues()">
+                Tout marquer lu
+            </button>
+        </div>
+        <div class="notif-panel-body">
+            <div *ngIf="loadingNotifications" class="notif-empty">Chargement…</div>
+            <div *ngIf="!loadingNotifications && notifications.length === 0" class="notif-empty">
+                Aucune notification
+            </div>
+            <div *ngFor="let n of notifications"
+                 class="notif-item" [class.notif-item--unread]="!n.lue"
+                 (click)="openNotification(n, notifPanel)">
+                <span class="notif-dot" *ngIf="!n.lue"></span>
+                <div class="notif-item-content">
+                    <p class="notif-message">{{ n.message }}</p>
+                    <span class="notif-date">{{ n.createdAt | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</p-popover>
+
 <p-menu #menu [popup]="true" [model]="items" appendTo="body"></p-menu>
 
-<button type="button" class="layout-topbar-action" (click)="menu.toggle($event)">
-    <p-avatar 
+<button type="button" class="layout-topbar-action"
+        [attr.aria-label]="'Menu utilisateur : ' + (user?.firstName || 'Compte')"
+        (click)="menu.toggle($event)">
+    <p-avatar
         *ngIf="user?.firstName"
-        [label]="user.firstName.charAt(0).toUpperCase()" 
-        styleClass="mr-2"              
+        [label]="user.firstName.charAt(0).toUpperCase()"
+        styleClass="mr-2"
         shape="circle">{{ user.firstName.charAt(0).toLocaleUpperCase() }}
     </p-avatar>
-    <p-avatar 
+    <p-avatar
         *ngIf="!user?.firstName"
-        icon="pi pi-user" 
-        styleClass="mr-2" 
-     shape="circle">{{ user.firstName.charAt(0).toLocaleUpperCase() }}
+        icon="pi pi-user"
+        styleClass="mr-2"
+     shape="circle">
     </p-avatar>
 </button>
 
@@ -151,66 +437,110 @@ import { KeycloakService } from 'keycloak-angular';
         </div>
     `
 })
-export class AppTopbar implements OnInit{
+export class AppTopbar implements OnInit, OnDestroy {
 
-    // Déclarez la propriété user
-    public user: any = {
-        firstName: '',
-        lastName: ''
-    };
-
+    public user: any = { firstName: '', lastName: '' };
     items: MenuItem[] | undefined;
-    router: any;
-    authService: any;
+    unreadCount = 0;
+    notifications: AppNotification[] = [];
+    loadingNotifications = false;
 
-    constructor(public layoutService: LayoutService, private keycloakService: KeycloakService) {}
+    private pollSub?: Subscription;
 
-async ngOnInit() {
-        // 1. Chargement du profil utilisateur
-        if (await this.keycloakService.isLoggedIn()) {
-            const profile = await this.keycloakService.loadUserProfile();
-            this.user = {
-                firstName: profile.firstName || '',
-                lastName: profile.lastName || '',
-                username: profile.username
-            };
+    constructor(
+        public layoutService:    LayoutService,
+        private keycloakService: KeycloakService,
+        public authService:      AuthService,
+        private notificationService: NotificationService,
+        public agendaYearService: AgendaYearService,
+        public espaceContextService: EspaceContextService,
+        private router:          Router
+    ) {}
+
+    onEspaceChange(event: Event): void {
+        const value = (event.target as HTMLSelectElement).value;
+        this.espaceContextService.setEspaceActif(value || null);
+    }
+
+    async ngOnInit() {
+        try {
+            if (await this.keycloakService.isLoggedIn()) {
+                const profile = await this.keycloakService.loadUserProfile();
+                this.user = {
+                    firstName: profile.firstName || '',
+                    lastName:  profile.lastName  || '',
+                    username:  profile.username
+                };
+            }
+        } catch (err) {
+            console.error('Erreur chargement du profil utilisateur:', err);
         }
 
-        // 2. Initialisation du menu avec les icônes PrimeIcons
         this.items = [
-            { 
-                label: 'Profil', 
-                icon: 'pi pi-user', 
-                command: () => this.goToProfile() 
-            },
-            { 
-                label: 'Déconnexion', 
-                icon: 'pi pi-sign-out', 
-                command: () => this.keycloakService.logout() // Utilisez votre méthode logout locale
-            }
+            { label: 'Profil',        icon: 'pi pi-user',     command: () => this.goToProfile() },
+            { label: 'Déconnexion',   icon: 'pi pi-sign-out', command: () => this.keycloakService.logout() }
         ];
+
+        this.pollSub = interval(60_000).pipe(
+            startWith(0),
+            switchMap(() => this.notificationService.countNonLues().pipe(catchError(() => of(null))))
+        ).subscribe(count => {
+            if (count !== null) {
+                this.unreadCount = count;
+            }
+        });
     }
 
-    goToProfile() {
-        this.router.navigate(['/pages/profile']); // Vérifiez le chemin exact
+    toggleNotifications(event: Event, panel: Popover): void {
+        panel.toggle(event);
+        this.loadingNotifications = true;
+        this.notificationService.getMesNotifications().subscribe({
+            next: (list) => { this.notifications = list; this.loadingNotifications = false; },
+            error: () => { this.loadingNotifications = false; }
+        });
     }
 
-    logout() {
-        this.keycloakService.logout(window.location.origin);
+    openNotification(notif: AppNotification, panel: Popover): void {
+        if (!notif.lue) {
+            this.notificationService.marquerLue(notif.id).subscribe(() => {
+                notif.lue = true;
+                this.unreadCount = Math.max(0, this.unreadCount - 1);
+            });
+        }
+        panel.hide();
+        if (notif.eventId) {
+            this.router.navigate(['/events', notif.eventId]);
+        }
     }
 
-      async handleLogin() {
-    await this.keycloakService.login({
-      redirectUri: window.location.origin
-    });
-  }
+    marquerToutesLues(): void {
+        this.notificationService.marquerToutesLues().subscribe(() => {
+            this.notifications.forEach(n => n.lue = true);
+            this.unreadCount = 0;
+        });
+    }
 
-    handleLogout(){
-    this.keycloakService.logout(window.location.origin);
-  }
+    ngOnDestroy(): void {
+        this.pollSub?.unsubscribe();
+    }
 
+    get yearSelectorTitle(): string {
+        return this.agendaYearService.isCurrentYear()
+            ? 'Année en cours'
+            : "Cliquez sur l'année pour revenir à aujourd'hui";
+    }
 
-    toggleDarkMode() {
-        this.layoutService.layoutConfig.update((state) => ({ ...state, darkTheme: !state.darkTheme }));
+    get yearLabelTitle(): string {
+        return this.agendaYearService.isCurrentYear()
+            ? ''
+            : "Retour à l'année en cours";
+    }
+
+    goToProfile(): void {
+        this.router.navigate(['/profile']);
+    }
+
+    toggleDarkMode(): void {
+        this.layoutService.layoutConfig.update(state => ({ ...state, darkTheme: !state.darkTheme }));
     }
 }

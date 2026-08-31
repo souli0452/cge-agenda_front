@@ -1,8 +1,6 @@
 <div class="event-edit-container">
   <p-toast />
   <p-confirmDialog />
-
-  <!-- En-tête -->
   <div class="page-header">
     <div class="header-left">
       <h1>
@@ -12,23 +10,21 @@
     </div>
   </div>
 
-  <!-- Contenu principal -->
   <div class="step-content">
     <div class="phase-intro">
       <i class="pi pi-info-circle"></i>
       <p>
-        Modifiez les informations de l'événement. Les champs marqués d'un astérisque (*) sont obligatoires.
+        Modifiez les informations de l'événement.
+        Les champs marqués d'un astérisque (*) sont obligatoires.
       </p>
     </div>
 
     @if (loading) {
-      <p-skeleton width="100%" height="50px" styleClass="mb-3" />
+      <p-skeleton width="100%" height="50px"  styleClass="mb-3" />
       <p-skeleton width="100%" height="200px" styleClass="mb-3" />
       <p-skeleton width="100%" height="50px" />
     } @else {
       <form [formGroup]="eventForm" (ngSubmit)="onSubmit()">
-        
-        <!-- Informations générales -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-info-circle"></i>
@@ -37,60 +33,37 @@
 
           <div class="form-field">
             <label for="title" class="field-label">
-              Titre de l'événement <span class="required">*</span>
+              Titre de l'événement <span class="text-red-500">*</span>
             </label>
-            <input 
-              pInputText 
-              id="title"
-              formControlName="title"
-              placeholder="Ex: Réunion de lancement du projet XYZ"
-              class="w-full p-inputtext-lg"
-            />
+            <input pInputText id="title" formControlName="title"
+                   placeholder="Ex: Réunion de lancement du projet XYZ"
+                   class="w-full p-inputtext-lg" />
             @if (eventForm.get('title')?.invalid && eventForm.get('title')?.touched) {
-              <small class="field-error">
-                Le titre est obligatoire
-              </small>
+              <small class="field-error">Le titre est obligatoire</small>
             }
           </div>
 
           <div class="form-field">
             <label for="description" class="field-label">Description</label>
-            <textarea 
-              pTextarea
-              id="description"
-              formControlName="description"
-              rows="5"
-              placeholder="Ajoutez tous les détails importants pour les participants"
-              class="w-full"
-            ></textarea>
-            <small class="field-hint">
-              <i class="pi pi-lightbulb"></i>
-              Ajoutez tous les détails importants pour les participants
-            </small>
+            <textarea pTextarea id="description" formControlName="description"
+                      rows="5"
+                      placeholder="Ajoutez tous les détails importants pour les participants"
+                      class="w-full"></textarea>
           </div>
 
           <div class="form-field">
             <label for="type" class="field-label">
-              Type d'événement <span class="required">*</span>
+              Type d'événement <span class="text-red-500">*</span>
             </label>
-            <p-select
-              [options]="eventTypes"
-              formControlName="type"
-              optionLabel="label"
-              optionValue="value"
-              placeholder="Sélectionnez un type"
-              [showClear]="true"
-              styleClass="w-full"
-            />
+            <p-select [options]="eventTypes" formControlName="type"
+                      optionLabel="label" optionValue="value"
+                      placeholder="Sélectionnez un type"
+                      [showClear]="true" styleClass="w-full" />
             @if (eventForm.get('type')?.invalid && eventForm.get('type')?.touched) {
-              <small class="field-error">
-                Le type est obligatoire
-              </small>
+              <small class="field-error">Le type est obligatoire</small>
             }
           </div>
         </div>
-
-        <!-- Dates -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-calendar"></i>
@@ -100,90 +73,188 @@
           <div class="grid-2-cols">
             <div class="form-field">
               <label for="startDate" class="field-label">
-                Date de début <span class="required">*</span>
+                Date de début <span class="text-red-500">*</span>
               </label>
-              <input 
-                pInputText 
-                type="date"
-                id="startDate"
-                formControlName="startDate"
-                class="w-full"
-              />
+              <p-datepicker formControlName="startDate" dateFormat="dd/mm/yy"
+                            inputId="startDate" placeholder="Sélectionnez la date"
+                            [showIcon]="true" styleClass="w-full" [style]="{'width': '100%'}">
+              </p-datepicker>
               @if (eventForm.get('startDate')?.invalid && eventForm.get('startDate')?.touched) {
-                <small class="field-error">
-                  Date de début requise
-                </small>
+                <small class="field-error">Date de début requise</small>
               }
             </div>
 
             <div class="form-field">
               <label for="endDate" class="field-label">
-                Date de fin <span class="required">*</span>
+                Date de fin <span class="text-red-500">*</span>
               </label>
-              <input 
-                pInputText 
-                type="date"
-                id="endDate"
-                formControlName="endDate"
-                class="w-full"
-              />
+              <p-datepicker formControlName="endDate" dateFormat="dd/mm/yy"
+                            inputId="endDate" placeholder="Sélectionnez la date"
+                            [showIcon]="true" styleClass="w-full" [style]="{'width': '100%'}">
+              </p-datepicker>
               @if (eventForm.get('endDate')?.invalid && eventForm.get('endDate')?.touched) {
-                <small class="field-error">
-                  Date de fin requise
-                </small>
+                <small class="field-error">Date de fin requise</small>
               }
+              <small class="text-red-500 block mt-1"
+                     *ngIf="eventForm.errors?.['endBeforeStart'] && eventForm.get('endDate')?.touched">
+                La date de fin doit être postérieure à la date de début
+              </small>
             </div>
           </div>
         </div>
-
-        <!-- Localisation -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-map-marker"></i>
-            Localisation
+            Lieu de l'événement
           </h3>
 
-          <div class="grid-2-cols">
-            <div class="form-field">
-              <label for="pays" class="field-label">Pays</label>
-              <input 
-                pInputText 
-                id="pays"
-                formControlName="pays"
-                placeholder="Pays"
-                class="w-full"
-              />
-            </div>
-
-            <div class="form-field">
-              <label for="ville" class="field-label">Ville</label>
-              <input 
-                pInputText 
-                id="ville"
-                formControlName="ville"
-                placeholder="Ville"
-                class="w-full"
-              />
-            </div>
-          </div>
-
           <div class="form-field">
-            <label for="meetingLink" class="field-label">Lien de visioconférence</label>
-            <input 
-              pInputText 
-              id="meetingLink"
-              formControlName="meetingLink"
-              placeholder="https://meet.google.com/...  "
-              class="w-full"
-            />
-            <small class="field-hint">
-              <i class="pi pi-video"></i>
-              Google Meet, Zoom, Teams, etc.
-            </small>
-          </div>
-        </div>
+            <label class="field-label">Type de lieu</label>
+            <div class="lieu-type-grid">
 
-        <!-- Participants -->
+              <div class="lieu-option"
+                   [class.selected]="currentLieuType === 'INTERNE'"
+                   (click)="eventForm.patchValue({ lieuType: 'INTERNE' })">
+                <i class="pi pi-building lieu-icon"></i>
+                <span class="lieu-label">Interne</span>
+                <small class="lieu-desc">Dans le bâtiment ASCELC</small>
+              </div>
+
+              <div class="lieu-option"
+                   [class.selected]="currentLieuType === 'NATIONAL'"
+                   (click)="eventForm.patchValue({ lieuType: 'NATIONAL' })">
+                <i class="pi pi-map lieu-icon" style="color:var(--cge-vert-moyen)"></i>
+                <span class="lieu-label">National</span>
+                <small class="lieu-desc">Burkina Faso</small>
+              </div>
+
+              <div class="lieu-option"
+                   [class.selected]="currentLieuType === 'INTERNATIONAL'"
+                   (click)="eventForm.patchValue({ lieuType: 'INTERNATIONAL' })">
+                <i class="pi pi-globe lieu-icon" style="color:#1976d2"></i>
+                <span class="lieu-label">International</span>
+                <small class="lieu-desc">À l'étranger</small>
+              </div>
+
+              <div class="lieu-option"
+                   [class.selected]="currentLieuType === 'VIRTUEL'"
+                   (click)="eventForm.patchValue({ lieuType: 'VIRTUEL' })">
+                <i class="pi pi-video lieu-icon" style="color:#7b1fa2"></i>
+                <span class="lieu-label">Virtuel</span>
+                <small class="lieu-desc">Réunion en ligne</small>
+              </div>
+
+            </div>
+          </div>
+
+          @if (currentLieuType === 'INTERNE') {
+            <div class="form-field">
+              <label class="field-label">
+                Salle <span class="text-red-500">*</span>
+              </label>
+              <p-select [options]="sallesDisponibles"
+                        formControlName="salle"
+                        optionLabel="label" optionValue="value"
+                        placeholder="Choisir une salle"
+                        styleClass="w-full" />
+              <small class="field-hint">
+                <i class="pi pi-building"></i>
+                Sélectionnez la salle dans le bâtiment ASCELC
+              </small>
+            </div>
+          }
+
+          @if (currentLieuType === 'NATIONAL') {
+            <div class="grid-2-cols">
+              <div class="form-field">
+                <label class="field-label">
+                  Ville <span class="text-red-500">*</span>
+                </label>
+                <p-select [options]="villesBurkina"
+                          formControlName="ville"
+                          optionLabel="label" optionValue="value"
+                          placeholder="Choisir une ville"
+                          styleClass="w-full" />
+              </div>
+              <div class="form-field">
+                <label class="field-label">Nom du lieu</label>
+                <input pInputText formControlName="nomLieu"
+                       placeholder="Ex: Ministère de l'Économie, Hôtel Laïco..."
+                       class="w-full" />
+              </div>
+            </div>
+          }
+
+          @if (currentLieuType === 'INTERNATIONAL') {
+            <div class="form-field">
+              <label class="field-label">
+                Pays <span class="text-red-500">*</span>
+              </label>
+              <p-select [options]="countries"
+                        formControlName="pays"
+                        optionLabel="label" optionValue="value"
+                        placeholder="Sélectionnez le pays"
+                        [filter]="true" filterPlaceholder="Rechercher..."
+                        styleClass="w-full"
+                        (onChange)="onCountryChange($event)" />
+            </div>
+            <div class="grid-2-cols">
+              <div class="form-field">
+                <label class="field-label">
+                  Ville <span class="text-red-500">*</span>
+                </label>
+                <p-select *ngIf="hasCities()"
+                          [options]="cities"
+                          formControlName="ville"
+                          optionLabel="label" optionValue="value"
+                          placeholder="Sélectionnez la ville"
+                          [filter]="true"
+                          styleClass="w-full" />
+                <input *ngIf="!hasCities()" pInputText
+                       formControlName="ville"
+                       placeholder="Saisissez la ville"
+                       class="w-full" />
+              </div>
+              <div class="form-field">
+                <label class="field-label">Nom du lieu</label>
+                <input pInputText formControlName="nomLieu"
+                       placeholder="Ex: Siège Union Africaine, Hôtel Ivoire..."
+                       class="w-full" />
+              </div>
+            </div>
+          }
+
+          @if (currentLieuType === 'VIRTUEL') {
+            <div class="form-field">
+              <label class="field-label">
+                Lien de réunion <span class="text-red-500">*</span>
+              </label>
+              <input pInputText formControlName="meetingLink"
+                     placeholder="https://meet.google.com/..."
+                     class="w-full" />
+              <small class="field-hint">
+                <i class="pi pi-video"></i>
+                Google Meet, Zoom, Microsoft Teams, etc.
+              </small>
+            </div>
+          }
+
+          @if (currentLieuType && currentLieuType !== 'VIRTUEL') {
+            <div class="form-field">
+              <label class="field-label">
+                Lien visio (optionnel)
+              </label>
+              <input pInputText formControlName="meetingLink"
+                     placeholder="https://meet.google.com/... (si réunion hybride)"
+                     class="w-full" />
+              <small class="field-hint">
+                <i class="pi pi-info-circle"></i>
+                À remplir si la réunion est hybride (présentiel + visio)
+              </small>
+            </div>
+          }
+
+        </div>
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-users"></i>
@@ -202,30 +273,26 @@
                       <i class="pi pi-user"></i>
                       {{ participant.firstName }} {{ participant.lastName }}
                     </div>
-                    <p-button
-                      icon="pi pi-times"
-                      severity="danger"
-                      [text]="true"
-                      [rounded]="true"
-                      (onClick)="confirmRemoveParticipant(participant)"
-                      pTooltip="Retirer"
-                    />
+                    <p-button icon="pi pi-times" severity="danger"
+                              [text]="true" [rounded]="true"
+                              (onClick)="confirmRemoveParticipant(participant)"
+                              pTooltip="Retirer" />
                   </div>
                   <div class="grid-2-cols">
                     <div>
-                      <strong>📧 Email</strong>
+                      <strong>Email</strong>
                       <p class="field-value">{{ participant.email }}</p>
                     </div>
                     <div>
-                      <strong>📞 Téléphone</strong>
+                      <strong>Téléphone</strong>
                       <p class="field-value">{{ participant.phoneNumber || '—' }}</p>
                     </div>
                     <div>
-                      <strong>🏢 Structure</strong> 
-                      <p class="field-value">{{ participant.structure || 'Non renseignée' }}</p> 
+                      <strong>Structure</strong>
+                      <p class="field-value">{{ participant.structure || 'Non renseignée' }}</p>
                     </div>
                     <div>
-                      <strong>💼 Fonction</strong>
+                      <strong>Fonction</strong>
                       <p class="field-value">{{ participant.jobTitle || '—' }}</p>
                     </div>
                   </div>
@@ -242,16 +309,10 @@
             </div>
           }
 
-          <p-button
-            icon="pi pi-plus"
-            label="Ajouter un participant"
-            class="mt-3"
-            styleClass="btn-ascelc"
-            (onClick)="showAddParticipantDialog()"
-          />
+          <p-button icon="pi pi-plus" label="Ajouter un participant"
+                    class="mt-3" styleClass="btn-ascelc"
+                    (onClick)="showAddParticipantDialog()" />
         </div>
-
-        <!-- Fichiers -->
         <div class="form-group">
           <h3 class="group-title">
             <i class="pi pi-paperclip"></i>
@@ -270,21 +331,11 @@
                     <div class="file-name">{{ file.fileName }}</div>
                     <div class="file-size">{{ formatFileSize(file.fileSize) }}</div>
                   </div>
-                  <p-button
-                    icon="pi pi-download"
-                    [text]="true"
-                    [rounded]="true"
-                    (onClick)="downloadFile(file)"
-                    pTooltip="Télécharger"
-                  />
-                  <p-button
-                    icon="pi pi-trash"
-                    severity="danger"
-                    [text]="true"
-                    [rounded]="true"
-                    (onClick)="confirmDeleteFile(file)"
-                    pTooltip="Supprimer"
-                  />
+                  <p-button icon="pi pi-download" [text]="true" [rounded]="true"
+                            (onClick)="downloadFile(file)" pTooltip="Télécharger" />
+                  <p-button icon="pi pi-trash" severity="danger"
+                            [text]="true" [rounded]="true"
+                            (onClick)="confirmDeleteFile(file)" pTooltip="Supprimer" />
                 </div>
               }
             </div>
@@ -298,80 +349,58 @@
             </div>
           }
 
-          <input
-            type="file"
-            #fileInput
-            multiple
-            style="display: none"
-            (change)="onFileSelected($event)"
-          />
-          <p-button
-            icon="pi pi-plus"
-            label="Ajouter un fichier"
-            class="mt-3"
-            styleClass="btn-ascelc"
-            (onClick)="fileInput.click()"
-          />
+          <input type="file" #fileInput multiple style="display: none"
+                 (change)="onFileSelected($event)" />
+          <p-button icon="pi pi-plus" label="Ajouter un fichier"
+                    class="mt-3" styleClass="btn-ascelc"
+                    (onClick)="fileInput.click()" />
+        </div>
+        <div class="step-actions">
+          <p-button icon="pi pi-arrow-left" label="Retour"
+                    severity="secondary" [outlined]="true"
+                    (onClick)="goBack()" [disabled]="saving" />
+          <p-button icon="pi pi-save" label="Enregistrer les modifications"
+                    type="submit" styleClass="btn-ascelc"
+                    [loading]="saving" [disabled]="saving" />
         </div>
 
-        <!-- Actions -->
-        <div class="step-actions">
-          <p-button
-            icon="pi pi-arrow-left"
-            label="Retour"
-            severity="secondary"
-            [outlined]="true"
-            (onClick)="goBack()"
-            [disabled]="saving"
-          />
-          <p-button
-            icon="pi pi-save"
-            label="Enregistrer les modifications"
-            type="submit"
-            styleClass="btn-ascelc"
-            [loading]="saving"
-            [disabled]="saving"
-          />
-        </div>
       </form>
     }
   </div>
 
-  <!-- Dialog Ajouter Participant -->
-  <p-dialog
-    [(visible)]="addParticipantDialogVisible"
-    [modal]="true"
-    [style]="{ width: '500px' }"
-    header="Sélectionner un participant"
-  >
+  <p-dialog [(visible)]="addParticipantDialogVisible"
+            [modal]="true" [style]="{ width: '500px' }"
+            header="Sélectionner un participant">
     <p class="mb-3" style="color: #666; font-size: 13px;">
-      Les participants déjà ajoutés n'apparaissent pas dans cette liste
+      Tapez un nom ou email — le participant est ajouté dès la sélection.
     </p>
-    
-    <p-select
-      [(ngModel)]="selectedParticipantToAdd"
-      [options]="availableParticipants"
-      optionLabel="displayName"
-      placeholder="Choisissez un participant"
-      [filter]="true"
-      filterBy="displayName"
-      [showClear]="true"
-      styleClass="w-full"
-    />
-
+    <p-autoComplete
+        [(ngModel)]="selectedParticipantToAdd"
+        [suggestions]="participantSuggestions"
+        (completeMethod)="onParticipantSearch($event)"
+        (onSelect)="addParticipant()"
+        optionLabel="label"
+        placeholder="Tapez le nom, prénom ou email..."
+        [minLength]="1"
+        [delay]="300"
+        [showEmptyMessage]="true"
+        emptyMessage="Aucun participant trouvé"
+        [forceSelection]="true"
+        styleClass="w-full"
+        [style]="{'width': '100%'}"
+        appendTo="body"
+    >
+      <ng-template #item let-p>
+        <div style="display:flex;flex-direction:column;padding:4px 2px;gap:2px">
+          <span style="font-weight:600;font-size:14px;color:var(--cge-vert-moyen)">{{ p.firstName }} {{ p.lastName }}</span>
+          <span style="font-size:12px;color:#666">{{ p.email }} · {{ p.structure }}</span>
+        </div>
+      </ng-template>
+    </p-autoComplete>
     <ng-template pTemplate="footer">
-      <p-button
-        label="Annuler"
-        severity="secondary"
-        [text]="true"
-        (onClick)="addParticipantDialogVisible = false"
-      />
-      <p-button
-        label="Ajouter"
-        styleClass="btn-ascelc"
-        (onClick)="addParticipant()"
-        [disabled]="!selectedParticipantToAdd"
-      />
+      <p-button label="Fermer" severity="secondary" [text]="true"
+                (onClick)="addParticipantDialogVisible = false" />
     </ng-template>
   </p-dialog>
+
 </div>

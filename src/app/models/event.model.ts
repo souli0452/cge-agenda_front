@@ -4,29 +4,43 @@ import { Schedule } from './schedule.model';
 import { FileUpload } from './file.model';
 
 export interface Event {
-  // Audit fields
-  id?: string;
-  createdAt?: string;
-  updatedAt?: string;
-
-  // Event fields
-  title: string;
-  description?: string;
-  startDate: string;
-  endDate: string;
-  globalStartTime?: string;
-  globalEndTime?: string;
-  meetingLink?: string;
-  pays?: string;
-  ville?: string;
-  status: EventStatus;
-  type: EventType;
-
-  // Relations
-  schedules?: Schedule[];
-  files?: FileUpload[];
-  participants?: Participant[];
-
-  // tructures uniques des participants
-  structures?: string[];
+    id?: string;
+    createdAt?: string;
+    updatedAt?: string;
+    title: string;
+    description?: string;
+    startDate: string;
+    endDate: string;
+    globalStartTime?: string;
+    globalEndTime?: string;
+    meetingLink?: string;
+    pays?: string;
+    ville?: string;
+    status: EventStatus;
+    type: EventType;
+    lieuType?: string;
+    salle?: string;
+    nomLieu?: string;
+    schedules?: Schedule[];
+    files?: FileUpload[];
+    participants?: Participant[];
+    structures?: string[];
+    changeSuggestions?: string;
+    champsModifies?: string;
+    rejectionReason?: string;
+    validationComment?: string;
+    creatorEmail?: string;
+    creatorUsername?: string;
+    creatorRole?: string;
+    delegueNom?: string;
+    delegueEmail?: string;
+    delegueMotif?: string;
+    estDelegue?: boolean;
+    delegueDate?: string;
+    delegueParEmail?: string;
+    dupliqueeDeId?: string;
+    actionsDisponibles?: string[];
+    delegationConfirmee?: boolean | null;
+    observationType?: 'CORRECTION' | 'DELEGATION_DEMANDEE';
+    espaceId?: string;
 }
