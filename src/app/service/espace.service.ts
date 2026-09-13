@@ -9,6 +9,7 @@ export interface Espace {
     chefEmail: string;
     chefNom?: string;
     createdAt?: string;
+    actif: boolean;
 }
 
 export interface MembreEspace {
@@ -39,8 +40,12 @@ export class EspaceService {
         return this.http.post<Espace>(this.adminUrl, { nom, chefEmail, chefNom });
     }
 
-    deleteEspace(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.adminUrl}/${id}`);
+    updateEspace(id: string, nom: string, chefEmail: string, chefNom: string): Observable<Espace> {
+        return this.http.put<Espace>(`${this.adminUrl}/${id}`, { nom, chefEmail, chefNom });
+    }
+
+    setEspaceActif(id: string, actif: boolean): Observable<void> {
+        return this.http.patch<void>(`${this.adminUrl}/${id}/status`, { actif });
     }
 
     // Espaces accessibles à l'utilisateur courant (propriétaire + membre actif)

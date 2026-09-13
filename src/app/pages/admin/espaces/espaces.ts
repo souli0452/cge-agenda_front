@@ -9,6 +9,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ToastModule } from 'primeng/toast';
 import { SkeletonModule } from 'primeng/skeleton';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { TooltipModule } from 'primeng/tooltip';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { EspaceService, Espace } from '../../../service/espace.service';
@@ -18,7 +19,7 @@ import { EspaceService, Espace } from '../../../service/espace.service';
     standalone: true,
     imports: [
         CommonModule, FormsModule, ButtonModule, TableModule, DialogModule,
-        InputTextModule, ToastModule, SkeletonModule, ConfirmDialogModule
+        InputTextModule, ToastModule, SkeletonModule, ConfirmDialogModule, TooltipModule
     ],
     providers: [MessageService, ConfirmationService],
     styleUrls: ['./espaces.css'],
@@ -49,47 +50,56 @@ import { EspaceService, Espace } from '../../../service/espace.service';
                     <th>Espace</th>
                     <th>Chef</th>
                     <th>Email du chef</th>
-                    <th style="width:100px"></th>
+                    <th style="width:110px">Statut</th>
+                    <th style="width:140px"></th>
                 </tr>
             </ng-template>
             <ng-template pTemplate="body" let-espace>
-                <tr>
+                <tr [class.espace-inactif]="!espace.actif">
                     <td>{{ espace.nom }}</td>
                     <td>{{ espace.chefNom || '—' }}</td>
                     <td>{{ espace.chefEmail }}</td>
                     <td>
+                        <span class="statut-badge" [class.statut-actif]="espace.actif" [class.statut-inactif]="!espace.actif">
+                            {{ espace.actif ? 'Actif' : 'Inactif' }}
+                        </span>
+                    </td>
+                    <td>
+                        <p-button icon="pi pi-pencil" [text]="true" [rounded]="true" size="small"
+                                  pTooltip="Modifier" (onClick)="openEditDialog(espace)"></p-button>
                         <p-button icon="pi pi-users" [text]="true" [rounded]="true" size="small"
                                   pTooltip="Gérer les gestionnaires" (onClick)="goToTeam(espace)"></p-button>
-                        <p-button icon="pi pi-trash" [text]="true" [rounded]="true" size="small" severity="danger"
-                                  pTooltip="Supprimer" (onClick)="confirmDelete(espace)"></p-button>
+                        <p-button [icon]="espace.actif ? 'pi pi-ban' : 'pi pi-check'" [text]="true" [rounded]="true" size="small"
+                                  [severity]="espace.actif ? 'danger' : 'success'"
+                                  [pTooltip]="espace.actif ? 'Désactiver' : 'Réactiver'" (onClick)="confirmToggleActif(espace)"></p-button>
                     </td>
                 </tr>
             </ng-template>
             <ng-template pTemplate="emptymessage">
-                <tr><td colspan="4" style="text-align:center;padding:40px">Aucun espace créé</td></tr>
+                <tr><td colspan="5" style="text-align:center;padding:40px">Aucun espace créé</td></tr>
             </ng-template>
         </p-table>
     </div>
 </div>
 
-<p-dialog [(visible)]="createDialogVisible" [modal]="true" header="Nouvel espace" [style]="{width:'480px'}">
+<p-dialog [(visible)]="formDialogVisible" [modal]="true" [header]="editingEspace ? 'Modifier l\\'espace' : 'Nouvel espace'" [style]="{width:'480px'}">
     <div class="form-field">
         <label class="field-label">Nom de l'espace <span class="text-red-500">*</span></label>
-        <input pInputText [(ngModel)]="newNom" class="w-full" placeholder="Ex: Cabinet du Directeur X" />
+        <input pInputText [(ngModel)]="formNom" class="w-full" placeholder="Ex: Cabinet du Directeur X" />
     </div>
     <div class="form-field">
         <label class="field-label">Nom du chef</label>
-        <input pInputText [(ngModel)]="newChefNom" class="w-full" placeholder="Ex: Jean Dupont" />
+        <input pInputText [(ngModel)]="formChefNom" class="w-full" placeholder="Ex: Jean Dupont" />
     </div>
     <div class="form-field">
         <label class="field-label">Email du chef <span class="text-red-500">*</span></label>
-        <input pInputText [(ngModel)]="newChefEmail" class="w-full" placeholder="chef@asce-lc.bf" type="email" />
+        <input pInputText [(ngModel)]="formChefEmail" class="w-full" placeholder="chef@asce-lc.bf" type="email" />
         <small class="field-hint">Cette personne devient propriétaire de l'espace (tous droits, création directement confirmée).</small>
     </div>
     <ng-template pTemplate="footer">
-        <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="createDialogVisible = false"></p-button>
-        <p-button label="Créer" severity="success" [loading]="creating"
-                  [disabled]="!newNom.trim() || !newChefEmail.trim()" (onClick)="create()"></p-button>
+        <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="formDialogVisible = false"></p-button>
+        <p-button [label]="editingEspace ? 'Enregistrer' : 'Créer'" severity="success" [loading]="saving"
+                  [disabled]="!formNom.trim() || !formChefEmail.trim()" (onClick)="save()"></p-button>
     </ng-template>
 </p-dialog>
     `
@@ -99,11 +109,12 @@ export class AdminEspacesComponent implements OnInit {
     espaces: Espace[] = [];
     loading = true;
 
-    createDialogVisible = false;
-    creating = false;
-    newNom = '';
-    newChefNom = '';
-    newChefEmail = '';
+    formDialogVisible = false;
+    saving = false;
+    editingEspace: Espace | null = null;
+    formNom = '';
+    formChefNom = '';
+    formChefEmail = '';
 
     constructor(
         private espaceService: EspaceService,
@@ -125,37 +136,61 @@ export class AdminEspacesComponent implements OnInit {
     }
 
     openCreateDialog(): void {
-        this.newNom = '';
-        this.newChefNom = '';
-        this.newChefEmail = '';
-        this.createDialogVisible = true;
+        this.editingEspace = null;
+        this.formNom = '';
+        this.formChefNom = '';
+        this.formChefEmail = '';
+        this.formDialogVisible = true;
     }
 
-    create(): void {
-        this.creating = true;
-        this.espaceService.createEspace(this.newNom.trim(), this.newChefEmail.trim(), this.newChefNom.trim()).subscribe({
+    openEditDialog(espace: Espace): void {
+        this.editingEspace = espace;
+        this.formNom = espace.nom;
+        this.formChefNom = espace.chefNom || '';
+        this.formChefEmail = espace.chefEmail;
+        this.formDialogVisible = true;
+    }
+
+    save(): void {
+        this.saving = true;
+        const nom = this.formNom.trim();
+        const chefEmail = this.formChefEmail.trim();
+        const chefNom = this.formChefNom.trim();
+        const request$ = this.editingEspace
+            ? this.espaceService.updateEspace(this.editingEspace.id, nom, chefEmail, chefNom)
+            : this.espaceService.createEspace(nom, chefEmail, chefNom);
+
+        request$.subscribe({
             next: () => {
-                this.creating = false;
-                this.createDialogVisible = false;
-                this.messageService.add({ severity: 'success', summary: 'Créé', detail: 'Espace créé', life: 3000 });
+                this.saving = false;
+                this.formDialogVisible = false;
+                this.messageService.add({
+                    severity: 'success',
+                    summary: this.editingEspace ? 'Modifié' : 'Créé',
+                    detail: this.editingEspace ? 'Espace modifié' : 'Espace créé',
+                    life: 3000
+                });
                 this.load();
             },
             error: (err: any) => {
-                this.creating = false;
-                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible de créer l\'espace' });
+                this.saving = false;
+                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.message || 'Impossible d\'enregistrer l\'espace' });
             }
         });
     }
 
-    confirmDelete(espace: Espace): void {
+    confirmToggleActif(espace: Espace): void {
+        const nouveauStatut = !espace.actif;
         this.confirmationService.confirm({
-            message: `Supprimer l'espace "${espace.nom}" ? Les événements existants resteront rattachés à cet espace supprimé.`,
+            message: nouveauStatut
+                ? `Réactiver l'espace "${espace.nom}" ?`
+                : `Désactiver l'espace "${espace.nom}" ? Il ne sera plus possible d'y créer de nouveaux événements ; l'historique existant est conservé.`,
             header: 'Confirmation',
             icon: 'pi pi-exclamation-triangle',
             accept: () => {
-                this.espaceService.deleteEspace(espace.id).subscribe({
+                this.espaceService.setEspaceActif(espace.id, nouveauStatut).subscribe({
                     next: () => { this.load(); },
-                    error: () => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de supprimer' })
+                    error: () => this.messageService.add({ severity: 'error', summary: 'Erreur', detail: 'Impossible de modifier le statut' })
                 });
             }
         });
