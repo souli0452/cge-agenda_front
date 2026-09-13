@@ -74,6 +74,8 @@ export class CgeDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
     loading = false;
     stats?: DashboardStats;
     recentEvents: Event[] = [];
+    todayEvents: Event[] = [];
+    loadingToday = false;
     chartDataByType: any;
     chartDataByStatusMonth: any;
     doughnutOptions: any;
@@ -102,7 +104,19 @@ export class CgeDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         this.initChartOptions();
         this.loadData();
         this.loadEventsByStatusMonth();
+        this.loadTodayEvents();
         this.initialized = true;
+    }
+
+    loadTodayEvents(): void {
+        this.loadingToday = true;
+        const today = new Date().toISOString().slice(0, 10);
+        this.eventService.getEventsByDateRange(today, today).pipe(
+            catchError(() => of([]))
+        ).subscribe(events => {
+            this.todayEvents = events;
+            this.loadingToday = false;
+        });
     }
 
     ngOnDestroy(): void {}

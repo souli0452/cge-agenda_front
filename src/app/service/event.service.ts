@@ -161,12 +161,12 @@ export class EventService {
         );
     }
 
-    getEventsByDateRange(start: string, end: string): Observable<Event[]> {
+    getEventsByDateRange(startDate: string, endDate: string): Observable<Event[]> {
         const params = new HttpParams()
-            .set('start', start)
-            .set('end',   end);
+            .set('startDate', startDate)
+            .set('endDate',   endDate);
         return this.http.get<Event[]>(
-            `${this.apiUrl}/range`, { params }
+            `${this.apiUrl}/period`, { params }
         );
     }
 

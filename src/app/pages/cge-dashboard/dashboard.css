@@ -122,6 +122,45 @@ body.mb-grid-on .db-toggle-dot {
     margin-bottom:   calc(2 * var(--bl));
 }
 
+.db-today-card { padding-bottom: calc(2 * var(--bl)); }
+
+.db-today-empty {
+    padding:     calc(3 * var(--bl)) 0;
+    text-align:  center;
+    font-size:   0.875rem;
+    color:       var(--text-color-secondary);
+}
+
+.db-today-list {
+    display:        flex;
+    flex-direction: column;
+    gap:            var(--bl);
+}
+
+.db-today-item {
+    display:       flex;
+    align-items:   center;
+    gap:           calc(2 * var(--bl));
+    padding:       var(--bl) calc(2 * var(--bl));
+    border-radius: 8px;
+    background:    var(--surface-ground);
+}
+.db-today-item:hover { background: var(--surface-hover); }
+
+.db-today-time {
+    font-family: monospace;
+    font-size:   0.8125rem;
+    color:       var(--text-color-secondary);
+    min-width:   6.5rem;
+}
+
+.db-today-title {
+    flex:        1;
+    font-weight: 600;
+    font-size:   0.875rem;
+    color:       var(--text-color);
+}
+
 .db-stats-band {
     background:    var(--surface-ground);
     border-radius: 12px;

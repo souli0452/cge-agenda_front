@@ -30,6 +30,44 @@
                 <hr style="grid-column: 1 / 13" class="db-rule" />
             </div>
             <div class="mb-band">
+                <div style="grid-column: 1 / 13" class="card db-today-card">
+                    <div class="db-table-hd">
+                        <h2 class="db-chart-title">Aujourd'hui</h2>
+                        <p-button
+                            label="Voir le calendrier"
+                            icon="pi pi-arrow-right"
+                            iconPos="right"
+                            [text]="true"
+                            (onClick)="viewAllEvents()">
+                        </p-button>
+                    </div>
+
+                    <div *ngIf="loadingToday" class="db-today-empty">Chargement…</div>
+
+                    <div *ngIf="!loadingToday && todayEvents.length === 0" class="db-today-empty">
+                        Aucun événement aujourd'hui.
+                    </div>
+
+                    <div *ngIf="!loadingToday && todayEvents.length > 0" class="db-today-list">
+                        <div *ngFor="let event of todayEvents"
+                             class="db-today-item cursor-pointer"
+                             tabindex="0"
+                             role="button"
+                             [attr.aria-label]="'Voir les détails de ' + event.title"
+                             (click)="viewEvent(event.id)"
+                             (keydown.enter)="viewEvent(event.id)"
+                             (keydown.space)="$event.preventDefault(); viewEvent(event.id)">
+                            <span class="db-today-time">
+                                {{ event.globalStartTime || '—' }}<ng-container *ngIf="event.globalEndTime"> – {{ event.globalEndTime }}</ng-container>
+                            </span>
+                            <span class="db-today-title">{{ event.title }}</span>
+                            <p-tag [value]="getTypeLabel(event.type)" [severity]="getTypeSeverity(event.type)" [rounded]="true"></p-tag>
+                            <p-tag [value]="getStatusLabel(event.status)" [severity]="getStatusSeverity(event.status)" [rounded]="true"></p-tag>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="mb-band">
                 <div style="grid-column: 1 / 4" class="card mb-0 kpi-card kpi-card--blue">
                     <div class="kpi-value">{{ stats?.totalEvents || 0 }}</div>
                     <div class="kpi-label">Total Événements</div>
