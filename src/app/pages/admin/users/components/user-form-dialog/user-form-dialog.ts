@@ -28,10 +28,7 @@ const ROLE_OPTIONS = [
         SelectModule, DividerModule, TooltipModule, CheckboxModule
     ],
     templateUrl: './user-form-dialog.html',
-    styles: [`
-        .password-row { display: flex; align-items: center; gap: 6px; }
-        .password-row input { flex: 1; }
-    `]
+    styleUrls: ['./user-form-dialog.css']
 })
 export class UserFormDialogComponent implements OnChanges {
     @Input() user:     any | null = null;
