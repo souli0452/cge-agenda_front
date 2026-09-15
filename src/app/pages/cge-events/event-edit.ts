@@ -57,6 +57,10 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
     addParticipantDialogVisible = false;
     selectedParticipantToAdd: any;
 
+    importDialogVisible = false;
+    importFile: File | null = null;
+    importing = false;
+
    
     eventTypes = [
         { label: 'Réunion',    value: 'REUNION'    },
@@ -365,6 +369,48 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
                 severity: 'error', summary: 'Erreur',
                 detail: err.error?.message || 'Impossible d\'ajouter le participant'
             })
+        });
+    }
+
+    showImportDialog(): void {
+        this.importFile = null;
+        this.importDialogVisible = true;
+    }
+
+    onImportFileSelected(event: any): void {
+        this.importFile = event.target.files?.[0] ?? null;
+    }
+
+    downloadImportTemplate(): void {
+        const csv = 'Nom,Prénom,Email,Téléphone,Structure,Fonction\n';
+        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'modele_import_participants.csv';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); window.URL.revokeObjectURL(url);
+    }
+
+    submitImport(): void {
+        if (!this.importFile || !this.eventId) return;
+        this.importing = true;
+        this.eventService.importParticipants(this.eventId, this.importFile).subscribe({
+            next: (imported) => {
+                this.importing = false;
+                this.importDialogVisible = false;
+                this.messageService.add({
+                    severity: 'success', summary: 'Import terminé',
+                    detail: `${imported.length} participant(s) importé(s)`
+                });
+                this.loadParticipants();
+            },
+            error: (err: any) => {
+                this.importing = false;
+                this.messageService.add({
+                    severity: 'error', summary: 'Erreur',
+                    detail: err.error?.message || 'Impossible d\'importer le fichier'
+                });
+            }
         });
     }
 

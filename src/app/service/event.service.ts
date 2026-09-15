@@ -190,6 +190,14 @@ export class EventService {
         );
     }
 
+    importParticipants(eventId: string, file: File): Observable<Participant[]> {
+        const formData = new FormData();
+        formData.append('file', file);
+        return this.http.post<Participant[]>(
+            `${this.apiUrl}/${eventId}/participants/import`, formData
+        );
+    }
+
     generateAttendanceSheet(eventId: string): Observable<Blob> {
         return this.http.get(
             `${this.apiUrl}/attendance-sheet/${eventId}`,
