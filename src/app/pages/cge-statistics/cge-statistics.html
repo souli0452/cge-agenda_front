@@ -109,9 +109,9 @@
         <p-card header="Événements par mois ({{ selectedYear }})" styleClass="chart-card chart-card-full">
             <p-chart 
                 *ngIf="monthlyChartData"
-                type="line" 
-                [data]="monthlyChartData" 
-                [options]="chartOptions"
+                type="line"
+                [data]="monthlyChartData"
+                [options]="lineChartOptions"
                 [style]="{'height': '300px'}">
             </p-chart>
             <div *ngIf="!monthlyChartData" class="empty-chart">

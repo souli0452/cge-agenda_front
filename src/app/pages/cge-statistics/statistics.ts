@@ -54,6 +54,7 @@ export class CgeStatisticsComponent implements OnInit {
     statusChartData: any;
     monthlyChartData: any;
     chartOptions: any;
+    lineChartOptions: any;
     selectedYear: number = new Date().getFullYear();
     yearOptions: { label: string; value: number }[] = [];
 
@@ -82,18 +83,30 @@ export class CgeStatisticsComponent implements OnInit {
     }
 
     initChartOptions(): void {
+        // Objets distincts : Chart.js remplit les scales x/y directement sur
+        // l'objet options qu'on lui passe (il ne le clone pas). Le camembert et
+        // le donut n'ont pas d'axes, mais s'ils partageaient le meme objet que
+        // le graphique en courbe, ils heritaient de ses axes une fois celui-ci
+        // initialise (probleme observe : camembert affiche avec un quadrillage
+        // 0 a 1,0).
+        const legend = {
+            legend: {
+                position: 'bottom' as const,
+                labels: {
+                    font: { size: 12 },
+                    padding: 15
+                }
+            }
+        };
         this.chartOptions = {
             responsive: true,
             maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        font: { size: 12 },
-                        padding: 15
-                    }
-                }
-            }
+            plugins: legend
+        };
+        this.lineChartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: legend
         };
     }
 
