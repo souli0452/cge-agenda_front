@@ -45,23 +45,44 @@
         @if (!editMode) {
             <div class="uf-section">
                 <p class="uf-eyebrow">Accès</p>
-                <div class="form-row-2">
-                    <div class="form-field">
-                        <label class="field-label" for="uf-username">Nom d'utilisateur <span class="text-red-500">*</span></label>
-                        <input pInputText id="uf-username" formControlName="username" class="w-full" />
-                    </div>
+                <div class="form-field">
+                    <label class="field-label" for="uf-username">Nom d'utilisateur <span class="text-red-500">*</span></label>
+                    <input pInputText id="uf-username" formControlName="username" class="w-full" />
+                </div>
 
+                <div class="form-row-2">
                     <div class="form-field">
                         <label class="field-label" for="uf-password">Mot de passe <span class="text-red-500">*</span></label>
                         <div class="password-row">
-                            <input pInputText id="uf-password" type="text" formControlName="password" class="w-full" />
+                            <input pInputText id="uf-password" [type]="showPassword ? 'text' : 'password'"
+                                   formControlName="password" class="w-full" autocomplete="new-password" />
+                            <p-button [icon]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" [text]="true" size="small"
+                                      [pTooltip]="showPassword ? 'Masquer' : 'Afficher'"
+                                      (onClick)="showPassword = !showPassword"></p-button>
                             <p-button label="Défaut" [text]="true" size="small"
                                       pTooltip="Remplir avec le mot de passe par défaut (Asce@2026)"
                                       (onClick)="useDefaultPassword()"></p-button>
                         </div>
-                        <small class="field-hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Minimum 8 caractères — envoyé par email à l'utilisateur, à changer à la première connexion</small>
+                        @if (form.get('password')?.errors?.['pattern'] && form.get('password')?.touched) {
+                            <small class="field-error">Le mot de passe ne respecte pas la règle ci-dessous</small>
+                        }
+                    </div>
+
+                    <div class="form-field">
+                        <label class="field-label" for="uf-password-confirm">Confirmer le mot de passe <span class="text-red-500">*</span></label>
+                        <div class="password-row">
+                            <input pInputText id="uf-password-confirm" [type]="showConfirmPassword ? 'text' : 'password'"
+                                   formControlName="confirmPassword" class="w-full" autocomplete="new-password" />
+                            <p-button [icon]="showConfirmPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" [text]="true" size="small"
+                                      [pTooltip]="showConfirmPassword ? 'Masquer' : 'Afficher'"
+                                      (onClick)="showConfirmPassword = !showConfirmPassword"></p-button>
+                        </div>
+                        @if (form.errors?.['passwordMismatch'] && form.get('confirmPassword')?.touched) {
+                            <small class="field-error">Les deux mots de passe ne correspondent pas</small>
+                        }
                     </div>
                 </div>
+                <small class="field-hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Minimum 8 caractères, avec au moins une majuscule, un chiffre et un caractère spécial (ex: @ # % !) — envoyé par email à l'utilisateur, à changer à la première connexion</small>
             </div>
         }
 

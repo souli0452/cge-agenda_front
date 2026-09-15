@@ -62,7 +62,7 @@ interface UserFormData {
             <div>
                 <h1 class="page-title">Gestion des utilisateurs</h1>
                 <p class="page-subtitle">
-                    {{ users.length }} utilisateur(s) — Keycloak asce-lc-realm
+                    {{ users.length }} utilisateur(s)
                 </p>
             </div>
         </div>
@@ -232,7 +232,7 @@ interface UserFormData {
     [(visible)]="rolesMgmtVisible"
     [modal]="true"
     [style]="{width: '580px', 'max-height': '85vh'}"
-    header="Gestion des rôles Keycloak"
+    header="Gestion des rôles"
     [draggable]="false"
     [resizable]="false">
 
@@ -842,7 +842,7 @@ export class AdminUsersComponent implements OnInit {
 
     confirmDeleteRole(roleName: string): void {
         this.confirmationService.confirm({
-            message:                `Supprimer le rôle "${roleName}" de Keycloak ? Les utilisateurs gardent leurs accès jusqu'à reconnexion.`,
+            message:                `Supprimer le rôle "${roleName}" ? Les utilisateurs gardent leurs accès jusqu'à reconnexion.`,
             header:                 'Supprimer le rôle',
             icon:                   'pi pi-exclamation-triangle',
             acceptLabel:            'Oui, supprimer',
