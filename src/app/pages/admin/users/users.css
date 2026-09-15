@@ -132,40 +132,6 @@
 
 .skeleton-list { padding: 20px; }
 
-.user-row:hover { background: var(--surface-50) !important; }
-
-.user-identity {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.user-avatar {
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    font-size: 13px;
-    font-weight: 700;
-    flex-shrink: 0;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-}
-
-.username-text {
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text-color);
-}
-
-.fullname-text {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-color);
-}
-
 /* Email */
 .email-cell {
     display: flex;
@@ -191,60 +157,10 @@
     white-space: nowrap;
 }
 
-/* Statut badge */
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.status-active {
-    background: rgba(0, 150, 64,0.1);
-    color: var(--cge-vert-moyen);
-    border: 1px solid rgba(0, 150, 64,0.3);
-}
-
-.status-inactive {
-    background: rgba(244,67,54,0.1);
-    color: #f44336;
-    border: 1px solid rgba(244,67,54,0.3);
-}
-
-.status-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: currentColor;
-}
-
-/* Actions */
-.action-buttons {
-    display: flex;
-    justify-content: center;
-    gap: 2px;
-}
-
-/* Empty state */
+/* Empty state (utilise aussi par les dialogues de roles ci-dessous) */
 .empty-state {
     text-align: center;
     padding: 60px 20px;
-}
-
-.empty-icon {
-    font-size: 64px;
-    color: var(--surface-300);
-    margin-bottom: 16px;
-}
-
-.empty-title {
-    font-size: 18px;
-    font-weight: 600;
-    color: var(--text-color-secondary);
-    margin: 0 0 8px;
 }
 
 .empty-desc {
@@ -425,35 +341,6 @@
 /* ==========================================
    PRIMENG OVERRIDES
    ========================================== */
-:host ::ng-deep .users-table .p-datatable-thead > tr > th {
-    background: var(--cge-vert-moyen) !important;
-    color: white !important;
-    font-weight: 700 !important;
-    font-size: 13px !important;
-    padding: 14px 16px !important;
-    border: none !important;
-}
-
-:host ::ng-deep .users-table .p-datatable-thead > tr > th .p-sortable-column-icon {
-    color: rgba(255,255,255,0.8) !important;
-}
-
-:host ::ng-deep .users-table .p-datatable-thead > tr > th:hover {
-    background: var(--p-primary-700) !important;
-    color: white !important;
-}
-
-:host ::ng-deep .users-table .p-datatable-tbody > tr > td {
-    padding: 12px 16px !important;
-    font-size: 13px !important;
-    border-bottom: 1px solid var(--surface-border) !important;
-}
-
-:host ::ng-deep .users-table .p-paginator {
-    border-top: 1px solid var(--surface-border) !important;
-    padding: 12px 16px !important;
-}
-
 :host ::ng-deep .user-form .p-inputtext {
     width: 100% !important;
     font-size: 14px !important;
@@ -615,63 +502,6 @@
     border-radius: 8px;
 }
 
-
-/* ── Vue carte mobile utilisateurs ─────────────────────── */
-:host ::ng-deep .ut-mobile-cards { display: none; flex-direction: column; gap: 12px; padding: 12px; }
-
-/* Desktop mode carte → grille 2 colonnes */
-:host ::ng-deep .ut-mobile-cards.ut-cards-desktop {
-    display: grid !important;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px; padding: 16px;
-}
-:host ::ng-deep .ut-mobile-cards.ut-cards-desktop .ut-mobile-pag { grid-column: 1 / -1; }
-
-/* Tableau caché en mode carte */
-:host ::ng-deep .ut-table-hidden { display: none !important; }
-
-:host ::ng-deep .ut-card {
-    background: var(--surface-card);
-    border-radius: 14px;
-    border: 1px solid var(--surface-border);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    overflow: hidden;
-}
-:host ::ng-deep .ut-card-header {
-    display: flex; align-items: center; gap: 12px;
-    padding: 14px 14px 10px;
-    border-bottom: 1px solid var(--surface-border);
-}
-:host ::ng-deep .ut-card-info { flex: 1; min-width: 0; }
-:host ::ng-deep .ut-card-body { padding: 10px 14px; display: flex; flex-direction: column; gap: 8px; }
-:host ::ng-deep .ut-card-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-:host ::ng-deep .ut-card-icon { font-size: 14px; color: var(--primary-color); flex-shrink: 0; width: 16px; }
-:host ::ng-deep .ut-card-footer {
-    padding: 10px 14px;
-    border-top: 1px solid var(--surface-border);
-    background: var(--surface-ground);
-    display: flex; gap: 4px;
-}
-:host ::ng-deep .ut-mobile-pag {
-    display: flex; align-items: center; justify-content: center;
-    gap: 12px; padding: 12px 8px;
-    border-top: 1px solid var(--surface-border);
-}
-:host ::ng-deep .mob-pag-btn {
-    width: 36px; height: 36px; border-radius: 50%;
-    border: 1px solid var(--surface-border);
-    background: var(--surface-card); color: var(--text-color);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; font-size: 14px; transition: all 0.15s;
-}
-:host ::ng-deep .mob-pag-btn:disabled { opacity: 0.35; cursor: not-allowed; }
-:host ::ng-deep .mob-pag-btn:not(:disabled):hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
-:host ::ng-deep .mob-pag-info { font-size: 13px; color: var(--text-color-secondary); text-align: center; }
-
-@media (max-width: 768px) {
-    :host ::ng-deep .ut-mobile-cards { display: flex !important; flex-direction: column !important; }
-    :host ::ng-deep .ut-desktop-table { display: none !important; }
-}
 
 /* ── Dialog reset mot de passe ───────────────────────────── */
 .reset-pwd-info {

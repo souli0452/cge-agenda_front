@@ -19,7 +19,8 @@ import { ROLE_META, getRoleLabel } from '../../../../../models';
         TableModule, TagModule, ButtonModule, TooltipModule,
         IconFieldModule, InputIconModule, InputTextModule, SkeletonModule
     ],
-    templateUrl: './user-table.html'
+    templateUrl: './user-table.html',
+    styleUrls: ['./user-table.css']
 })
 export class UserTableComponent {
     @Input() users:        any[] = [];
