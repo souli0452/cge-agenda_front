@@ -148,18 +148,19 @@ export class CgeDashboardComponent implements OnInit, AfterViewInit, OnDestroy {
         const now = new Date(); now.setHours(0, 0, 0, 0);
         const eventsByStatus: { [key: string]: number } = {};
         const eventsByType:   { [key: string]: number } = {};
-        let totalParticipants   = 0;
+        const uniqueParticipantIds = new Set<string>();
         let upcomingEventsCount = 0;
 
         for (const e of events) {
             eventsByStatus[e.status] = (eventsByStatus[e.status] || 0) + 1;
             eventsByType[e.type]     = (eventsByType[e.type]     || 0) + 1;
-            totalParticipants       += e.participants?.length || 0;
+            e.participants?.forEach(p => { if (p.id) uniqueParticipantIds.add(p.id); });
             const start = new Date(e.startDate); start.setHours(0, 0, 0, 0);
             if (start >= now && !['ANNULER', 'REJETE'].includes(e.status as string)) {
                 upcomingEventsCount++;
             }
         }
+        const totalParticipants = uniqueParticipantIds.size;
         return { totalEvents: events.length, upcomingEventsCount, totalParticipants, eventsByStatus, eventsByType };
     }
 
