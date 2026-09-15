@@ -283,7 +283,7 @@ const ACTION_LABELS: Record<string, string> = {
 export class AuditLogComponent implements OnInit, OnDestroy {
 
     readonly Math = Math;
-    auditViewMode: 'list' | 'card' = 'card';
+    auditViewMode: 'list' | 'card' = 'list';
     logs: AuditLog[]      = [];
     activeUsers: ActiveUser[] = [];
     totalRecords = 0;

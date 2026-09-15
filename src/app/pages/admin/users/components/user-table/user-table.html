@@ -51,6 +51,10 @@
                             {{ getRoleLabel(getDisplayRole(user)) }}
                         </span>
                     </div>
+                    <div class="ut-card-row">
+                        <i class="pi pi-calendar ut-card-icon"></i>
+                        <span>Créé le {{ formatCreatedAt(user) }}</span>
+                    </div>
                 </div>
                 <div class="ut-card-footer">
                     <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Modifier" (onClick)="edit.emit(user)" />
@@ -97,6 +101,7 @@
                 <th scope="col">Email</th>
                 <th scope="col">Rôle principal</th>
                 <th scope="col">Statut</th>
+                <th scope="col">Créé le</th>
                 <th scope="col" style="width:160px; text-align:center">Actions</th>
             </tr>
         </ng-template>
@@ -131,6 +136,7 @@
                         {{ user.enabled ? 'Actif' : 'Inactif' }}
                     </span>
                 </td>
+                <td>{{ formatCreatedAt(user) }}</td>
                 <td>
                     <div class="action-buttons" [attr.aria-label]="'Actions pour ' + user.lastName">
                         <p-button icon="pi pi-pencil"
@@ -164,7 +170,7 @@
 
         <ng-template pTemplate="emptymessage">
             <tr>
-                <td colspan="5" class="empty-state">
+                <td colspan="6" class="empty-state">
                     <i class="pi pi-users empty-icon" aria-hidden="true"></i>
                     <p class="empty-title">Aucun utilisateur trouvé</p>
                 </td>

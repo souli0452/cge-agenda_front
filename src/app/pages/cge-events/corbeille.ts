@@ -270,7 +270,7 @@ export class CorbeilleComponent implements OnInit {
 
     readonly Math = Math;
     activeTab           = 'events';
-    viewMode: 'list' | 'card' = 'card';
+    viewMode: 'list' | 'card' = 'list';
     evPage  = 0;
     ptPage  = 0;
     loadingEvents       = false;

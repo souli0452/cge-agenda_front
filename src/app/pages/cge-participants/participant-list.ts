@@ -148,8 +148,9 @@ import { Participant } from '../../models';
                     </span>
                   </div>
                   <div class="pcm-actions">
-                    <p-button icon="pi pi-pencil" severity="info" [text]="true" [rounded]="true" (onClick)="editParticipant(participant)" />
-                    <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="confirmDelete(participant)" />
+                    <p-button icon="pi pi-pencil" severity="info" [text]="true" [rounded]="true" (onClick)="editParticipant(participant)" pTooltip="Modifier" />
+                    <p-button icon="pi pi-eye" severity="secondary" [text]="true" [rounded]="true" (onClick)="viewParticipant(participant)" pTooltip="Détails" />
+                    <p-button icon="pi pi-trash" severity="danger" [text]="true" [rounded]="true" (onClick)="confirmDelete(participant)" pTooltip="Supprimer" />
                   </div>
                 </div>
                 <div class="pcm-body">
@@ -420,7 +421,7 @@ import { Participant } from '../../models';
 })
 export class ParticipantListComponent implements OnInit, OnDestroy {
   readonly Math = Math;
-  viewMode: 'list' | 'card' = 'card';
+  viewMode: 'list' | 'card' = 'list';
   participants: any[] = [];
   totalRecords = 0;
   pageSize = 10;

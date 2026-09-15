@@ -632,7 +632,7 @@ export class EventListComponent implements OnInit, OnDestroy {
 
     loading      = false;
     zippingFiles = false;
-    viewMode: 'list' | 'card' = 'card';
+    viewMode: 'list' | 'card' = 'list';
     events:         Event[] = [];
     filteredEvents: Event[] = [];
     mobilePage     = 0;
@@ -864,7 +864,7 @@ export class EventListComponent implements OnInit, OnDestroy {
             { label: 'Gérer participants', icon: 'pi pi-users',         visible: canEdit, command: () => this.openManageParticipants() },
             { label: 'Gérer fichiers',     icon: 'pi pi-paperclip',     visible: canFile, command: () => this.openManageFiles() },
             { separator: true },
-            { label: 'Liste émargement',   icon: 'pi pi-download',      command: () => this.downloadAttendance(eventData.id) },
+            { label: 'Liste des participants', icon: 'pi pi-download',  command: () => this.downloadAttendance(eventData.id) },
             { separator: true, visible: canEdit },
             { label: 'Annuler',            icon: 'pi pi-ban',           visible: canEdit, styleClass: 'text-red-500', command: () => this.showCancelDialog() },
             { label: 'Reporter',           icon: 'pi pi-calendar-plus', visible: canEdit, command: () => this.showPostponeDialog() },

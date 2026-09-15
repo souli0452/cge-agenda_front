@@ -69,6 +69,14 @@ export class UserTableComponent {
         return ROLE_META[role]?.bgColor || '#F9FAFB';
     }
 
+    formatCreatedAt(user: any): string {
+        if (!user.createdTimestamp) return '—';
+        return new Date(user.createdTimestamp).toLocaleString('fr-FR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
+    }
+
     getInitials(user: any): string {
         const f = (user.firstName || '').charAt(0);
         const l = (user.lastName  || '').charAt(0);

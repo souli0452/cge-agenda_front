@@ -442,8 +442,8 @@ import {
                           label="Modifier" icon="pi pi-pencil" [outlined]="true"
                           (onClick)="editEvent()"></p-button>
 
-                <!-- Émargement -->
-                <p-button label="Liste émargement" icon="pi pi-download"
+                <!-- Liste des participants -->
+                <p-button label="Liste des participants" icon="pi pi-download"
                           severity="secondary" [outlined]="true"
                           (onClick)="downloadAttendance()"></p-button>
 

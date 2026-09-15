@@ -402,7 +402,7 @@ export class AdminUsersComponent implements OnInit {
 
     loading       = false;
     actionLoading = false;
-    userViewMode: 'list' | 'card' = 'card';
+    userViewMode: 'list' | 'card' = 'list';
 
     users:         KeycloakUser[] = [];
     filteredUsers: KeycloakUser[] = [];
