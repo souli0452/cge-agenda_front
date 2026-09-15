@@ -17,11 +17,11 @@
 
 .header-icon {
     width: 52px; height: 52px;
-    background: linear-gradient(135deg, #1565c0, #1976d2);
+    background: linear-gradient(135deg, var(--cge-vert-moyen, #009640), var(--cge-vert-fonce, #006e2f));
     border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
     color: white; font-size: 24px; flex-shrink: 0;
-    box-shadow: 0 4px 12px rgba(21,101,192,0.3);
+    box-shadow: 0 4px 12px rgba(0,150,64,0.3);
 }
 
 .page-title { margin: 0 0 4px; font-size: 22px; font-weight: 800; color: var(--text-color); }

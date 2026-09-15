@@ -558,9 +558,14 @@ body.mb-grid-on .mb-guides { opacity: 1; }
     border-color: #009640 !important;
 }
 
-/* --- Badge / Tag primary --- */
+/* --- Badge / Tag primary (uniquement les badges sans severite definie) ---
+   Angular ne reflete pas l'@Input() severity comme attribut HTML : le
+   selecteur :not([severity]) matchait donc TOUS les p-tag/p-badge, y
+   compris ceux avec une severite (warn/danger/info...), les forcant tous
+   en vert. On cible plutot l'absence des classes de severite generees
+   par PrimeNG (p-tag-success, p-tag-warn, etc.). */
 .p-badge:not([severity]),
-.p-tag:not([severity]) {
+.p-tag:not(.p-tag-success):not(.p-tag-info):not(.p-tag-warn):not(.p-tag-danger):not(.p-tag-secondary):not(.p-tag-contrast) {
     background: #009640 !important;
     color: #ffffff !important;
 }
