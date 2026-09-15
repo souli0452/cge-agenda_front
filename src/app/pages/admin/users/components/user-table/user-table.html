@@ -24,7 +24,7 @@
             <div class="ut-card">
                 <div class="ut-card-header">
                     <div class="user-avatar"
-                         [style.background]="getRoleColor(user.realmRoles?.[0] || user.roles?.[0])">
+                         [style.background]="getRoleColor(getDisplayRole(user))">
                         {{ getInitials(user) }}
                     </div>
                     <div class="ut-card-info">
@@ -46,16 +46,16 @@
                     <div class="ut-card-row">
                         <i class="pi pi-shield ut-card-icon"></i>
                         <span class="role-badge"
-                              [style.color]="getRoleColor(user.realmRoles?.[0] || user.roles?.[0])"
-                              [style.background]="getRoleBg(user.realmRoles?.[0] || user.roles?.[0])">
-                            {{ getRoleLabel(user.realmRoles?.[0] || user.roles?.[0] || 'USER') }}
+                              [style.color]="getRoleColor(getDisplayRole(user))"
+                              [style.background]="getRoleBg(getDisplayRole(user))">
+                            {{ getRoleLabel(getDisplayRole(user)) }}
                         </span>
                     </div>
                 </div>
                 <div class="ut-card-footer">
                     <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Modifier" (onClick)="edit.emit(user)" />
                     <p-button icon="pi pi-id-card" [rounded]="true" [text]="true" severity="help" pTooltip="Rôles" (onClick)="roleEdit.emit(user)" />
-                    <p-button icon="pi pi-key" [rounded]="true" [text]="true" severity="warn" pTooltip="Reset MDP" (onClick)="resetPwd.emit(user)" />
+                    <p-button icon="pi pi-key" [rounded]="true" [text]="true" severity="warn" pTooltip="Réinitialiser le mot de passe" (onClick)="resetPwd.emit(user)" />
                     <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Supprimer" (onClick)="delete.emit(user)" />
                 </div>
             </div>
@@ -106,7 +106,7 @@
                 <td>
                     <div class="user-identity">
                         <div class="user-avatar"
-                             [style.background]="getRoleColor(user.realmRoles?.[0] || user.roles?.[0])">
+                             [style.background]="getRoleColor(getDisplayRole(user))">
                             {{ getInitials(user) }}
                         </div>
                         <div>
@@ -118,9 +118,9 @@
                 <td>{{ user.email }}</td>
                 <td>
                     <span class="role-badge"
-                          [style.color]="getRoleColor(user.realmRoles?.[0] || user.roles?.[0])"
-                          [style.background]="getRoleBg(user.realmRoles?.[0] || user.roles?.[0])">
-                        {{ getRoleLabel(user.realmRoles?.[0] || user.roles?.[0] || 'USER') }}
+                          [style.color]="getRoleColor(getDisplayRole(user))"
+                          [style.background]="getRoleBg(getDisplayRole(user))">
+                        {{ getRoleLabel(getDisplayRole(user)) }}
                     </span>
                 </td>
                 <td>
@@ -148,7 +148,7 @@
                         <p-button icon="pi pi-key"
                                   ariaLabel="Réinitialiser le mot de passe"
                                   [rounded]="true" [text]="true" severity="warn"
-                                  pTooltip="Reset MDP" tooltipPosition="top"
+                                  pTooltip="Réinitialiser le mot de passe" tooltipPosition="top"
                                   (onClick)="resetPwd.emit(user)">
                         </p-button>
                         <p-button icon="pi pi-trash"

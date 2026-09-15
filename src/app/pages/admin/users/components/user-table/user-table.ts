@@ -9,7 +9,7 @@ import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
-import { ROLE_META, getRoleLabel } from '../../../../../models';
+import { ROLE_META, getRoleLabel, isTechnicalRole } from '../../../../../models';
 
 @Component({
     selector: 'app-user-table',
@@ -49,6 +49,16 @@ export class UserTableComponent {
             u.firstName?.toLowerCase().includes(q) ||
             u.lastName?.toLowerCase().includes(q)
         );
+    }
+
+    /**
+     * Premier rôle métier réel de l'utilisateur (ignore les rôles internes
+     * Keycloak comme default-roles-<realm>, offline_access, uma_authorization),
+     * sinon "USER" (Utilisateur) plutôt que d'afficher un nom technique brut.
+     */
+    getDisplayRole(user: any): string {
+        const roles: string[] = user.realmRoles ?? user.roles ?? [];
+        return roles.find(r => !isTechnicalRole(r)) || 'USER';
     }
 
     getRoleColor(role: string): string {

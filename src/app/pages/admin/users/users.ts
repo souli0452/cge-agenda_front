@@ -21,6 +21,7 @@ import { environments } from '../../../../environments/environments';
 import { UserTableComponent } from './components/user-table/user-table';
 import { UserFormDialogComponent } from './components/user-form-dialog/user-form-dialog';
 import { UserService, KeycloakUser, KcRole, UserPayload } from '../../../service/user.service';
+import { isTechnicalRole } from '../../../models';
 import { ViewModeToggleComponent } from '../../../shared/view-mode-toggle/view-mode-toggle';
 
 interface UserFormData {
@@ -338,13 +339,13 @@ interface UserFormData {
         <!-- Rôles actuels -->
         <div class="form-field">
             <label class="field-label">Rôles actuels</label>
-            <div class="current-roles-wrap" *ngIf="userCurrentRoles.length > 0; else noRoles">
-                <div *ngFor="let r of userCurrentRoles" class="current-role-tag">
+            <div class="current-roles-wrap" *ngIf="displayableCurrentRoles.length > 0; else noRoles">
+                <div *ngFor="let r of displayableCurrentRoles" class="current-role-tag">
                     <span class="role-badge"
                           [style.background]="getRoleColor(r) + '20'"
                           [style.color]="getRoleColor(r)"
                           [style.border]="'1px solid ' + getRoleColor(r) + '40'">
-                        {{ r }}
+                        {{ getRoleLabel(r) }}
                     </span>
                     <p-button
                         icon="pi pi-times"
@@ -352,14 +353,14 @@ interface UserFormData {
                         [text]="true"
                         severity="danger"
                         size="small"
-                        [pTooltip]="'Retirer ' + r"
+                        [pTooltip]="'Retirer ' + getRoleLabel(r)"
                         tooltipPosition="top"
                         [loading]="rolesLoading"
                         (onClick)="removeRoleFromUser(r)" />
                 </div>
             </div>
             <ng-template #noRoles>
-                <p style="color:#999;font-style:italic">Aucun rôle assigné</p>
+                <p style="color:#999;font-style:italic">Aucun rôle métier assigné</p>
             </ng-template>
         </div>
 
@@ -446,6 +447,12 @@ export class AdminUsersComponent implements OnInit {
     rolesMgmtVisible:     boolean           = false;
     selectedUserForRoles: KeycloakUser|null = null;
     userCurrentRoles:     string[]          = [];
+
+    /** Rôles actuels hors rôles internes Keycloak (non pertinents/non retirables pour un admin). */
+    get displayableCurrentRoles(): string[] {
+        return this.userCurrentRoles.filter(r => !isTechnicalRole(r));
+    }
+
     assignableRoles:      any[]             = [];
     roleToAssign:         string            = '';
     rolesLoading:         boolean           = false;
@@ -504,6 +511,11 @@ export class AdminUsersComponent implements OnInit {
     loadRoles(): void {
         this.userService.getRoles().subscribe({
             next: (roles) => {
+                // Exclut les rôles internes Keycloak (default-roles-<realm>,
+                // offline_access, uma_authorization) : jamais assignés
+                // volontairement, ils n'ont rien à faire dans une liste
+                // de rôles métier destinée à un admin.
+                roles = roles.filter(r => !isTechnicalRole(r.name));
                 this.availableRoles   = roles;
                 this.roleOptions      = roles.map(r => ({ label: this.getRoleLabel(r.name), value: r.name }));
                 this.roleFilterOptions = roles.map(r => ({ label: this.getRoleLabel(r.name), value: r.name }));
@@ -879,7 +891,7 @@ export class AdminUsersComponent implements OnInit {
     private refreshAssignableRoles(): void {
         this.assignableRoles = this.availableRoles
             .filter(r => !this.userCurrentRoles.includes(r.name))
-            .map(r => ({ label: `${r.name}${r.description ? ' — ' + r.description : ''}`, value: r.name }));
+            .map(r => ({ label: this.getRoleLabel(r.name), value: r.name }));
     }
 
     assignRoleToUser(): void {
@@ -951,7 +963,9 @@ export class AdminUsersComponent implements OnInit {
         for (const r of priority) {
             if (user.realmRoles?.includes(r)) return r;
         }
-        return user.realmRoles?.[0] || '';
+        // Ignore les rôles internes Keycloak (default-roles-<realm> etc.) :
+        // un compte qui n'a que ça n'a en réalité aucun rôle métier assigné.
+        return user.realmRoles?.find(r => !isTechnicalRole(r)) || 'USER';
     }
 
     getRoleLabel(role: string): string {
@@ -960,7 +974,9 @@ export class AdminUsersComponent implements OnInit {
             'CGE':               'CGE',
             'DIRECTEUR_CABINET': 'Dir. Cabinet',
             'PROTOCOLE':         'Protocole',
-            'SECRETAIRE':        'Secrétaire'
+            'SECRETAIRE':        'Secrétaire',
+            'DELEGUE':           'Délégué',
+            'USER':              'Utilisateur'
         };
         return map[role] || role;
     }
@@ -971,7 +987,9 @@ export class AdminUsersComponent implements OnInit {
             'CGE':               'var(--cge-vert-moyen)',
             'DIRECTEUR_CABINET': '#2196F3',
             'PROTOCOLE':         '#ff9800',
-            'SECRETAIRE':        '#9c27b0'
+            'SECRETAIRE':        '#9c27b0',
+            'DELEGUE':           '#0891b2',
+            'USER':              '#607d8b'
         };
         return map[role] || '#607d8b';
     }
