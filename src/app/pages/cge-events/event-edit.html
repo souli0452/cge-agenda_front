@@ -376,35 +376,70 @@
   <p-dialog [(visible)]="addParticipantDialogVisible"
             [modal]="true" [style]="{ width: '500px' }"
             header="Sélectionner un participant">
-    <p class="mb-3" style="color: #666; font-size: 13px;">
-      Tapez un nom ou email — le participant est ajouté dès la sélection.
-    </p>
-    <p-autoComplete
-        [(ngModel)]="selectedParticipantToAdd"
-        [suggestions]="participantSuggestions"
-        (completeMethod)="onParticipantSearch($event)"
-        (onSelect)="addParticipant()"
-        optionLabel="label"
-        placeholder="Tapez le nom, prénom ou email..."
-        [minLength]="1"
-        [delay]="300"
-        [showEmptyMessage]="true"
-        emptyMessage="Aucun participant trouvé"
-        [forceSelection]="true"
-        styleClass="w-full"
-        [style]="{'width': '100%'}"
-        appendTo="body"
-    >
-      <ng-template #item let-p>
-        <div style="display:flex;flex-direction:column;padding:4px 2px;gap:2px">
-          <span style="font-weight:600;font-size:14px;color:var(--cge-vert-moyen)">{{ p.firstName }} {{ p.lastName }}</span>
-          <span style="font-size:12px;color:#666">{{ p.email }} · {{ p.structure }}</span>
-        </div>
-      </ng-template>
-    </p-autoComplete>
+
+    @if (!showCreateParticipantForm) {
+      <p class="mb-3" style="color: #666; font-size: 13px;">
+        Tapez un nom ou email — le participant est ajouté dès la sélection.
+      </p>
+      <p-autoComplete
+          [(ngModel)]="selectedParticipantToAdd"
+          [suggestions]="participantSuggestions"
+          (completeMethod)="onParticipantSearch($event)"
+          (onSelect)="addParticipant()"
+          optionLabel="label"
+          placeholder="Tapez le nom, prénom ou email..."
+          [minLength]="1"
+          [delay]="300"
+          [showEmptyMessage]="true"
+          emptyMessage="Aucun participant trouvé"
+          [forceSelection]="true"
+          styleClass="w-full"
+          [style]="{'width': '100%'}"
+          appendTo="body"
+      >
+        <ng-template #item let-p>
+          <div style="display:flex;flex-direction:column;padding:4px 2px;gap:2px">
+            <span style="font-weight:600;font-size:14px;color:var(--cge-vert-moyen)">{{ p.firstName }} {{ p.lastName }}</span>
+            <span style="font-size:12px;color:#666">{{ p.email }} · {{ p.structure }}</span>
+          </div>
+        </ng-template>
+      </p-autoComplete>
+
+      <button type="button" class="p-button p-button-text p-button-sm mt-3"
+              style="padding:0" (click)="openCreateParticipantForm()">
+        <i class="pi pi-user-plus mr-2"></i>Cette personne n'existe pas — la créer
+      </button>
+    } @else {
+      <p class="mb-3" style="color: #666; font-size: 13px;">
+        Nouveau participant — sera créé puis ajouté à l'événement.
+      </p>
+      <div class="flex gap-2 mb-2">
+        <input pInputText [(ngModel)]="newParticipant.lastName" placeholder="Nom *" class="w-full" />
+        <input pInputText [(ngModel)]="newParticipant.firstName" placeholder="Prénom *" class="w-full" />
+      </div>
+      <input pInputText [(ngModel)]="newParticipant.email" type="email" placeholder="Email *" class="w-full mb-2" />
+      <div class="flex gap-2 mb-2">
+        <input pInputText [(ngModel)]="newParticipant.phoneNumber" placeholder="Téléphone" class="w-full" />
+        <input pInputText [(ngModel)]="newParticipant.structure" placeholder="Structure" class="w-full" />
+      </div>
+      <input pInputText [(ngModel)]="newParticipant.jobTitle" placeholder="Fonction" class="w-full mb-2" />
+      <p-select [options]="participantTypeOptions" [(ngModel)]="newParticipant.participantType"
+                optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
+
+      <button type="button" class="p-button p-button-text p-button-sm mt-3"
+              style="padding:0" (click)="showCreateParticipantForm = false">
+        <i class="pi pi-arrow-left mr-2"></i>Retour à la recherche
+      </button>
+    }
+
     <ng-template pTemplate="footer">
       <p-button label="Fermer" severity="secondary" [text]="true"
                 (onClick)="addParticipantDialogVisible = false" />
+      @if (showCreateParticipantForm) {
+        <p-button label="Créer et ajouter" icon="pi pi-check" styleClass="btn-ascelc"
+                  [loading]="creatingParticipant"
+                  (onClick)="createAndAddParticipant()" />
+      }
     </ng-template>
   </p-dialog>
 

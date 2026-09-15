@@ -22,7 +22,7 @@ import { DatePickerModule }   from 'primeng/datepicker';
 import { EventService }       from '../../service/event.service';
 import { FileService }        from '../../service/file.service';
 import { ParticipantService } from '../../service/participant.service';
-import { Event, FileUpload, Participant, endDateAfterStart } from '../../models';
+import { Event, FileUpload, Participant, endDateAfterStart, PARTICIPANT_TYPE_OPTIONS, ParticipantType } from '../../models';
 import { getAllCountries, getCitiesOfCountry } from '../../data/geo-data';
 
 @Component({
@@ -56,10 +56,16 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
 
     addParticipantDialogVisible = false;
     selectedParticipantToAdd: any;
+    lastParticipantQuery = '';
 
     importDialogVisible = false;
     importFile: File | null = null;
     importing = false;
+
+    showCreateParticipantForm = false;
+    creatingParticipant = false;
+    participantTypeOptions = PARTICIPANT_TYPE_OPTIONS;
+    newParticipant: Partial<Participant> = {};
 
    
     eventTypes = [
@@ -333,11 +339,14 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
     showAddParticipantDialog(): void {
         this.selectedParticipantToAdd    = null;
         this.participantSuggestions      = [];
+        this.showCreateParticipantForm   = false;
+        this.lastParticipantQuery        = '';
         this.addParticipantDialogVisible = true;
     }
 
     onParticipantSearch(event: { query: string }): void {
         const q = event.query?.trim();
+        this.lastParticipantQuery = q ?? '';
         if (!q) { this.participantSuggestions = []; return; }
         const addedIds = new Set(this.participants.map(p => p.id));
         this.participantService.autocompleteParticipants(q).subscribe({
@@ -369,6 +378,60 @@ export class EventEditComponent implements OnInit, HasUnsavedChanges {
                 severity: 'error', summary: 'Erreur',
                 detail: err.error?.message || 'Impossible d\'ajouter le participant'
             })
+        });
+    }
+
+    openCreateParticipantForm(): void {
+        const [firstGuess, ...rest] = this.lastParticipantQuery.split(' ');
+        this.newParticipant = {
+            firstName: firstGuess || '',
+            lastName: rest.join(' ') || '',
+            email: '',
+            participantType: ParticipantType.EXTERNE
+        };
+        this.showCreateParticipantForm = true;
+    }
+
+    createAndAddParticipant(): void {
+        if (!this.eventId) return;
+        const { firstName, lastName, email } = this.newParticipant;
+        if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
+            this.messageService.add({
+                severity: 'warn', summary: 'Champs manquants',
+                detail: 'Nom, prénom et email sont obligatoires'
+            });
+            return;
+        }
+        this.creatingParticipant = true;
+        this.participantService.createParticipant(this.newParticipant as Participant).subscribe({
+            next: (created) => {
+                this.eventService.addParticipant(this.eventId!, created).subscribe({
+                    next: () => {
+                        this.creatingParticipant = false;
+                        this.messageService.add({
+                            severity: 'success', summary: 'Succès',
+                            detail: `${created.firstName} ${created.lastName} créé(e) et ajouté(e)`
+                        });
+                        this.loadParticipants();
+                        this.showCreateParticipantForm   = false;
+                        this.addParticipantDialogVisible = false;
+                    },
+                    error: (err: any) => {
+                        this.creatingParticipant = false;
+                        this.messageService.add({
+                            severity: 'error', summary: 'Erreur',
+                            detail: err.error?.message || 'Participant créé mais non ajouté à l\'événement'
+                        });
+                    }
+                });
+            },
+            error: (err: any) => {
+                this.creatingParticipant = false;
+                this.messageService.add({
+                    severity: 'error', summary: 'Erreur',
+                    detail: err.error?.message || 'Impossible de créer le participant'
+                });
+            }
         });
     }
 

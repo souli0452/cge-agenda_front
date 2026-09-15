@@ -20,6 +20,7 @@ import { SkeletonModule }      from 'primeng/skeleton';
 import { TextareaModule }      from 'primeng/textarea';
 import { InputTextModule }     from 'primeng/inputtext';
 import { AutoCompleteModule }  from 'primeng/autocomplete';
+import { SelectModule }        from 'primeng/select';
 import { MessageService, ConfirmationService } from 'primeng/api';
 
 import { EventService }       from '../../service/event.service';
@@ -35,7 +36,9 @@ import {
     EventStatusLabels,
     getEventTypeSeverity,
     getEventStatusSeverity,
-    TagSeverity
+    TagSeverity,
+    PARTICIPANT_TYPE_OPTIONS,
+    ParticipantType
 } from '../../models';
 
 @Component({
@@ -46,7 +49,8 @@ import {
         CardModule, ButtonModule, TagModule,
         DividerModule, ToastModule, ConfirmDialogModule,
         TooltipModule, FileUploadModule, DialogModule,
-        ImageModule, SkeletonModule, TextareaModule, InputTextModule, AutoCompleteModule
+        ImageModule, SkeletonModule, TextareaModule, InputTextModule, AutoCompleteModule,
+        SelectModule
     ],
     providers: [MessageService, ConfirmationService],
     template: `
@@ -263,6 +267,86 @@ import {
         <p-button label="Confirmer le rejet" icon="pi pi-times" severity="danger"
                   [loading]="actionLoading" [disabled]="!rejectReason.trim()"
                   (onClick)="rejectEvent()"/>
+    </ng-template>
+</p-dialog>
+
+<!-- Ajouter un participant -->
+<p-dialog [(visible)]="addParticipantDialogVisible" [modal]="true" [style]="{width:'500px'}"
+          header="Sélectionner un participant">
+    <div class="dlg-body">
+        @if (!showCreateParticipantForm) {
+            <div class="dlg-field">
+                <p-autoComplete [(ngModel)]="selectedParticipantToAdd"
+                                 [suggestions]="participantSuggestions"
+                                 (completeMethod)="onParticipantSearch($event)"
+                                 (onSelect)="addParticipant()"
+                                 optionLabel="label"
+                                 placeholder="Tapez le nom, prénom ou email..."
+                                 [minLength]="1" [delay]="300"
+                                 [showEmptyMessage]="true" emptyMessage="Aucun participant trouvé"
+                                 [forceSelection]="true" styleClass="w-full"
+                                 [style]="{'width':'100%'}" appendTo="body">
+                    <ng-template #item let-p>
+                        <div>{{ p.firstName }} {{ p.lastName }} — {{ p.email }}</div>
+                    </ng-template>
+                </p-autoComplete>
+            </div>
+            <button type="button" class="p-button p-button-text p-button-sm" style="padding:0"
+                    (click)="openCreateParticipantForm()">
+                <i class="pi pi-user-plus mr-2"></i>Cette personne n'existe pas — la créer
+            </button>
+        } @else {
+            <div class="dlg-info mb-3"><i class="pi pi-info-circle"></i>
+                Nouveau participant — sera créé puis ajouté à l'événement.</div>
+            <div class="flex gap-2 mb-2">
+                <input pInputText [(ngModel)]="newParticipant.lastName" placeholder="Nom *" class="w-full" />
+                <input pInputText [(ngModel)]="newParticipant.firstName" placeholder="Prénom *" class="w-full" />
+            </div>
+            <input pInputText [(ngModel)]="newParticipant.email" type="email" placeholder="Email *" class="w-full mb-2" />
+            <div class="flex gap-2 mb-2">
+                <input pInputText [(ngModel)]="newParticipant.phoneNumber" placeholder="Téléphone" class="w-full" />
+                <input pInputText [(ngModel)]="newParticipant.structure" placeholder="Structure" class="w-full" />
+            </div>
+            <input pInputText [(ngModel)]="newParticipant.jobTitle" placeholder="Fonction" class="w-full mb-2" />
+            <p-select [options]="participantTypeOptions" [(ngModel)]="newParticipant.participantType"
+                      optionLabel="label" optionValue="value" class="w-full" appendTo="body" />
+            <button type="button" class="p-button p-button-text p-button-sm mt-3" style="padding:0"
+                    (click)="showCreateParticipantForm = false">
+                <i class="pi pi-arrow-left mr-2"></i>Retour à la recherche
+            </button>
+        }
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Fermer" [text]="true" severity="secondary" (onClick)="addParticipantDialogVisible = false"/>
+        @if (showCreateParticipantForm) {
+            <p-button label="Créer et ajouter" icon="pi pi-check"
+                      [loading]="creatingParticipant" (onClick)="createAndAddParticipant()"/>
+        }
+    </ng-template>
+</p-dialog>
+
+<!-- Importer des participants -->
+<p-dialog [(visible)]="importDialogVisible" [modal]="true" [style]="{width:'480px'}"
+          header="Importer des participants">
+    <div class="dlg-body">
+        <div class="dlg-info mb-3"><i class="pi pi-info-circle"></i>
+            Fichier CSV ou Excel (.csv, .xlsx, .xls) avec les colonnes, dans cet ordre :
+            <strong>Nom, Prénom, Email, Téléphone, Structure, Fonction</strong>.</div>
+        <button type="button" class="p-button p-button-text p-button-sm mb-3" style="padding:0"
+                (click)="downloadImportTemplate()">
+            <i class="pi pi-download mr-2"></i>Télécharger un modèle vierge
+        </button>
+        <input type="file" accept=".csv,.xlsx,.xls" style="display:block; margin-top:8px"
+               (change)="onImportFileSelected($event)" />
+        <p *ngIf="importFile" style="margin-top:8px; font-size:13px; color:var(--cge-vert-moyen)">
+            <i class="pi pi-file"></i> {{ importFile.name }}
+        </p>
+    </div>
+    <ng-template pTemplate="footer">
+        <p-button label="Annuler" [text]="true" severity="secondary"
+                  [disabled]="importing" (onClick)="importDialogVisible = false"/>
+        <p-button label="Importer" icon="pi pi-upload"
+                  [loading]="importing" [disabled]="!importFile" (onClick)="submitImport()"/>
     </ng-template>
 </p-dialog>
 
@@ -568,6 +652,14 @@ import {
                         <i class="pi pi-users"></i>
                         <p>Aucun participant enregistré</p>
                     </div>
+
+                    <div *ngIf="hasAction('MODIFIER')" class="flex gap-2 mt-3">
+                        <p-button icon="pi pi-plus" label="Ajouter" size="small"
+                                  [outlined]="true" (onClick)="showAddParticipantDialog()"></p-button>
+                        <p-button icon="pi pi-upload" label="Importer" size="small"
+                                  severity="secondary" [outlined]="true"
+                                  (onClick)="showImportDialog()"></p-button>
+                    </div>
                 </div>
 
             </div>
@@ -784,6 +876,20 @@ export class EventDetailComponent implements OnInit {
     showAllSchedules = false;
     @ViewChild('hiddenFileInput') hiddenFileInput!: ElementRef;
 
+    addParticipantDialogVisible = false;
+    selectedParticipantToAdd: any;
+    participantSuggestions: any[] = [];
+    lastParticipantQuery = '';
+
+    importDialogVisible = false;
+    importFile: File | null = null;
+    importing = false;
+
+    showCreateParticipantForm = false;
+    creatingParticipant = false;
+    participantTypeOptions = PARTICIPANT_TYPE_OPTIONS;
+    newParticipant: Partial<Participant> = {};
+
     constructor(
         private route:               ActivatedRoute,
         private router:              Router,
@@ -822,6 +928,147 @@ export class EventDetailComponent implements OnInit {
         this.fileService.getFilesByEvent(this.eventId).subscribe({
             next:  (files) => { this.files = files; this.loadingFiles = false; },
             error: ()      => { this.loadingFiles = false; }
+        });
+    }
+
+    showAddParticipantDialog(): void {
+        this.selectedParticipantToAdd    = null;
+        this.participantSuggestions      = [];
+        this.showCreateParticipantForm   = false;
+        this.lastParticipantQuery        = '';
+        this.addParticipantDialogVisible = true;
+    }
+
+    onParticipantSearch(event: { query: string }): void {
+        const q = event.query?.trim();
+        this.lastParticipantQuery = q ?? '';
+        if (!q) { this.participantSuggestions = []; return; }
+        const addedIds = new Set((this.event?.participants || []).map(p => p.id));
+        this.participantService.autocompleteParticipants(q).subscribe({
+            next: (results: Participant[]) => {
+                this.participantSuggestions = results
+                    .filter(p => !addedIds.has(p.id))
+                    .map(p => ({ ...p, label: `${p.firstName} ${p.lastName} — ${p.email}` }));
+            },
+            error: () => { this.participantSuggestions = []; }
+        });
+    }
+
+    addParticipant(): void {
+        if (!this.selectedParticipantToAdd || !this.eventId) return;
+        this.eventService.addParticipant(
+            this.eventId, this.selectedParticipantToAdd
+        ).subscribe({
+            next: () => {
+                this.messageService.add({
+                    severity: 'success', summary: 'Succès',
+                    detail: 'Participant ajouté avec succès'
+                });
+                this.loadEvent();
+                this.selectedParticipantToAdd    = null;
+                this.participantSuggestions      = [];
+                this.addParticipantDialogVisible = false;
+            },
+            error: (err: any) => this.messageService.add({
+                severity: 'error', summary: 'Erreur',
+                detail: err.error?.message || 'Impossible d\'ajouter le participant'
+            })
+        });
+    }
+
+    openCreateParticipantForm(): void {
+        const [firstGuess, ...rest] = this.lastParticipantQuery.split(' ');
+        this.newParticipant = {
+            firstName: firstGuess || '',
+            lastName: rest.join(' ') || '',
+            email: '',
+            participantType: ParticipantType.EXTERNE
+        };
+        this.showCreateParticipantForm = true;
+    }
+
+    createAndAddParticipant(): void {
+        if (!this.eventId) return;
+        const { firstName, lastName, email } = this.newParticipant;
+        if (!firstName?.trim() || !lastName?.trim() || !email?.trim()) {
+            this.messageService.add({
+                severity: 'warn', summary: 'Champs manquants',
+                detail: 'Nom, prénom et email sont obligatoires'
+            });
+            return;
+        }
+        this.creatingParticipant = true;
+        this.participantService.createParticipant(this.newParticipant as Participant).subscribe({
+            next: (created) => {
+                this.eventService.addParticipant(this.eventId!, created).subscribe({
+                    next: () => {
+                        this.creatingParticipant = false;
+                        this.messageService.add({
+                            severity: 'success', summary: 'Succès',
+                            detail: `${created.firstName} ${created.lastName} créé(e) et ajouté(e)`
+                        });
+                        this.loadEvent();
+                        this.showCreateParticipantForm   = false;
+                        this.addParticipantDialogVisible = false;
+                    },
+                    error: (err: any) => {
+                        this.creatingParticipant = false;
+                        this.messageService.add({
+                            severity: 'error', summary: 'Erreur',
+                            detail: err.error?.message || 'Participant créé mais non ajouté à l\'événement'
+                        });
+                    }
+                });
+            },
+            error: (err: any) => {
+                this.creatingParticipant = false;
+                this.messageService.add({
+                    severity: 'error', summary: 'Erreur',
+                    detail: err.error?.message || 'Impossible de créer le participant'
+                });
+            }
+        });
+    }
+
+    showImportDialog(): void {
+        this.importFile = null;
+        this.importDialogVisible = true;
+    }
+
+    onImportFileSelected(event: any): void {
+        this.importFile = event.target.files?.[0] ?? null;
+    }
+
+    downloadImportTemplate(): void {
+        const csv = 'Nom,Prénom,Email,Téléphone,Structure,Fonction\n';
+        const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'modele_import_participants.csv';
+        document.body.appendChild(a); a.click();
+        document.body.removeChild(a); window.URL.revokeObjectURL(url);
+    }
+
+    submitImport(): void {
+        if (!this.importFile || !this.eventId) return;
+        this.importing = true;
+        this.eventService.importParticipants(this.eventId, this.importFile).subscribe({
+            next: (imported) => {
+                this.importing = false;
+                this.importDialogVisible = false;
+                this.messageService.add({
+                    severity: 'success', summary: 'Import terminé',
+                    detail: `${imported.length} participant(s) importé(s)`
+                });
+                this.loadEvent();
+            },
+            error: (err: any) => {
+                this.importing = false;
+                this.messageService.add({
+                    severity: 'error', summary: 'Erreur',
+                    detail: err.error?.message || 'Impossible d\'importer les participants'
+                });
+            }
         });
     }
     get isBrouillon():   boolean { return (this.event?.status as string) === 'BROUILLON'; }
