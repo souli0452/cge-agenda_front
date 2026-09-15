@@ -29,7 +29,7 @@ export const appRoutes: Routes = [
                     import('./app/pages/cge-dashboard/validation-dashboard')
                         .then(m => m.ValidationDashboardComponent),
                 canActivate: [AuthGuard],
-                data: { roles: ['ADMIN', 'CGE'], breadcrumb: 'Validation CGE' }
+                data: { roles: ['ADMIN', 'CGE'], breadcrumb: 'Validation' }
             },
             {
                 path: 'events',

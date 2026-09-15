@@ -15,7 +15,8 @@ import { EspaceService } from '../../service/espace.service';
     imports: [CommonModule],
     template: `
 <div style="display:flex;align-items:center;justify-content:center;min-height:300px;flex-direction:column;gap:12px;">
-    <i class="pi pi-spin pi-spinner" style="font-size:2rem;color:var(--cge-vert-moyen,#009640)"></i>
+    <i *ngIf="!erreur" class="pi pi-spin pi-spinner" style="font-size:2rem;color:var(--cge-vert-moyen,#009640)"></i>
+    <i *ngIf="erreur" class="pi pi-exclamation-triangle" style="font-size:2rem;color:#b71c1c"></i>
     <p *ngIf="erreur" style="color:var(--text-color-secondary)">
         Vous n'êtes propriétaire d'aucun espace agenda. Contactez un administrateur.
     </p>

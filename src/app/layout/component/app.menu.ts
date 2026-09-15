@@ -76,7 +76,7 @@ export class AppMenu implements OnInit {
                         routerLink: ['/dashboard']
                     },
                     ...(canValidate ? [{
-                        label:      'Validation CGE',
+                        label:      'Validation',
                         icon:       'pi pi-fw pi-shield',
                         routerLink: ['/validation'],
                         badge:      this.pendingCount > 0 ? String(this.pendingCount) : undefined,
