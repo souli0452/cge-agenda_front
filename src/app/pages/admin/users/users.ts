@@ -1,6 +1,7 @@
 ﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule }      from '@angular/common';
 import { FormsModule }       from '@angular/forms';
+import { forkJoin, of, Observable } from 'rxjs';
 
 import { ButtonModule }        from 'primeng/button';
 import { TableModule }         from 'primeng/table';
@@ -397,64 +398,36 @@ interface UserFormData {
             </div>
         </div>
 
-        <!-- Rôles actuels -->
+        <!-- Rôle -->
         <div class="form-field">
-            <label class="field-label">Rôles actuels</label>
-            <div class="current-roles-wrap" *ngIf="displayableCurrentRoles.length > 0; else noRoles">
-                <div *ngFor="let r of displayableCurrentRoles" class="current-role-tag">
-                    <span class="role-badge"
-                          [style.background]="getRoleColor(r) + '20'"
-                          [style.color]="getRoleColor(r)"
-                          [style.border]="'1px solid ' + getRoleColor(r) + '40'">
-                        {{ getRoleLabel(r) }}
-                    </span>
-                    <p-button
-                        icon="pi pi-times"
-                        [rounded]="true"
-                        [text]="true"
-                        severity="danger"
-                        size="small"
-                        [pTooltip]="'Retirer ' + getRoleLabel(r)"
-                        tooltipPosition="top"
-                        [loading]="rolesLoading"
-                        (onClick)="removeRoleFromUser(r)" />
-                </div>
-            </div>
-            <ng-template #noRoles>
-                <p style="color:#999;font-style:italic">Aucun rôle métier assigné</p>
-            </ng-template>
-        </div>
-
-        <!-- Assigner un rôle -->
-        <div class="form-field">
-            <label class="field-label">Assigner un rôle supplémentaire</label>
-            <div style="display:flex;gap:8px;align-items:center">
-                <p-select
-                    [options]="assignableRoles"
-                    [(ngModel)]="roleToAssign"
-                    optionLabel="label"
-                    optionValue="value"
-                    placeholder="Sélectionnez un rôle"
-                    [style]="{'flex':1}"
-                    appendTo="body" />
-                <p-button
-                    label="Assigner"
-                    icon="pi pi-plus"
-                    severity="success"
-                    [loading]="rolesLoading"
-                    [disabled]="!roleToAssign"
-                    (onClick)="assignRoleToUser()" />
-            </div>
+            <label class="field-label">Rôle</label>
+            <p-select
+                [options]="roleOptions"
+                [(ngModel)]="roleToAssign"
+                optionLabel="label"
+                optionValue="value"
+                placeholder="Sélectionnez un rôle"
+                class="w-full"
+                appendTo="body" />
+            <small class="field-hint">Remplace le rôle actuel de l'utilisateur.</small>
         </div>
 
     </div>
 
     <ng-template pTemplate="footer">
         <p-button
-            label="Fermer"
+            label="Annuler"
             [text]="true"
             severity="secondary"
+            [disabled]="rolesLoading"
             (onClick)="rolesDialogVisible = false" />
+        <p-button
+            label="Enregistrer"
+            icon="pi pi-check"
+            severity="success"
+            [loading]="rolesLoading"
+            [disabled]="!roleToAssign"
+            (onClick)="changeUserRole()" />
     </ng-template>
 </p-dialog>
     `,
@@ -517,7 +490,6 @@ export class AdminUsersComponent implements OnInit {
         return this.userCurrentRoles.filter(r => !isTechnicalRole(r));
     }
 
-    assignableRoles:      any[]             = [];
     roleToAssign:         string            = '';
     rolesLoading:         boolean           = false;
     newRoleName:          string            = '';
@@ -958,66 +930,75 @@ export class AdminUsersComponent implements OnInit {
         this.userService.getUserRoles(user.id).subscribe({
             next: (roles) => {
                 this.userCurrentRoles = roles;
-                this.refreshAssignableRoles();
-                this.rolesLoading = false;
+                this.roleToAssign     = this.displayableCurrentRoles[0] || '';
+                this.rolesLoading     = false;
             },
             error: () => {
                 this.userCurrentRoles = user.realmRoles || [];
-                this.refreshAssignableRoles();
-                this.rolesLoading = false;
+                this.roleToAssign     = this.displayableCurrentRoles[0] || '';
+                this.rolesLoading     = false;
             }
         });
     }
 
-    private refreshAssignableRoles(): void {
-        this.assignableRoles = this.availableRoles
-            .filter(r => !this.userCurrentRoles.includes(r.name))
-            .map(r => ({ label: this.getRoleLabel(r.name), value: r.name }));
-    }
-
-    assignRoleToUser(): void {
+    /**
+     * Remplace le rôle métier de l'utilisateur par celui sélectionné (retire les
+     * rôles métier existants, puis assigne le nouveau) — un utilisateur n'a
+     * qu'un seul rôle métier à la fois, jamais plusieurs en parallèle.
+     */
+    changeUserRole(): void {
         if (!this.selectedUserForRoles || !this.roleToAssign) return;
+
+        const current = this.displayableCurrentRoles;
+        if (current.length === 1 && current[0] === this.roleToAssign) {
+            this.rolesDialogVisible = false;
+            return;
+        }
+
+        const userId          = this.selectedUserForRoles.id!;
+        const toRemove         = current.filter(r => r !== this.roleToAssign);
+        const alreadyAssigned = current.includes(this.roleToAssign);
+
         this.rolesLoading = true;
-        this.userService.assignRole(this.selectedUserForRoles.id!, this.roleToAssign).subscribe({
+        const removals$: Observable<unknown> = toRemove.length
+            ? forkJoin(toRemove.map(r => this.userService.removeRole(userId, r)))
+            : of(null);
+
+        removals$.subscribe({
             next: () => {
-                this.userCurrentRoles = [...this.userCurrentRoles, this.roleToAssign];
-                if (this.selectedUserForRoles) {
-                    this.selectedUserForRoles.realmRoles = [...this.userCurrentRoles];
+                if (alreadyAssigned) {
+                    this.onRoleChanged();
+                    return;
                 }
-                this.messageService.add({ severity: 'success', summary: 'Rôle assigné', detail: `Rôle "${this.roleToAssign}" assigné`, life: 3000 });
-                this.roleToAssign = '';
-                this.refreshAssignableRoles();
-                this.rolesLoading = false;
-                this.computeRoleStats();
+                this.userService.assignRole(userId, this.roleToAssign).subscribe({
+                    next: () => this.onRoleChanged(),
+                    error: (err: any) => this.onRoleChangeError(err)
+                });
             },
-            error: (err) => {
-                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.error || 'Impossible d\'assigner le rôle' });
-                this.rolesLoading = false;
-            }
+            error: (err: any) => this.onRoleChangeError(err)
         });
     }
 
-    removeRoleFromUser(roleName: string): void {
-        if (!this.selectedUserForRoles) return;
-        this.rolesLoading = true;
-        this.userService.removeRole(this.selectedUserForRoles.id!, roleName).subscribe({
-            next: () => {
-                this.userCurrentRoles = this.userCurrentRoles.filter(r => r !== roleName);
-                if (this.selectedUserForRoles) {
-                    this.selectedUserForRoles.realmRoles = [...this.userCurrentRoles];
-                }
-                this.messageService.add({ severity: 'success', summary: 'Rôle retiré', detail: `Rôle "${roleName}" retiré`, life: 3000 });
-                this.refreshAssignableRoles();
-                this.rolesLoading = false;
-                this.computeRoleStats();
-            },
-            error: (err) => {
-                this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.error || 'Impossible de retirer le rôle' });
-                this.rolesLoading = false;
-            }
+    private onRoleChanged(): void {
+        const technicalRoles = this.userCurrentRoles.filter(r => isTechnicalRole(r));
+        this.userCurrentRoles = [...technicalRoles, this.roleToAssign];
+        if (this.selectedUserForRoles) {
+            this.selectedUserForRoles.realmRoles = [...this.userCurrentRoles];
+        }
+        this.messageService.add({
+            severity: 'success', summary: 'Rôle mis à jour',
+            detail: `Rôle changé pour "${this.getRoleLabel(this.roleToAssign)}"`, life: 3000
         });
+        this.rolesLoading       = false;
+        this.rolesDialogVisible = false;
+        this.computeRoleStats();
     }
-    
+
+    private onRoleChangeError(err: any): void {
+        this.messageService.add({ severity: 'error', summary: 'Erreur', detail: err.error?.error || 'Impossible de modifier le rôle' });
+        this.rolesLoading = false;
+    }
+
     emptyForm(): UserFormData {
         return {
             username: '', email: '',
