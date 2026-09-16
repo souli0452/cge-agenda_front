@@ -1,0 +1,13 @@
+.ef-bar {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3, 0.75rem);
+    padding: var(--space-4, 1rem);
+    background: var(--surface-card);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--surface-border);
+    margin-bottom: var(--space-4, 1rem);
+}
+.ef-search { flex: 1; min-width: 200px; }
+.ef-select { min-width: 180px; }

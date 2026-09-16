@@ -1,8 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-
-// PrimeNG
 import { Button } from 'primeng/button';
 import { Skeleton } from 'primeng/skeleton';
 import { Tag } from 'primeng/tag';
@@ -10,9 +8,9 @@ import { Table, TableModule } from 'primeng/table';
 import { Toast } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
 
-
-// Services
 import { ParticipantService } from '../../service/participant.service';
+import { EventService } from '../../service/event.service';
+import { getEventStatusSeverity } from '../../models';
 
 @Component({
   selector: 'app-participant-detail',
@@ -26,235 +24,7 @@ import { ParticipantService } from '../../service/participant.service';
     Toast,
   ],
   providers: [MessageService],
-  styles: [`
-    .participant-detail-container {
-      padding: 24px;
-      background: #f8f9fa;
-      min-height: 100vh;
-    }
-
-    .back-button {
-      margin-bottom: 16px;
-    }
-
-    .detail-card {
-      background: white;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      margin-bottom: 24px;
-    }
-
-    .card-header {
-      background: var(--primary-color);
-      color: white;
-      padding: 24px;
-      border-radius: 12px 12px 0 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .participant-avatar {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      background: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin-right: 20px;
-    }
-
-    .participant-info {
-      flex: 1;
-    }
-
-    .participant-name {
-      font-size: 28px;
-      font-weight: 700;
-      margin: 0 0 8px 0;
-    }
-
-    .participant-type {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 6px 16px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-    }
-
-    .card-body {
-      padding: 24px;
-    }
-
-    .info-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 24px;
-    }
-
-    .info-item {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .info-label {
-      font-size: 12px;
-      font-weight: 600;
-      text-transform: uppercase;
-      color: var(--text-color-secondary);
-      letter-spacing: 0.5px;
-    }
-
-    .info-value {
-      font-size: 16px;
-      color: var(--text-color);
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .info-value i {
-      color: var(--primary-color);
-      font-size: 18px;
-    }
-
-    .info-value a {
-      color: var(--primary-color);
-      text-decoration: none;
-    }
-
-    .info-value a:hover {
-      text-decoration: underline;
-    }
-
-    .section-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin: 0 0 20px 0;
-      padding-bottom: 12px;
-      border-bottom: 3px solid var(--primary-color);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-title i {
-      font-size: 24px;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: var(--surface-50);
-      padding: 20px;
-      border-radius: 12px;
-      border-left: 4px solid var(--primary-color);
-      text-align: center;
-      transition: all 0.3s;
-    }
-
-    .stat-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    }
-
-    .stat-value {
-      font-size: 32px;
-      font-weight: 700;
-      color: var(--primary-color);
-      margin-bottom: 8px;
-    }
-
-    .stat-label {
-      font-size: 14px;
-      color: var(--text-color-secondary);
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-color-secondary);
-    }
-
-    .empty-state i {
-      font-size: 48px;
-      margin-bottom: 16px;
-      display: block;
-      color: var(--surface-300);
-    }
-
-    .action-buttons {
-      display: flex;
-      gap: 12px;
-    }
-
-    :host ::ng-deep {
-      .p-datatable .p-datatable-thead > tr > th {
-        background: var(--primary-color);
-        color: white;
-        font-weight: 600;
-      }
-
-      .p-datatable .p-datatable-tbody > tr:hover {
-        background: var(--surface-hover);
-      }
-
-      .p-button-secondary.p-button-outlined {
-        border-color: var(--surface-300);
-        color: var(--text-color);
-      }
-
-      .p-button-secondary.p-button-outlined:hover {
-        background: var(--surface-50);
-        border-color: var(--surface-400);
-      }
-
-      .p-button-info.p-button-outlined {
-        border-color: var(--primary-color);
-        color: var(--primary-color);
-      }
-
-      .p-button-info.p-button-outlined:hover {
-        background: var(--primary-color);
-        color: white;
-      }
-    }
-
-    @media (max-width: 768px) {
-      .card-header {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .participant-avatar {
-        margin: 0 0 16px 0;
-      }
-
-      .action-buttons {
-        flex-direction: column;
-        width: 100%;
-      }
-
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  `],
+  styleUrls: ['./participant-detail.css'],
   template: `
     <div class="participant-detail-container">
       <p-toast />
@@ -317,7 +87,7 @@ import { ParticipantService } from '../../service/participant.service';
                 <span class="info-label">Email</span>
                 <div class="info-value">
                   <i class="pi pi-envelope"></i>
-                  <a [href]="'mailto:' + participant.email" style="color: #228B22; text-decoration: none;">
+                  <a [href]="'mailto:' + participant.email" style="color: var(--cge-vert-moyen); text-decoration: none;">
                     {{ participant.email }}
                   </a>
                 </div>
@@ -471,6 +241,7 @@ export class ParticipantDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private participantService: ParticipantService,
+    private eventService: EventService,
     private messageService: MessageService
   ) {}
 
@@ -503,15 +274,21 @@ export class ParticipantDetailComponent implements OnInit {
   }
 
   loadParticipantEvents(participantId: string): void {
-    
-    this.events = [];
-    
-    const today = new Date();
-    this.participationStats = {
-      totalEvents: this.events.length,
-      upcomingEvents: this.events.filter(e => new Date(e.startDate) > today).length,
-      pastEvents: this.events.filter(e => new Date(e.endDate) < today).length
-    };
+    this.eventService.getEventsByParticipant(participantId).subscribe({
+      next: (events) => {
+        this.events = events;
+        const today = new Date();
+        this.participationStats = {
+          totalEvents: this.events.length,
+          upcomingEvents: this.events.filter(e => new Date(e.startDate) > today).length,
+          pastEvents: this.events.filter(e => new Date(e.endDate) < today).length
+        };
+      },
+      error: () => {
+        this.events = [];
+        this.participationStats = { totalEvents: 0, upcomingEvents: 0, pastEvents: 0 };
+      }
+    });
   }
 
   getInitials(): string {
@@ -522,24 +299,13 @@ export class ParticipantDetailComponent implements OnInit {
   }
 
   getStatusSeverity(status: string): 'success' | 'info' | 'warn' | 'danger' | 'secondary' | 'contrast' {
-  switch (status) {
-    case 'PLANIFIE':
-      return 'info';
-    case 'EN_COURS':
-      return 'warn';
-    case 'TERMINE':       
-      return 'success';
-    case 'ANNULE':
-      return 'danger';
-    case 'REPORTER':
-      return 'secondary';
-    default:
-      return 'info';
+    return getEventStatusSeverity(status);
   }
-}
 
   editParticipant(): void {
-    this.router.navigate(['/participants', this.participant.id, 'edit']);
+    this.router.navigate(['/participants'], {
+      queryParams: { edit: this.participant.id }
+    });
   }
 
   viewEvent(event: any): void {

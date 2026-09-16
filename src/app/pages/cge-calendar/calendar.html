@@ -1,230 +1,253 @@
-<p-toast></p-toast>
+<p-toast position="top-right"></p-toast>
 
-<div class="calendar-container">
-    
-    <!-- Header -->
-    <div class="calendar-header">
-        <div class="header-content">
-            <div class="header-left">
-                <h1>
-                    <i class="pi pi-calendar"></i>
-                    Calendrier des Événements
-                </h1>
-                <p class="subtitle">{{ events.length }} événement(s) au total</p>
+<div class="cal-page">
+    <div class="cal-header">
+        <div class="cal-header-left">
+            <div class="cal-header-icon" aria-hidden="true">
+                <i class="pi pi-calendar" aria-hidden="true"></i>
             </div>
-            <div class="header-actions">
-    <p-button 
-        label="Exporter PDF" 
-        icon="pi pi-file-pdf"
-        [outlined]="true"
-        severity="secondary"
-        (onClick)="exportToPDF()">
-    </p-button>
-    <p-button 
-        label="Liste" 
-        icon="pi pi-list"
-        [outlined]="true"
-        severity="secondary"
-        (onClick)="goToListView()">
-    </p-button>
-    <p-button 
-        label="Nouvel événement" 
-        icon="pi pi-plus"
-        severity="success"
-        (onClick)="createEvent()">
-    </p-button>
-</div>
+            <div>
+                <h1 class="cal-title">Calendrier des événements</h1>
+                <p class="cal-subtitle">Vue d'ensemble de l'agenda institutionnel</p>
+            </div>
+        </div>
+
+        <div class="cal-stats">
+            <div class="cal-stat-chip">
+                <i class="pi pi-calendar-clock" aria-hidden="true"></i>
+                <span class="stat-value">{{ eventsToday }}</span>
+                <span class="stat-label">aujourd'hui</span>
+            </div>
+            <div class="cal-stat-chip chip-blue">
+                <i class="pi pi-calendar" aria-hidden="true"></i>
+                <span class="stat-value">{{ eventsThisMonth }}</span>
+                <span class="stat-label">ce mois</span>
+            </div>
+            <div class="cal-stat-chip chip-purple">
+                <i class="pi pi-list" aria-hidden="true"></i>
+                <span class="stat-value">{{ events.length }}</span>
+                <span class="stat-label">total</span>
+            </div>
+        </div>
+        <div class="cal-header-actions">
+            <div class="export-group">
+                <p-button
+                    icon="pi pi-file-pdf"
+                    ariaLabel="Exporter en PDF"
+                    pTooltip="Exporter PDF"
+                    tooltipPosition="bottom"
+                    [rounded]="true"
+                    [outlined]="true"
+                    severity="secondary"
+                    (onClick)="exportToPDF()">
+                </p-button>
+                <p-button
+                    icon="pi pi-file-excel"
+                    ariaLabel="Exporter en Excel"
+                    pTooltip="Exporter Excel"
+                    tooltipPosition="bottom"
+                    [rounded]="true"
+                    [outlined]="true"
+                    severity="secondary"
+                    (onClick)="exportToExcel()">
+                </p-button>
+            </div>
+            <p-button
+                icon="pi pi-list"
+                ariaLabel="Passer à la vue liste"
+                pTooltip="Vue liste"
+                tooltipPosition="bottom"
+                [rounded]="true"
+                [outlined]="true"
+                severity="secondary"
+                (onClick)="goToListView()">
+            </p-button>
+            <p-button
+                label="Nouvel événement"
+                icon="pi pi-plus"
+                severity="success"
+                (onClick)="createEvent()">
+            </p-button>
         </div>
     </div>
 
-    <!-- Filters -->
-    <div class="filters-section">
-        <p-iconfield iconPosition="left" class="search-field">
-            <p-inputicon>
-                <i class="pi pi-search"></i>
-            </p-inputicon>
-            <input 
-                pInputText 
-                type="text" 
-                [(ngModel)]="searchKeyword"
-                (input)="applyFilters()"
-                placeholder="Rechercher un événement..."
-                class="w-full" />
+    <div class="cal-filters">
+        <label for="cal-search" class="sr-only">Rechercher un événement</label>
+        <p-iconfield iconPosition="left" class="cal-search">
+            <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
+            <input pInputText type="text" id="cal-search"
+                   [(ngModel)]="searchKeyword"
+                   (input)="applyFilters()"
+                   placeholder="Rechercher un événement…"
+                   class="w-full" />
         </p-iconfield>
 
-        <p-select 
-            [options]="typeOptions" 
+        <p-select
+            [options]="typeOptions"
             [(ngModel)]="selectedType"
             (onChange)="applyFilters()"
-            placeholder="Type"
+            placeholder="Tous les types"
+            ariaLabel="Filtrer par type d'événement"
             [showClear]="true"
-            styleClass="filter-select">
+            styleClass="cal-select">
         </p-select>
 
-        <p-select 
-            [options]="statusOptions" 
+        <p-select
+            [options]="statusOptions"
             [(ngModel)]="selectedStatus"
             (onChange)="applyFilters()"
-            placeholder="Statut"
+            placeholder="Tous les statuts"
+            ariaLabel="Filtrer par statut"
             [showClear]="true"
-            styleClass="filter-select">
+            styleClass="cal-select">
         </p-select>
 
-        <p-button 
-            icon="pi pi-refresh" 
+        <p-button
+            icon="pi pi-filter-slash"
+            ariaLabel="Réinitialiser les filtres"
             [rounded]="true"
             [outlined]="true"
             severity="secondary"
-            pTooltip="Réinitialiser les filtres"
+            pTooltip="Réinitialiser"
             (onClick)="resetFilters()">
         </p-button>
     </div>
-
-    <!-- Legend -->
-    <div class="legend-section">
-        <div class="legend-title">
-            <i class="pi pi-bookmark"></i>
-            Légende
-        </div>
-        <div class="legend-items">
-            <div *ngFor="let item of legendItems" class="legend-item">
-                <span class="legend-color" [style.background-color]="item.color"></span>
-                <span class="legend-label">{{ item.label }}</span>
+    <div class="cal-card">
+        <div class="cal-legend">
+            <span class="legend-title-sm">Légende :</span>
+            <div *ngFor="let item of legendItems" class="legend-pill"
+                 [style.background]="item.color + '18'"
+                 [style.color]="item.color"
+                 [style.border]="'1px solid ' + item.color + '40'">
+                <span class="legend-dot" [style.background]="item.color"></span>
+                {{ item.label }}
             </div>
         </div>
-    </div>
 
-    <!-- Calendar -->
-    <div class="calendar-wrapper">
-        <div #calendarEl></div>
+        <div class="cal-divider"></div>
+        <div class="fc-wrapper">
+            <div #calendarEl></div>
+        </div>
     </div>
 
 </div>
-
-<!-- Event Detail Dialog -->
-<p-dialog 
-    [(visible)]="eventDetailDialogVisible" 
+<p-dialog
+    [(visible)]="eventDetailDialogVisible"
     [modal]="true"
-    [style]="{width: '700px'}"
+    [style]="{width: '640px', 'max-height': '90vh'}"
     [draggable]="false"
     [resizable]="false"
-    header="Détails de l'événement">
-    
-    <div *ngIf="selectedEvent" class="event-detail-content">
-        
-        <!-- Titre et badges -->
-        <div class="detail-header">
-            <h2 class="event-title">{{ selectedEvent.title }}</h2>
-            <div class="badges">
-                <p-tag 
-                    [value]="getTypeLabel(selectedEvent.type)" 
-                    [style]="{backgroundColor: getEventColor(selectedEvent.type)}">
-                </p-tag>
-                <p-tag 
-                    [value]="getStatusLabel(selectedEvent.status)"
-                    [style]="{backgroundColor: getStatusColor(selectedEvent.status)}">
-                </p-tag>
-            </div>
-        </div>
+    [showHeader]="false">
 
-        <p-divider></p-divider>
+    <div *ngIf="selectedEvent" class="detail-dialog">
 
-        <!-- Description -->
-        <div class="detail-section" *ngIf="selectedEvent.description">
-            <div class="section-label">
-                <i class="pi pi-align-left"></i>
-                Description
+        <div class="detail-banner"
+             [style.background]="'linear-gradient(135deg, ' + darkenColor(getEventColor(selectedEvent.type)) + ', ' + getEventColor(selectedEvent.type) + ')'">
+            <div class="detail-banner-type">
+                <i class="pi pi-calendar-clock" aria-hidden="true"></i>
+                {{ getTypeLabel(selectedEvent.type) }}
             </div>
-            <p class="section-value">{{ selectedEvent.description }}</p>
-        </div>
-
-        <!-- Dates -->
-        <div class="detail-section">
-            <div class="section-label">
-                <i class="pi pi-calendar"></i>
-                Période
-            </div>
-            <div class="date-range">
-                <span class="date-item">
-                    <i class="pi pi-calendar-plus text-primary"></i>
-                    <strong>Début :</strong> {{ selectedEvent.startDate | date:'dd/MM/yyyy' }}
-                </span>
-                <span class="date-item">
-                    <i class="pi pi-calendar-minus text-orange-500"></i>
-                    <strong>Fin :</strong> {{ selectedEvent.endDate | date:'dd/MM/yyyy' }}
+            <h2 class="detail-banner-title">{{ selectedEvent.title }}</h2>
+            <div class="detail-banner-status">
+                <span class="status-pill"
+                      [style.background]="getStatusColor(selectedEvent.status) + '30'"
+                      [style.color]="'white'"
+                      [style.border]="'1px solid rgba(255,255,255,0.4)'">
+                    {{ getStatusLabel(selectedEvent.status) }}
                 </span>
             </div>
+            <button class="detail-close-btn" aria-label="Fermer le détail" (click)="eventDetailDialogVisible = false">
+                <i class="pi pi-times" aria-hidden="true"></i>
+            </button>
         </div>
 
-        <!-- Lieu -->
-        <div class="detail-section" *ngIf="selectedEvent.ville || selectedEvent.pays">
-            <div class="section-label">
-                <i class="pi pi-map-marker"></i>
-                Lieu
+        <div class="detail-body">
+            <div class="detail-row" *ngIf="selectedEvent.description">
+                <div class="detail-icon-wrap" style="background:var(--cge-vert-clair)" aria-hidden="true">
+                    <i class="pi pi-align-left" style="color:var(--cge-vert-moyen)" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div class="detail-field-label">Description</div>
+                    <div class="detail-field-value">{{ selectedEvent.description }}</div>
+                </div>
             </div>
-            <p class="section-value">
-                {{ selectedEvent.ville }}{{ selectedEvent.ville && selectedEvent.pays ? ', ' : '' }}{{ selectedEvent.pays }}
-            </p>
-        </div>
+            <div class="detail-row">
+                <div class="detail-icon-wrap" style="background:#e3f2fd" aria-hidden="true">
+                    <i class="pi pi-calendar" style="color:#2196F3" aria-hidden="true"></i>
+                </div>
+                <div style="flex:1">
+                    <div class="detail-field-label">Période</div>
+                    <div class="detail-dates-grid">
+                        <div class="date-chip">
+                            <span class="date-chip-label">Début</span>
+                            <span class="date-chip-value">{{ selectedEvent.startDate | date:'dd MMM yyyy' }}</span>
+                        </div>
+                        <div class="date-chip">
+                            <span class="date-chip-label">Fin</span>
+                            <span class="date-chip-value">{{ selectedEvent.endDate | date:'dd MMM yyyy' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="detail-row" *ngIf="selectedEvent.ville || selectedEvent.pays">
+                <div class="detail-icon-wrap" style="background:#fff3e0" aria-hidden="true">
+                    <i class="pi pi-map-marker" style="color:#ff9800" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div class="detail-field-label">Lieu</div>
+                    <div class="detail-field-value">
+                        {{ selectedEvent.ville }}{{ selectedEvent.ville && selectedEvent.pays ? ', ' : '' }}{{ selectedEvent.pays }}
+                    </div>
+                </div>
+            </div>
+            <div class="detail-row" *ngIf="selectedEvent.meetingLink">
+                <div class="detail-icon-wrap" style="background:#f3e5f5" aria-hidden="true">
+                    <i class="pi pi-video" style="color:#9c27b0" aria-hidden="true"></i>
+                </div>
+                <div>
+                    <div class="detail-field-label">Visioconférence</div>
+                    <a [href]="selectedEvent.meetingLink" target="_blank" class="visio-link">
+                        <i class="pi pi-external-link" aria-hidden="true"></i>
+                        Rejoindre la réunion
+                    </a>
+                </div>
+            </div>
+            <div class="detail-counters">
+                <div class="counter-card">
+                    <i class="pi pi-users counter-icon" style="color:var(--cge-vert-moyen)" aria-hidden="true"></i>
+                    <span class="counter-value">{{ selectedEvent.participants?.length || 0 }}</span>
+                    <span class="counter-label">participant(s)</span>
+                </div>
+                <div class="counter-card">
+                    <i class="pi pi-paperclip counter-icon" style="color:#2196F3" aria-hidden="true"></i>
+                    <span class="counter-value">{{ selectedEvent.files?.length || 0 }}</span>
+                    <span class="counter-label">fichier(s)</span>
+                </div>
+            </div>
 
-        <!-- Lien visio -->
-        <div class="detail-section" *ngIf="selectedEvent.meetingLink">
-            <div class="section-label">
-                <i class="pi pi-video"></i>
-                Visioconférence
-            </div>
-            <a [href]="selectedEvent.meetingLink" target="_blank" class="meeting-link">
-                <i class="pi pi-external-link"></i>
-                Rejoindre la réunion
-            </a>
         </div>
-
-        <!-- Participants -->
-        <div class="detail-section">
-            <div class="section-label">
-                <i class="pi pi-users"></i>
-                Participants
-            </div>
-            <div class="count-badge">
-                <i class="pi pi-user"></i>
-                {{ selectedEvent.participants?.length || 0 }} participant(s)
-            </div>
-        </div>
-
-        <!-- Fichiers -->
-        <div class="detail-section">
-            <div class="section-label">
-                <i class="pi pi-paperclip"></i>
-                Fichiers joints
-            </div>
-            <div class="count-badge">
-                <i class="pi pi-file"></i>
-                {{ selectedEvent.files?.length || 0 }} fichier(s)
-            </div>
+        <div class="detail-footer">
+            <p-button
+                label="Fermer"
+                [text]="true"
+                severity="secondary"
+                (onClick)="eventDetailDialogVisible = false">
+            </p-button>
+            <p-button
+                label="Modifier"
+                icon="pi pi-pencil"
+                [outlined]="true"
+                severity="secondary"
+                (onClick)="editEvent()">
+            </p-button>
+            <p-button
+                label="Voir la fiche"
+                icon="pi pi-arrow-right"
+                iconPos="right"
+                severity="success"
+                (onClick)="viewEventDetails()">
+            </p-button>
         </div>
 
     </div>
-
-    <ng-template pTemplate="footer">
-    <p-button 
-        label="Fermer" 
-        icon="pi pi-times" 
-        [text]="true"
-        severity="secondary"
-        (onClick)="eventDetailDialogVisible = false">
-    </p-button>
-    <p-button 
-        label="Modifier" 
-        icon="pi pi-pencil"
-        severity="secondary"
-        [outlined]="true"
-        (onClick)="editEvent()">
-    </p-button>
-    <p-button 
-        label="Voir détails complets" 
-        icon="pi pi-eye"
-        severity="success"
-        (onClick)="viewEventDetails()">
-    </p-button>
-</ng-template>
 </p-dialog>

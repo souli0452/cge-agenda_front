@@ -1,0 +1,37 @@
+<div class="ef-bar" role="search">
+    <label for="ef-search" class="sr-only">Rechercher un événement</label>
+    <p-iconfield iconPosition="left" class="ef-search">
+        <p-inputicon><i class="pi pi-search" aria-hidden="true"></i></p-inputicon>
+        <input pInputText id="ef-search" type="text"
+               [(ngModel)]="filters.search"
+               (input)="emit()"
+               placeholder="Rechercher…"
+               autocomplete="off" />
+    </p-iconfield>
+
+    <p-select [options]="typeOptions"
+              [(ngModel)]="filters.type"
+              (onChange)="emit()"
+              placeholder="Tous les types"
+              ariaLabel="Filtrer par type"
+              [showClear]="true"
+              styleClass="ef-select">
+    </p-select>
+
+    <p-select [options]="statusOptions"
+              [(ngModel)]="filters.status"
+              (onChange)="emit()"
+              placeholder="Tous les statuts"
+              ariaLabel="Filtrer par statut"
+              [showClear]="true"
+              styleClass="ef-select">
+    </p-select>
+
+    <p-button icon="pi pi-filter-slash"
+              ariaLabel="Réinitialiser les filtres"
+              [rounded]="true" [outlined]="true"
+              severity="secondary"
+              pTooltip="Réinitialiser"
+              (onClick)="reset()">
+    </p-button>
+</div>

@@ -1,0 +1,40 @@
+<div class="flex gap-1" role="group" [attr.aria-label]="'Actions pour ' + event.title">
+    <p-button icon="pi pi-eye"
+              ariaLabel="Voir les détails"
+              [rounded]="true" [text]="true" severity="info"
+              pTooltip="Voir" tooltipPosition="top"
+              (onClick)="view.emit(event); $event.stopPropagation()">
+    </p-button>
+    @if (canEdit) {
+        <p-button icon="pi pi-pencil"
+                  ariaLabel="Modifier"
+                  [rounded]="true" [text]="true" severity="secondary"
+                  pTooltip="Modifier" tooltipPosition="top"
+                  (onClick)="edit.emit(event); $event.stopPropagation()">
+        </p-button>
+    }
+    @if (canCancel) {
+        <p-button icon="pi pi-ban"
+                  ariaLabel="Annuler l'événement"
+                  [rounded]="true" [text]="true" severity="warn"
+                  pTooltip="Annuler" tooltipPosition="top"
+                  (onClick)="cancel.emit(event); $event.stopPropagation()">
+        </p-button>
+    }
+    @if (canPostpone) {
+        <p-button icon="pi pi-calendar-times"
+                  ariaLabel="Reporter l'événement"
+                  [rounded]="true" [text]="true" severity="warn"
+                  pTooltip="Reporter" tooltipPosition="top"
+                  (onClick)="postpone.emit(event); $event.stopPropagation()">
+        </p-button>
+    }
+    @if (canDelete) {
+        <p-button icon="pi pi-trash"
+                  ariaLabel="Supprimer"
+                  [rounded]="true" [text]="true" severity="danger"
+                  pTooltip="Supprimer" tooltipPosition="top"
+                  (onClick)="delete.emit(event); $event.stopPropagation()">
+        </p-button>
+    }
+</div>

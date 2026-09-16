@@ -1,0 +1,109 @@
+.validation-dashboard { padding: 0; }
+
+.validation-header-icon {
+    width: 48px; height: 48px;
+    background: linear-gradient(135deg, #ff9800, #f57c00);
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 22px; flex-shrink: 0;
+}
+
+.attente-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #fff3e0; color: #e65100; border: 1px solid #ffb74d;
+    padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px;
+}
+.corriger-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
+    padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 13px;
+}
+.badge-corriger {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #ffebee; color: #c62828; border: 1px solid #ef9a9a;
+    padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+}
+
+.stat-card {
+    display: flex; align-items: center; gap: 16px; padding: 20px;
+    border-radius: 12px; background: white;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-left: 4px solid transparent;
+}
+.stat-card-orange { border-left-color: #ff9800; }
+.stat-card-green  { border-left-color: var(--cge-vert-moyen); }
+.stat-card-red    { border-left-color: #f44336; }
+.stat-card-blue   { border-left-color: #2196f3; }
+
+.stat-icon {
+    width: 48px; height: 48px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+}
+.stat-card-orange .stat-icon { background: #fff3e0; color: #ff9800; }
+.stat-card-green  .stat-icon { background: var(--cge-vert-clair); color: var(--cge-vert-moyen); }
+.stat-card-red    .stat-icon { background: #ffebee; color: #f44336; }
+.stat-card-blue   .stat-icon { background: #e3f2fd; color: #2196f3; }
+
+.stat-value { font-size: 28px; font-weight: 800; line-height: 1; color: var(--text-color); }
+.stat-label { font-size: 12px; color: var(--text-color-secondary); margin-top: 4px; }
+
+:host ::ng-deep .row-urgent {
+    background: #fff8e1 !important;
+    border-left: 3px solid #ff9800 !important;
+}
+
+:host ::ng-deep .p-datatable-hoverable-rows .p-datatable-tbody > tr:hover {
+    background: var(--cge-vert-clair) !important;
+}
+
+.badge-urgent {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #fff3e0; color: #e65100; border: 1px solid #ffb74d;
+    padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+}
+
+.badge-champs-modifies {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9;
+    padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600;
+    max-width: 100%;
+}
+
+.delai-urgent  { color: #f44336; font-weight: 700; }
+.delai-warning { color: #ff9800; font-weight: 600; }
+.delai-ok      { color: var(--cge-vert-moyen); font-weight: 600; }
+
+.empty-validation { text-align: center; padding: 60px 20px; color: var(--text-color-secondary); }
+.empty-icon { font-size: 64px; color: var(--cge-vert-moyen); margin-bottom: 16px; }
+.empty-validation h4 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+
+.dialog-content { padding: 8px 0; }
+
+.event-info-banner {
+    padding: 14px 16px; border-radius: 8px; margin-bottom: 16px;
+    border-left: 4px solid transparent;
+}
+.banner-green { background: var(--cge-vert-clair); border-left-color: var(--cge-vert-moyen); color: var(--cge-vert-moyen); }
+.banner-orange { background: #fff3e0; border-left-color: #ff9800; color: #e65100; }
+.banner-red { background: #ffebee; border-left-color: #f44336; color: #c62828; }
+
+.info-note {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 12px 16px; background: #e3f2fd;
+    border-radius: 8px; color: #1565c0; font-size: 13px;
+}
+.info-note-orange { background: #fff3e0; color: #e65100; }
+
+.alert-reject {
+    display: flex; align-items: flex-start; gap: 8px;
+    padding: 12px 16px; background: #ffebee;
+    border-radius: 8px; color: #c62828; font-size: 13px; margin-bottom: 16px;
+}
+
+:host ::ng-deep {
+    .p-datatable .p-datatable-thead > tr > th {
+        background-color: var(--cge-vert-moyen) !important;
+        color: white !important; font-weight: 600 !important;
+    }
+    .p-textarea { width: 100%; font-size: 14px; }
+}

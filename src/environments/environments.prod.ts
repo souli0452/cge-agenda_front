@@ -1,4 +1,10 @@
-export const environment = {
+export const environments = {
     production: true,
-    apiUrl: 'https://votre-api-production.com/api/v1/cge-agenda'
+    apiUrl:  'https://agenda.asce-lc.bf/api/v1/cge-agenda',
+    appUrl:  'https://agenda.asce-lc.bf',
+    keycloak: {
+        url:      'https://auth.asce-lc.bf',
+        realm:    'asce-lc-realm',
+        clientId: 'agenda-cge'
+    }
 };

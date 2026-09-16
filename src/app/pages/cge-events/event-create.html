@@ -1,40 +1,31 @@
 <p-toast position="top-right"></p-toast>
+<p-confirmDialog></p-confirmDialog>
 
 <div class="event-create-container">
-
-  <!-- Header -->
   <div class="page-header">
     <div class="header-left">
-      <p-button 
-        icon="pi pi-arrow-left" 
-        [rounded]="true" 
-        [text]="true" 
-        severity="secondary"
-        (onClick)="cancel()"
-        class="back-btn">
+      <p-button icon="pi pi-arrow-left" [rounded]="true" [text]="true"
+                severity="secondary" ariaLabel="Retour" (onClick)="cancel()" class="back-btn">
       </p-button>
       <h1>
-        <i class="pi pi-plus-circle"></i>
+        <i class="pi pi-plus-circle" aria-hidden="true"></i>
         Créer un événement
       </h1>
     </div>
   </div>
 
-  <!-- PROGRESSION HORIZONTALE-->
-  <div class="horizontal-stepper" [attr.data-progress]="currentStep">
+  <div class="horizontal-stepper">
     <div class="stepper-track"></div>
     <div class="stepper-steps">
-      <div *ngFor="let step of steps; let i = index" 
+      <div *ngFor="let step of steps; let i = index"
            class="stepper-step"
            [ngClass]="getStepClass(i)"
            [class.clickable]="isStepClickable(i)"
            (click)="onStepClick(i)">
-        
         <div class="step-circle">
           <i *ngIf="i < currentStep" class="pi pi-check"></i>
           <span *ngIf="i >= currentStep">{{ step.number }}</span>
         </div>
-        
         <div class="step-label">
           {{ step.label }}
           <span *ngIf="step.optional" class="optional-tag">(optionnel)</span>
@@ -43,17 +34,31 @@
     </div>
   </div>
 
-  <!-- Contenu selon l'étape actuelle -->
   <div class="step-wrapper">
-
-    <!-- ========================================== -->
-    <!-- ÉTAPE 0 : INFORMATIONS GÉNÉRALES -->
-    <!-- ========================================== -->
     <div *ngIf="currentStep === 0" class="step-content">
-      
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
         <p>Commencez par définir l'événement : son titre, description et type.</p>
+      </div>
+
+      <div class="form-group" *ngIf="!loadingEspaces && espaces.length === 0">
+        <div class="phase-intro" style="background:#fdecea;border-color:#f5c6cb;">
+          <i class="pi pi-exclamation-triangle" style="color:#b71c1c"></i>
+          <p>Vous n'êtes propriétaire ni gestionnaire d'aucun espace agenda. Contactez un administrateur.</p>
+        </div>
+      </div>
+
+      <div class="form-group" *ngIf="espaces.length > 1">
+        <h3 class="group-title">
+          <i class="pi pi-briefcase"></i>
+          Espace agenda
+        </h3>
+        <div class="form-field">
+          <label class="field-label">Créer cet événement pour <span class="text-red-500">*</span></label>
+          <p-select [options]="espaces" formControlName="espaceId"
+                    optionLabel="nom" optionValue="id"
+                    placeholder="Choisir un espace" class="w-full" appendTo="body" />
+        </div>
       </div>
 
       <div class="form-group">
@@ -63,18 +68,17 @@
         </h3>
 
         <form [formGroup]="eventForm">
-          
+
           <div class="form-field">
-            <label class="field-label">
-              Titre de l'événement <span class="required">*</span>
+            <label class="field-label" for="event-title">
+              Titre de l'événement <span class="text-red-500">*</span>
             </label>
             <p-iconfield iconPosition="left" class="w-full">
               <p-inputicon styleClass="pi pi-bookmark" />
-              <input 
-                pInputText 
-                formControlName="title" 
-                placeholder="Ex: Réunion Budget 2026"
-                class="w-full p-inputtext-lg" />
+              <input pInputText id="event-title" formControlName="title"
+                     placeholder="Ex : Réunion Budget 2026…"
+                     autocomplete="off"
+                     class="w-full p-inputtext-lg" />
             </p-iconfield>
             <small class="field-error" *ngIf="isFieldInvalid('title')">
               {{ getErrorMessage('title') }}
@@ -82,35 +86,40 @@
           </div>
 
           <div class="form-field">
-            <label class="field-label">Description</label>
-            <textarea 
-              pTextarea 
-              formControlName="description" 
-              rows="5"
-              placeholder="Décrivez l'événement en détail..."
-              class="w-full p-inputtext-lg">
+            <label class="field-label" for="event-description">Description</label>
+            <textarea pTextarea id="event-description" formControlName="description" rows="5"
+                      placeholder="Décrivez l'événement en détail…"
+                      class="w-full p-inputtext-lg">
             </textarea>
-            <small class="field-hint">
-              <i class="pi pi-info-circle"></i>
-              Ajoutez tous les détails importants pour les participants
-            </small>
           </div>
 
           <div class="form-field">
             <label class="field-label">
-              Type d'événement <span class="required">*</span>
+              Type d'événement <span class="text-red-500">*</span>
             </label>
-            <p-select 
-              formControlName="type" 
-              [options]="typeOptions"
-              placeholder="Sélectionnez le type"
-              optionLabel="label"
-              optionValue="value"
-              styleClass="w-full"
-              [style]="{'width': '100%'}">
+            <p-select formControlName="type" [options]="typeOptions"
+                      placeholder="Sélectionnez le type"
+                      optionLabel="label" optionValue="value"
+                      styleClass="w-full" [style]="{'width': '100%'}">
             </p-select>
             <small class="field-error" *ngIf="isFieldInvalid('type')">
               Le type est obligatoire
+            </small>
+          </div>
+
+          <div class="form-field" *ngIf="isAutreType">
+            <label class="field-label">
+              Précisez le type d'événement <span class="text-red-500">*</span>
+            </label>
+            <p-iconfield iconPosition="left" class="w-full">
+              <p-inputicon styleClass="pi pi-tag" />
+              <input pInputText formControlName="typeAutreLabel"
+                     placeholder="Ex : Cérémonie, Inauguration, Visite officielle..."
+                     autocomplete="off"
+                     class="w-full p-inputtext-lg" />
+            </p-iconfield>
+            <small class="field-error" *ngIf="isFieldInvalid('typeAutreLabel')">
+              Veuillez préciser le type d'événement
             </small>
           </div>
 
@@ -118,85 +127,62 @@
       </div>
 
       <div class="step-actions">
-        <p-button 
-          label="Annuler" 
-          [outlined]="true"
-          severity="secondary"
-          size="large"
-          (onClick)="cancel()">
-        </p-button>
-        <p-button 
-          label="Suivant" 
-          icon="pi pi-arrow-right" 
-          iconPos="right"
-          severity="success"
-          size="large"
-          (onClick)="goToStep(1)"
-          [disabled]="!canProceedFromStep(0)">
-        </p-button>
+        <p-button label="Annuler" [outlined]="true" severity="secondary"
+                  size="large" (onClick)="cancel()" />
+        <p-button label="Suivant" icon="pi pi-arrow-right" iconPos="right"
+                  severity="success" size="large"
+                  (onClick)="goToStep(1)"
+                  [disabled]="!canProceedFromStep(0)" />
       </div>
-
     </div>
-
-    <!-- ========================================== -->
-    <!-- ÉTAPE 1 : DATES ET LIEU -->
-    <!-- ========================================== -->
     <div *ngIf="currentStep === 1" class="step-content">
-      
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
         <p>Définissez la période et le lieu de l'événement.</p>
       </div>
 
+      <!-- Dates -->
       <div class="form-group">
         <h3 class="group-title">
           <i class="pi pi-calendar"></i>
           Période de l'événement
         </h3>
-
         <form [formGroup]="eventForm">
           <div class="grid-2-cols">
-            
             <div class="form-field">
               <label class="field-label">
-                Date de début <span class="required">*</span>
+                Date de début <span class="text-red-500">*</span>
               </label>
-              <p-datepicker 
-                formControlName="startDate" 
-                dateFormat="dd/mm/yy"
-                placeholder="Sélectionnez la date"
-                [showIcon]="true"
-                [minDate]="today"
-                styleClass="w-full"
-                [style]="{'width': '100%'}"
-                (onSelect)="onStartDateChange()">
+              <p-datepicker formControlName="startDate" dateFormat="dd/mm/yy"
+                            placeholder="Sélectionnez la date"
+                            [showIcon]="true" [minDate]="today"
+                            styleClass="w-full" [style]="{'width': '100%'}"
+                            (onSelect)="onStartDateChange()">
               </p-datepicker>
               <small class="field-error" *ngIf="isFieldInvalid('startDate')">
                 Date de début requise
               </small>
             </div>
-
             <div class="form-field">
               <label class="field-label">
-                Date de fin <span class="required">*</span>
+                Date de fin <span class="text-red-500">*</span>
               </label>
-              <p-datepicker 
-                formControlName="endDate" 
-                dateFormat="dd/mm/yy"
-                placeholder="Sélectionnez la date"
-                [showIcon]="true"
-                [minDate]="minEndDate"
-                styleClass="w-full"
-                [style]="{'width': '100%'}">
+              <p-datepicker formControlName="endDate" dateFormat="dd/mm/yy"
+                            placeholder="Sélectionnez la date"
+                            [showIcon]="true" [minDate]="minEndDate"
+                            styleClass="w-full" [style]="{'width': '100%'}">
               </p-datepicker>
               <small class="field-error" *ngIf="isFieldInvalid('endDate')">
                 Date de fin requise
               </small>
               <small class="field-error" *ngIf="endDateBeforeStartDate()">
-                La date de fin doit être égale ou postérieure à la date de début
+                La date de fin doit être >= à la date de début
+              </small>
+              <small class="text-red-500 block mt-1"
+                     *ngIf="eventForm.errors?.['endBeforeStart'] && eventForm.get('endDate')?.touched">
+                La date de fin doit être postérieure à la date de début
               </small>
             </div>
-
           </div>
         </form>
       </div>
@@ -206,104 +192,208 @@
       <div class="form-group">
         <h3 class="group-title">
           <i class="pi pi-map-marker"></i>
-          Localisation
+          Lieu de l'événement
         </h3>
 
         <form [formGroup]="eventForm">
-          <div class="grid-2-cols">
-            
-            <div class="form-field">
-              <label class="field-label">Pays</label>
-              <p-select 
-                formControlName="pays" 
-                [options]="countries"
-                placeholder="Sélectionnez le pays"
-                optionLabel="label"
-                optionValue="value"
-                [filter]="true"
-                filterPlaceholder="Rechercher..."
-                styleClass="w-full"
-                [style]="{'width': '100%'}"
-                (onChange)="onCountryChange($event)">
-              </p-select>
-            </div>
-
-            <div class="form-field" *ngIf="hasCities()">
-              <label class="field-label">Ville</label>
-              <p-select 
-                formControlName="ville" 
-                [options]="cities"
-                placeholder="Sélectionnez la ville"
-                optionLabel="label"
-                optionValue="value"
-                [filter]="true"
-                filterPlaceholder="Rechercher..."
-                styleClass="w-full"
-                [style]="{'width': '100%'}">
-              </p-select>
-            </div>
-
-            <div class="form-field" *ngIf="!hasCities()">
-              <label class="field-label">Ville</label>
-              <p-iconfield iconPosition="left" class="w-full">
-                <p-inputicon styleClass="pi pi-building" />
-                <input 
-                  pInputText 
-                  formControlName="ville"
-                  placeholder="Saisissez la ville"
-                  class="w-full p-inputtext-lg" />
-              </p-iconfield>
-            </div>
-
-          </div>
 
           <div class="form-field">
-            <label class="field-label">
-              Lien de réunion en ligne <span style="color: #666; font-weight: normal;">(optionnel)</span>
-            </label>
-            <p-iconfield iconPosition="left" class="w-full">
-              <p-inputicon styleClass="pi pi-video" />
-              <input 
-                pInputText 
-                formControlName="meetingLink"
-                placeholder="https://meet.google.com/..."
-                class="w-full p-inputtext-lg" />
-            </p-iconfield>
-            <small class="field-hint">
-              <i class="pi pi-info-circle"></i>
-              Google Meet, Zoom, Teams, etc.
-            </small>
+            <label class="field-label">Type de lieu</label>
+            <div class="lieu-type-grid">
+
+              <div class="lieu-option"
+                   [class.selected]="currentLieuType === 'INTERNE'"
+                   (click)="eventForm.patchValue({ lieuType: 'INTERNE' })">
+                <i class="pi pi-building lieu-icon"></i>
+                <span class="lieu-label">Interne</span>
+                <small class="lieu-desc">Dans le bâtiment ASCELC</small>
+              </div>
+
+              <div class="lieu-option"
+                   [class.selected]="currentLieuType === 'NATIONAL'"
+                   (click)="eventForm.patchValue({ lieuType: 'NATIONAL' })">
+                <i class="pi pi-map lieu-icon" style="color:var(--cge-vert-moyen)"></i>
+                <span class="lieu-label">National</span>
+                <small class="lieu-desc">Burkina Faso</small>
+              </div>
+
+              <div class="lieu-option"
+                   [class.selected]="currentLieuType === 'INTERNATIONAL'"
+                   (click)="eventForm.patchValue({ lieuType: 'INTERNATIONAL' })">
+                <i class="pi pi-globe lieu-icon" style="color:#1976d2"></i>
+                <span class="lieu-label">International</span>
+                <small class="lieu-desc">À l'étranger</small>
+              </div>
+
+              <div class="lieu-option"
+                   [class.selected]="currentLieuType === 'VIRTUEL'"
+                   (click)="eventForm.patchValue({ lieuType: 'VIRTUEL' })">
+                <i class="pi pi-video lieu-icon" style="color:#7b1fa2"></i>
+                <span class="lieu-label">Virtuel</span>
+                <small class="lieu-desc">Réunion en ligne</small>
+              </div>
+
+            </div>
           </div>
+
+          <ng-container *ngIf="currentLieuType === 'INTERNE'">
+            <div class="form-field">
+              <label class="field-label">
+                Salle <span class="text-red-500">*</span>
+              </label>
+              <p-select [options]="sallesDisponibles"
+                        formControlName="salle"
+                        optionLabel="label" optionValue="value"
+                        placeholder="Choisir une salle"
+                        styleClass="w-full" [style]="{'width': '100%'}" />
+              <small class="field-hint">
+                <i class="pi pi-building"></i>
+                Sélectionnez la salle dans le bâtiment ASCELC
+              </small>
+            </div>
+            <div class="form-field" *ngIf="isAutreSalle">
+              <label class="field-label">
+                Nom de la salle <span class="text-red-500">*</span>
+              </label>
+              <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon styleClass="pi pi-building" />
+                <input pInputText formControlName="nomLieu"
+                       placeholder="Ex : Salle de formation externe, Hôtel Laïco..."
+                       class="w-full p-inputtext-lg" />
+              </p-iconfield>
+              <small class="field-hint">
+                <i class="pi pi-info-circle"></i>
+                Précisez le nom exact de la salle
+              </small>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="currentLieuType === 'NATIONAL'">
+            <div class="grid-2-cols">
+              <div class="form-field">
+                <label class="field-label">
+                  Ville <span class="text-red-500">*</span>
+                </label>
+                <p-select [options]="cities"
+                          formControlName="ville"
+                          optionLabel="label" optionValue="value"
+                          placeholder="Choisir une ville"
+                          [filter]="true" filterPlaceholder="Rechercher..."
+                          styleClass="w-full" [style]="{'width': '100%'}" />
+              </div>
+              <div class="form-field">
+                <label class="field-label">Nom du lieu</label>
+                <p-iconfield iconPosition="left" class="w-full">
+                  <p-inputicon styleClass="pi pi-building" />
+                  <input pInputText formControlName="nomLieu"
+                         placeholder="Ex: Ministère de l'Économie, Hôtel Laïco..."
+                         class="w-full p-inputtext-lg" />
+                </p-iconfield>
+              </div>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="currentLieuType === 'INTERNATIONAL'">
+            <div class="grid-2-cols">
+              <div class="form-field">
+                <label class="field-label">
+                  Pays <span class="text-red-500">*</span>
+                </label>
+                <p-select [options]="countries"
+                          formControlName="pays"
+                          optionLabel="label" optionValue="value"
+                          placeholder="Sélectionnez le pays"
+                          [filter]="true" filterPlaceholder="Rechercher..."
+                          styleClass="w-full" [style]="{'width': '100%'}"
+                          (onChange)="onCountryChange($event)" />
+              </div>
+              <div class="form-field">
+                <label class="field-label">
+                  Ville <span class="text-red-500">*</span>
+                </label>
+                <p-select *ngIf="hasCities()"
+                          [options]="cities"
+                          formControlName="ville"
+                          optionLabel="label" optionValue="value"
+                          placeholder="Sélectionnez la ville"
+                          [filter]="true"
+                          styleClass="w-full" [style]="{'width': '100%'}" />
+                <input *ngIf="!hasCities()" pInputText
+                       formControlName="ville"
+                       placeholder="Saisissez la ville"
+                       class="w-full p-inputtext-lg" />
+              </div>
+            </div>
+            <div class="form-field">
+              <label class="field-label">Nom du lieu</label>
+              <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon styleClass="pi pi-building" />
+                <input pInputText formControlName="nomLieu"
+                       placeholder="Ex: Siège Union Africaine, Hôtel Ivoire..."
+                       class="w-full p-inputtext-lg" />
+              </p-iconfield>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="currentLieuType === 'VIRTUEL'">
+            <div class="form-field">
+              <label class="field-label">
+                Lien de réunion <span class="text-red-500">*</span>
+              </label>
+              <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon styleClass="pi pi-video" />
+                <input pInputText formControlName="meetingLink"
+                       placeholder="https://meet.google.com/..."
+                       class="w-full p-inputtext-lg" />
+              </p-iconfield>
+              <small class="field-hint">
+                <i class="pi pi-video"></i>
+                Google Meet, Zoom, Microsoft Teams, etc.
+              </small>
+            </div>
+          </ng-container>
+
+          <ng-container *ngIf="currentLieuType && currentLieuType !== 'VIRTUEL'">
+            <div class="form-field">
+              <label class="field-label">
+                Lien visio
+                <span style="color:#666; font-weight:normal;">
+                  (optionnel — réunion hybride)
+                </span>
+              </label>
+              <p-iconfield iconPosition="left" class="w-full">
+                <p-inputicon styleClass="pi pi-video" />
+                <input pInputText formControlName="meetingLink"
+                       placeholder="https://meet.google.com/..."
+                       class="w-full p-inputtext-lg" />
+              </p-iconfield>
+            </div>
+          </ng-container>
+
+<ng-container *ngIf="!currentLieuType">
+    <div class="field-hint" style="padding:16px;background:var(--cge-vert-clair);border-radius:8px;
+                                   border-left:4px solid var(--cge-vert-moyen);margin-top:8px;">
+        <i class="pi pi-info-circle" style="color:var(--cge-vert-moyen);margin-right:8px;"></i>
+        <span style="color:var(--cge-vert-moyen);font-weight:500;">
+            Sélectionnez un type de lieu ci-dessus pour afficher les champs correspondants.
+        </span>
+    </div>
+</ng-container>
+
         </form>
       </div>
 
       <div class="step-actions">
-        <p-button 
-          label="Précédent" 
-          icon="pi pi-arrow-left"
-          [outlined]="true"
-          severity="secondary"
-          size="large"
-          (onClick)="goToStep(0)">
-        </p-button>
-        <p-button 
-          label="Suivant" 
-          icon="pi pi-arrow-right" 
-          iconPos="right"
-          severity="success"
-          size="large"
-          (onClick)="goToStep(2)"
-          [disabled]="!canProceedFromStep(1)">
-        </p-button>
+        <p-button label="Précédent" icon="pi pi-arrow-left"
+                  [outlined]="true" severity="secondary" size="large"
+                  (onClick)="goToStep(0)" />
+        <p-button label="Suivant" icon="pi pi-arrow-right" iconPos="right"
+                  severity="success" size="large"
+                  (onClick)="goToStep(2)"
+                  [disabled]="!canProceedFromStep(1)" />
       </div>
-
     </div>
-
-    <!-- ========================================== -->
-    <!-- ÉTAPE 2 : HORAIRES -->
-    <!-- ========================================== -->
     <div *ngIf="currentStep === 2" class="step-content">
-      
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
         <p>Choisissez entre des horaires globaux ou personnalisés par jour.</p>
@@ -314,10 +404,8 @@
           <i class="pi pi-cog"></i>
           Mode d'organisation
         </h3>
-
         <div class="schedule-mode-cards">
-          <div class="mode-card" 
-               [class.active]="scheduleMode === 'global'"
+          <div class="mode-card" [class.active]="scheduleMode === 'global'"
                (click)="onScheduleModeChange('global')">
             <div class="mode-card-content">
               <i class="pi pi-clock mode-card-icon"></i>
@@ -327,16 +415,11 @@
               </div>
             </div>
             <div class="mode-card-radio">
-              <p-radiobutton 
-                name="scheduleMode" 
-                value="global" 
-                [(ngModel)]="scheduleMode">
-              </p-radiobutton>
+              <p-radiobutton name="scheduleMode" value="global"
+                             [(ngModel)]="scheduleMode" />
             </div>
           </div>
-
-          <div class="mode-card" 
-               [class.active]="scheduleMode === 'custom'"
+          <div class="mode-card" [class.active]="scheduleMode === 'custom'"
                (click)="onScheduleModeChange('custom')">
             <div class="mode-card-content">
               <i class="pi pi-calendar mode-card-icon"></i>
@@ -346,11 +429,8 @@
               </div>
             </div>
             <div class="mode-card-radio">
-              <p-radiobutton 
-                name="scheduleMode" 
-                value="custom" 
-                [(ngModel)]="scheduleMode">
-              </p-radiobutton>
+              <p-radiobutton name="scheduleMode" value="custom"
+                             [(ngModel)]="scheduleMode" />
             </div>
           </div>
         </div>
@@ -365,21 +445,25 @@
             <i class="pi pi-clock"></i>
             Horaires communs
           </h3>
-
           <div class="grid-2-cols">
             <div class="form-field">
-              <label class="field-label">Heure de début <span class="required">*</span></label>
+              <label class="field-label">
+                Heure de début <span class="text-red-500">*</span>
+              </label>
               <p-iconfield iconPosition="left" class="w-full">
                 <p-inputicon styleClass="pi pi-clock" />
-                <input pInputText type="time" formControlName="globalStartTime" class="w-full p-inputtext-lg" />
+                <input pInputText type="time" formControlName="globalStartTime"
+                       class="w-full p-inputtext-lg" />
               </p-iconfield>
             </div>
-
             <div class="form-field">
-              <label class="field-label">Heure de fin <span class="required">*</span></label>
+              <label class="field-label">
+                Heure de fin <span class="text-red-500">*</span>
+              </label>
               <p-iconfield iconPosition="left" class="w-full">
                 <p-inputicon styleClass="pi pi-clock" />
-                <input pInputText type="time" formControlName="globalEndTime" class="w-full p-inputtext-lg" />
+                <input pInputText type="time" formControlName="globalEndTime"
+                       class="w-full p-inputtext-lg" />
               </p-iconfield>
             </div>
           </div>
@@ -391,63 +475,46 @@
               <i class="pi pi-calendar"></i>
               Horaires par jour
             </h3>
-            <p-button 
-              label="Ajouter" 
-              icon="pi pi-plus" 
-              [outlined]="true"
-              severity="success"
-              (onClick)="addSchedule()">
-            </p-button>
+            <p-button label="Ajouter" icon="pi pi-plus" [outlined]="true"
+                      severity="success" (onClick)="addSchedule()" />
           </div>
 
           <div formArrayName="schedules" class="schedule-list">
-            <div *ngFor="let s of schedules.controls; let i = index" 
-                 [formGroupName]="i"
-                 class="schedule-card">
-              
+            <div *ngFor="let s of schedules.controls; let i = index"
+                 [formGroupName]="i" class="schedule-card">
               <div class="schedule-card-header">
                 <div class="schedule-badge">
                   <i class="pi pi-calendar"></i>
                   Jour {{ i + 1 }}
                 </div>
-                <p-button 
-                  icon="pi pi-trash" 
-                  severity="danger"
-                  [text]="true"
-                  [rounded]="true"
-                  (onClick)="removeSchedule(i)"
-                  *ngIf="schedules.length > 1">
-                </p-button>
+                <p-button icon="pi pi-trash" severity="danger"
+                          [text]="true" [rounded]="true"
+                          (onClick)="removeSchedule(i)"
+                          *ngIf="schedules.length > 1" />
               </div>
-
               <div class="grid-4-cols">
                 <div class="form-field">
                   <label class="field-label">Date *</label>
-                  <p-datepicker 
-                    formControlName="dateJour"
-                    dateFormat="dd/mm/yy"
-                    [showIcon]="true"
-                    styleClass="w-full"
-                    [style]="{'width': '100%'}">
-                  </p-datepicker>
+                  <p-datepicker formControlName="dateJour" dateFormat="dd/mm/yy"
+                                [showIcon]="true" styleClass="w-full"
+                                [style]="{'width': '100%'}" />
                 </div>
-
                 <div class="form-field">
                   <label class="field-label">Début *</label>
-                  <input pInputText type="time" formControlName="startTime" class="w-full p-inputtext-lg" />
+                  <input pInputText type="time" formControlName="startTime"
+                         class="w-full p-inputtext-lg" />
                 </div>
-
                 <div class="form-field">
                   <label class="field-label">Fin *</label>
-                  <input pInputText type="time" formControlName="endTime" class="w-full p-inputtext-lg" />
+                  <input pInputText type="time" formControlName="endTime"
+                         class="w-full p-inputtext-lg" />
                 </div>
-
                 <div class="form-field">
                   <label class="field-label">Adresse</label>
-                  <input pInputText formControlName="address" placeholder="Lieu précis" class="w-full p-inputtext-lg" />
+                  <input pInputText formControlName="address"
+                         placeholder="Lieu précis" class="w-full p-inputtext-lg" />
                 </div>
               </div>
-
             </div>
           </div>
         </div>
@@ -455,35 +522,20 @@
       </form>
 
       <div class="step-actions">
-        <p-button 
-          label="Précédent" 
-          icon="pi pi-arrow-left"
-          [outlined]="true"
-          severity="secondary"
-          size="large"
-          (onClick)="goToStep(1)">
-        </p-button>
-        <p-button 
-          label="Suivant" 
-          icon="pi pi-arrow-right" 
-          iconPos="right"
-          severity="success"
-          size="large"
-          (onClick)="goToStep(3)"
-          [disabled]="!canProceedFromStep(2)">
-        </p-button>
+        <p-button label="Précédent" icon="pi pi-arrow-left"
+                  [outlined]="true" severity="secondary" size="large"
+                  (onClick)="goToStep(1)" />
+        <p-button label="Suivant" icon="pi pi-arrow-right" iconPos="right"
+                  severity="success" size="large"
+                  (onClick)="goToStep(3)"
+                  [disabled]="!canProceedFromStep(2)" />
       </div>
-
     </div>
-
-    <!-- ========================================== -->
-    <!-- ✅ ÉTAPE 3 : PARTICIPANTS (CORRIGÉ) -->
-    <!-- ========================================== -->
     <div *ngIf="currentStep === 3" class="step-content">
-      
       <div class="info-banner">
         <i class="pi pi-shield"></i>
-        <p><strong>Données personnelles :</strong> Cette section est optionnelle. Les données sont protégées (RGPD).</p>
+        <p><strong>Données personnelles :</strong>
+           Cette section est optionnelle. Les données sont protégées (RGPD).</p>
       </div>
 
       <div class="form-group">
@@ -492,69 +544,53 @@
           Ajouter des participants
         </h3>
 
-        <!-- ✅ SÉLECTION D'UN PARTICIPANT EXISTANT -->
         <div class="participant-selection">
           <div class="selection-header">
             <i class="pi pi-search"></i>
             <span>Rechercher un participant existant</span>
           </div>
-          
-          <div class="grid-2-cols">
-            <div class="form-field">
-              <p-select
-                [(ngModel)]="selectedExistingParticipant"
-                [options]="availableParticipants"
-                optionLabel="displayName"
-                placeholder="Tapez le nom, prénom ou email..."
-                [filter]="true"
-                filterPlaceholder="Rechercher..."
-                styleClass="w-full"
-                [style]="{'width': '100%'}">
-                <ng-template pTemplate="empty">
-                  <div class="p-3 text-center">
-                    <i class="pi pi-info-circle mr-2"></i>
-                    Aucun participant trouvé
+
+          <div class="form-field">
+              <p-autoComplete
+                  [(ngModel)]="selectedExistingParticipant"
+                  [suggestions]="participantSuggestions"
+                  (completeMethod)="onParticipantSearch($event)"
+                  (onSelect)="addExistingParticipant()"
+                  optionLabel="label"
+                  placeholder="Tapez le nom, prénom ou email..."
+                  [minLength]="1"
+                  [delay]="300"
+                  [showEmptyMessage]="true"
+                  emptyMessage="Aucun participant trouvé"
+                  [forceSelection]="true"
+                  styleClass="w-full"
+                  [style]="{'width': '100%'}"
+                  appendTo="body"
+              >
+                <ng-template #item let-p>
+                  <div style="display:flex;flex-direction:column;padding:4px 2px;gap:2px">
+                    <span style="font-weight:600;font-size:14px;color:var(--cge-vert-moyen)">{{ p.firstName }} {{ p.lastName }}</span>
+                    <span style="font-size:12px;color:#666">{{ p.email }} · {{ p.structure }}</span>
                   </div>
                 </ng-template>
-              </p-select>
-            </div>
-
-            <div class="form-field" style="display: flex; align-items: flex-end;">
-              <p-button
-                label="Ajouter"
-                icon="pi pi-plus"
-                severity="success"
-                [disabled]="!selectedExistingParticipant"
-                (onClick)="addExistingParticipant()"
-                styleClass="w-full">
-              </p-button>
-            </div>
+              </p-autoComplete>
           </div>
 
-          <div class="or-divider">
-            <span>OU</span>
-          </div>
+          <div class="or-divider"><span>OU</span></div>
 
-          <!-- CRÉER UN NOUVEAU PARTICIPANT -->
           <div class="selection-header">
             <i class="pi pi-user-plus"></i>
             <span>Créer un nouveau participant</span>
           </div>
-          
-          <p-button
-            label="Ajouter un nouveau participant"
-            icon="pi pi-user-plus"
-            [outlined]="true"
-            severity="secondary"
-            (onClick)="addNewParticipant()"
-            styleClass="w-full">
-          </p-button>
+          <p-button label="Ajouter un nouveau participant"
+                    icon="pi pi-user-plus" [outlined]="true"
+                    severity="secondary" (onClick)="addNewParticipant()"
+                    styleClass="w-full" />
         </div>
       </div>
 
       <p-divider></p-divider>
 
-      <!-- LISTE DES PARTICIPANTS AJOUTÉS (MIXTE) -->
       <div class="form-group">
         <h3 class="group-title">
           <i class="pi pi-check-circle"></i>
@@ -563,145 +599,94 @@
 
         <form [formGroup]="eventForm">
           <div formArrayName="participants" class="participant-list">
-            
+
             <div *ngFor="let p of participants.controls; let i = index"
-                 [formGroupName]="i"
-                 class="participant-card"
+                 [formGroupName]="i" class="participant-card"
                  [class.existing-participant]="isExistingParticipant(i)"
                  [class.new-participant]="!isExistingParticipant(i)">
-              
+
               <div class="participant-card-header">
-                <div class="participant-badge" [class.badge-existing]="isExistingParticipant(i)">
-                  <i [class]="isExistingParticipant(i) ? 'pi pi-database' : 'pi pi-user-plus'"></i>
-                  {{ isExistingParticipant(i) ? 'Existant' : 'Nouveau' }} #{{ i + 1 }}
+                <div class="participant-badge"
+                     [class.badge-existing]="isExistingParticipant(i)">
+                  <i [class]="isExistingParticipant(i)
+                      ? 'pi pi-database' : 'pi pi-user-plus'"></i>
+                  {{ isExistingParticipant(i) ? 'Existant' : 'Nouveau' }}
+                  #{{ i + 1 }}
                 </div>
-                <p-button
-                  icon="pi pi-trash"
-                  severity="danger"
-                  [text]="true"
-                  [rounded]="true"
-                  (onClick)="removeParticipant(i)">
-                </p-button>
+                <p-button icon="pi pi-trash" severity="danger"
+                          [text]="true" [rounded]="true"
+                          (onClick)="removeParticipant(i)" />
               </div>
 
               <div class="grid-2-cols">
                 <div class="form-field">
                   <label class="field-label">
-                    Prénom <span class="required">*</span>
+                    Prénom <span class="text-red-500">*</span>
                   </label>
-                  <input 
-                    pInputText 
-                    formControlName="firstName" 
-                    placeholder="Prénom" 
-                    class="w-full p-inputtext-lg" 
-                    [readonly]="isExistingParticipant(i)"
-                    [class.ng-invalid]="p.get('firstName')?.invalid && p.get('firstName')?.touched"
-                    [class.ng-touched]="p.get('firstName')?.touched" />
-                  <small class="field-error" *ngIf="p.get('firstName')?.invalid && p.get('firstName')?.touched && !isExistingParticipant(i)">
-                    Le prénom est obligatoire
-                  </small>
+                  <input pInputText formControlName="firstName"
+                         placeholder="Prénom" class="w-full p-inputtext-lg"
+                         [readonly]="isExistingParticipant(i)" />
                 </div>
-
                 <div class="form-field">
                   <label class="field-label">
-                    Nom <span class="required">*</span>
+                    Nom <span class="text-red-500">*</span>
                   </label>
-                  <input 
-                    pInputText 
-                    formControlName="lastName" 
-                    placeholder="Nom" 
-                    class="w-full p-inputtext-lg"
-                    [readonly]="isExistingParticipant(i)"
-                    [class.ng-invalid]="p.get('lastName')?.invalid && p.get('lastName')?.touched"
-                    [class.ng-touched]="p.get('lastName')?.touched" />
-                  <small class="field-error" *ngIf="p.get('lastName')?.invalid && p.get('lastName')?.touched && !isExistingParticipant(i)">
-                    Le nom est obligatoire
-                  </small>
+                  <input pInputText formControlName="lastName"
+                         placeholder="Nom" class="w-full p-inputtext-lg"
+                         [readonly]="isExistingParticipant(i)" />
                 </div>
-
                 <div class="form-field">
                   <label class="field-label">
-                    Email <span class="required">*</span>
+                    Email <span class="text-red-500">*</span>
                   </label>
                   <p-iconfield iconPosition="left" class="w-full">
                     <p-inputicon styleClass="pi pi-envelope" />
-                    <input 
-                      pInputText 
-                      type="email" 
-                      formControlName="email" 
-                      placeholder="email@example.com" 
-                      class="w-full p-inputtext-lg"
-                      [readonly]="isExistingParticipant(i)"
-                      [class.ng-invalid]="p.get('email')?.invalid && p.get('email')?.touched"
-                      [class.ng-touched]="p.get('email')?.touched" />
+                    <input pInputText type="email" formControlName="email"
+                           placeholder="email@example.com"
+                           class="w-full p-inputtext-lg"
+                           [readonly]="isExistingParticipant(i)" />
                   </p-iconfield>
-                  <small class="field-error" *ngIf="p.get('email')?.invalid && p.get('email')?.touched && !isExistingParticipant(i)">
-                    <span *ngIf="p.get('email')?.hasError('required')">L'email est obligatoire</span>
-                    <span *ngIf="p.get('email')?.hasError('email')">Email invalide</span>
-                  </small>
                 </div>
-
                 <div class="form-field">
                   <label class="field-label">Téléphone</label>
                   <p-iconfield iconPosition="left" class="w-full">
                     <p-inputicon styleClass="pi pi-phone" />
-                    <input 
-                      pInputText 
-                      formControlName="phoneNumber" 
-                      placeholder="+226 XX XX XX XX" 
-                      class="w-full p-inputtext-lg"
-                      [readonly]="isExistingParticipant(i)" />
+                    <input pInputText formControlName="phoneNumber"
+                           placeholder="+226 XX XX XX XX"
+                           class="w-full p-inputtext-lg"
+                           [readonly]="isExistingParticipant(i)" />
                   </p-iconfield>
                 </div>
-
                 <div class="form-field">
                   <label class="field-label">Structure</label>
                   <p-iconfield iconPosition="left" class="w-full">
                     <p-inputicon styleClass="pi pi-building" />
-                    <input 
-                      pInputText 
-                      formControlName="structure" 
-                      placeholder="Structure" 
-                      class="w-full p-inputtext-lg"
-                      [readonly]="isExistingParticipant(i)" />
+                    <input pInputText formControlName="structure"
+                           placeholder="Structure" class="w-full p-inputtext-lg"
+                           [readonly]="isExistingParticipant(i)" />
                   </p-iconfield>
                 </div>
-
                 <div class="form-field">
                   <label class="field-label">Fonction</label>
                   <p-iconfield iconPosition="left" class="w-full">
                     <p-inputicon styleClass="pi pi-briefcase" />
-                    <input 
-                      pInputText 
-                      formControlName="jobTitle" 
-                      placeholder="Fonction" 
-                      class="w-full p-inputtext-lg"
-                      [readonly]="isExistingParticipant(i)" />
+                    <input pInputText formControlName="jobTitle"
+                           placeholder="Fonction" class="w-full p-inputtext-lg"
+                           [readonly]="isExistingParticipant(i)" />
                   </p-iconfield>
                 </div>
-
                 <div class="form-field" style="grid-column: span 2;">
                   <label class="field-label">
-                    Type <span class="required">*</span>
+                    Type <span class="text-red-500">*</span>
                   </label>
-                  <p-select
-                    formControlName="participantType"
-                    [options]="participantTypeOptions"
-                    placeholder="Sélectionnez le type"
-                    optionLabel="label"
-                    optionValue="value"
-                    styleClass="w-full"
-                    [style]="{'width': '100%'}"
-                    [disabled]="isExistingParticipant(i)"
-                    [class.ng-invalid]="p.get('participantType')?.invalid && p.get('participantType')?.touched"
-                    [class.ng-touched]="p.get('participantType')?.touched">
-                  </p-select>
-                  <small class="field-error" *ngIf="p.get('participantType')?.invalid && p.get('participantType')?.touched && !isExistingParticipant(i)">
-                    Le type est obligatoire
-                  </small>
+                  <p-select formControlName="participantType"
+                            [options]="participantTypeOptions"
+                            placeholder="Sélectionnez le type"
+                            optionLabel="label" optionValue="value"
+                            styleClass="w-full" [style]="{'width': '100%'}"
+                            [disabled]="isExistingParticipant(i)" />
                 </div>
               </div>
-
             </div>
 
             <div *ngIf="participants.length === 0" class="empty-state">
@@ -711,7 +696,6 @@
               <ul class="empty-state-list">
                 <li>✓ Sélectionner des participants existants</li>
                 <li>✓ Créer de nouveaux participants</li>
-                <li>✓ Mélanger les deux méthodes</li>
                 <li>✓ Ou passer cette étape (optionnelle)</li>
               </ul>
             </div>
@@ -720,33 +704,18 @@
         </form>
       </div>
 
-      <!-- ✅ ACTIONS CORRIGÉES -->
       <div class="step-actions">
-        <p-button
-          label="Précédent"
-          icon="pi pi-arrow-left"
-          [outlined]="true"
-          severity="secondary"
-          size="large"
-          (onClick)="goToStep(2)">
-        </p-button>
-        <p-button
-          label="Suivant"
-          icon="pi pi-arrow-right"
-          iconPos="right"
-          severity="success"
-          size="large"
-          (onClick)="onNextFromParticipants()">
-        </p-button>
+        <p-button label="Précédent" icon="pi pi-arrow-left"
+                  [outlined]="true" severity="secondary" size="large"
+                  (onClick)="goToStep(2)" />
+        <p-button label="Suivant" icon="pi pi-arrow-right" iconPos="right"
+                  severity="success" size="large"
+                  (onClick)="onNextFromParticipants()" />
       </div>
-
     </div>
 
-    <!-- ========================================== -->
-    <!-- ÉTAPE 4 : DOCUMENTS -->
-    <!-- ========================================== -->
+
     <div *ngIf="currentStep === 4" class="step-content">
-      
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
         <p>Ajoutez des fichiers si nécessaire (Max 10 MB par fichier).</p>
@@ -758,72 +727,46 @@
           Documents ({{ uploadedFiles.length }})
         </h3>
 
-        <div class="upload-area" 
+        <div class="upload-area"
              (click)="fileInput.click()"
              (dragover)="onDragOver($event)"
              (drop)="onDrop($event)">
-          <input #fileInput type="file" multiple (change)="onFileSelect($event)" style="display: none" />
-          
+          <input #fileInput type="file" multiple
+                 (change)="onFileSelect($event)" style="display: none" />
           <i class="pi pi-cloud-upload upload-icon"></i>
           <h3 class="upload-title">Glissez vos fichiers ici</h3>
           <p class="upload-subtitle">ou</p>
-          <p-button 
-            label="Choisir" 
-            icon="pi pi-upload" 
-            [outlined]="true"
-            severity="success">
-          </p-button>
+          <p-button label="Choisir" icon="pi pi-upload"
+                    [outlined]="true" severity="success" />
         </div>
 
         <div class="files-grid" *ngIf="uploadedFiles.length > 0">
           <div *ngFor="let f of uploadedFiles; let i = index" class="file-card">
             <i class="file-icon" [ngClass]="getFileIcon(f.file)"></i>
-            
             <div class="file-info">
               <div class="file-name">{{ f.file.name }}</div>
               <div class="file-size">{{ formatFileSize(f.file.size) }}</div>
             </div>
-
-            <img *ngIf="f.preview" [src]="f.preview" class="file-preview" [alt]="f.file.name" />
-
-            <p-button 
-              icon="pi pi-times" 
-              [rounded]="true"
-              [text]="true"
-              severity="danger"
-              (onClick)="removeFile(i)">
-            </p-button>
+            <img *ngIf="f.preview" [src]="f.preview"
+                 class="file-preview" [alt]="f.file.name" />
+            <p-button icon="pi pi-times" [rounded]="true" [text]="true"
+                      severity="danger" (onClick)="removeFile(i)" />
           </div>
         </div>
-
       </div>
 
       <div class="step-actions">
-        <p-button 
-          label="Précédent" 
-          icon="pi pi-arrow-left"
-          [outlined]="true"
-          severity="secondary"
-          size="large"
-          (onClick)="goToStep(3)">
-        </p-button>
-        <p-button 
-          label="Suivant" 
-          icon="pi pi-arrow-right" 
-          iconPos="right"
-          severity="success"
-          size="large"
-          (onClick)="goToStep(5)">
-        </p-button>
+        <p-button label="Précédent" icon="pi pi-arrow-left"
+                  [outlined]="true" severity="secondary" size="large"
+                  (onClick)="goToStep(3)" />
+        <p-button label="Suivant" icon="pi pi-arrow-right" iconPos="right"
+                  severity="success" size="large"
+                  (onClick)="goToStep(5)" />
       </div>
-
     </div>
 
-    <!-- ========================================== -->
-    <!-- ÉTAPE 5 : RÉCAPITULATIF -->
-    <!-- ========================================== -->
+
     <div *ngIf="currentStep === 5" class="step-content">
-  
       <div class="phase-intro">
         <i class="pi pi-info-circle"></i>
         <p>Vérifiez attentivement toutes les informations avant de créer l'événement.</p>
@@ -837,21 +780,25 @@
         </div>
         <div class="summary-item">
           <span class="summary-label">Titre</span>
-          <span class="summary-value">{{ eventForm.get('title')?.value || 'Non défini' }}</span>
+          <span class="summary-value">
+            {{ eventForm.get('title')?.value || 'Non défini' }}
+          </span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Description</span>
-          <span class="summary-value" [class.empty]="!eventForm.get('description')?.value">
+          <span class="summary-value"
+                [class.empty]="!eventForm.get('description')?.value">
             {{ eventForm.get('description')?.value || 'Aucune description' }}
           </span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Type d'événement</span>
-          <span class="summary-value">{{ getTypeLabel(eventForm.get('type')?.value) }}</span>
-        </div>
-        <div class="summary-item">
-          <span class="summary-label">Statut</span>
-          <span class="summary-value">Planifié</span>
+          <span class="summary-value">
+            {{ getTypeLabel(eventForm.get('type')?.value) }}
+            <span *ngIf="isAutreType && eventForm.get('typeAutreLabel')?.value">
+              — {{ eventForm.get('typeAutreLabel')?.value }}
+            </span>
+          </span>
         </div>
       </div>
 
@@ -863,36 +810,55 @@
         </div>
         <div class="summary-item">
           <span class="summary-label">Date de début</span>
-          <span class="summary-value">{{ formatDateDisplay(eventForm.get('startDate')?.value) }}</span>
+          <span class="summary-value">
+            {{ formatDateDisplay(eventForm.get('startDate')?.value) }}
+          </span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Date de fin</span>
-          <span class="summary-value">{{ formatDateDisplay(eventForm.get('endDate')?.value) }}</span>
+          <span class="summary-value">
+            {{ formatDateDisplay(eventForm.get('endDate')?.value) }}
+          </span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Durée totale</span>
-          <span class="summary-value">{{ calculateDuration(eventForm.get('startDate')?.value, eventForm.get('endDate')?.value) }}</span>
+          <span class="summary-value">
+            {{ calculateDuration(
+               eventForm.get('startDate')?.value,
+               eventForm.get('endDate')?.value) }}
+          </span>
         </div>
       </div>
 
-      <!-- Localisation -->
       <div class="summary-section">
         <div class="summary-title">
           <i class="pi pi-map-marker"></i>
-          Localisation
+          Lieu
         </div>
         <div class="summary-item">
-          <span class="summary-label">Pays</span>
-          <span class="summary-value">{{ eventForm.get('pays')?.value || 'Non défini' }}</span>
+          <span class="summary-label">Type de lieu</span>
+          <span class="summary-value"
+                [class.empty]="!eventForm.get('lieuType')?.value">
+            {{
+              eventForm.get('lieuType')?.value === 'INTERNE'       ? '🏛️ Interne — ASCELC' :
+              eventForm.get('lieuType')?.value === 'NATIONAL'      ? '🇧🇫 National — Burkina Faso' :
+              eventForm.get('lieuType')?.value === 'INTERNATIONAL' ? '✈️ International' :
+              eventForm.get('lieuType')?.value === 'VIRTUEL'       ? '💻 Virtuel — En ligne' :
+              'Non spécifié'
+            }}
+          </span>
         </div>
         <div class="summary-item">
-          <span class="summary-label">Ville</span>
-          <span class="summary-value">{{ eventForm.get('ville')?.value || 'Non définie' }}</span>
+          <span class="summary-label">Détail</span>
+          <span class="summary-value" [class.empty]="!getLieuResume()">
+            {{ getLieuResume() }}
+          </span>
         </div>
-        <div class="summary-item">
-          <span class="summary-label">Lien visioconférence</span>
-          <span class="summary-value" [class.empty]="!eventForm.get('meetingLink')?.value">
-            {{ eventForm.get('meetingLink')?.value || 'Aucun lien' }}
+        <div class="summary-item"
+             *ngIf="eventForm.get('meetingLink')?.value">
+          <span class="summary-label">Lien visio</span>
+          <span class="summary-value">
+            {{ eventForm.get('meetingLink')?.value }}
           </span>
         </div>
       </div>
@@ -902,76 +868,83 @@
         <div class="summary-title">
           <i class="pi pi-clock"></i>
           Horaires
-          <span class="summary-count-badge" *ngIf="scheduleMode === 'custom'">
+          <span class="summary-count-badge"
+                *ngIf="scheduleMode === 'custom'">
             {{ schedules.length }}
           </span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Mode</span>
-          <span class="summary-value">{{ scheduleMode === 'global' ? 'Horaires globaux' : 'Horaires personnalisés' }}</span>
+          <span class="summary-value">
+            {{ scheduleMode === 'global'
+               ? 'Horaires globaux'
+               : 'Horaires personnalisés' }}
+          </span>
         </div>
-
         <div *ngIf="scheduleMode === 'global'">
           <div class="summary-item">
             <span class="summary-label">Horaires</span>
             <span class="summary-value">
-              {{ eventForm.get('globalStartTime')?.value }} - {{ eventForm.get('globalEndTime')?.value }}
+              {{ eventForm.get('globalStartTime')?.value }}
+              - {{ eventForm.get('globalEndTime')?.value }}
             </span>
           </div>
         </div>
-
         <div *ngIf="scheduleMode === 'custom'" class="summary-subsection">
           <div class="summary-subsection-title">Détail par jour :</div>
           <ul class="summary-list">
-            <li *ngFor="let schedule of schedules.controls; let i = index" class="summary-list-item">
-              <strong>Jour {{ i + 1 }}</strong> : 
-              {{ formatDateDisplay(schedule.get('dateJour')?.value) }} | 
-              {{ schedule.get('startTime')?.value }} - {{ schedule.get('endTime')?.value }}
-              <span *ngIf="schedule.get('address')?.value"> | 📍 {{ schedule.get('address')?.value }}</span>
+            <li *ngFor="let schedule of schedules.controls; let i = index"
+                class="summary-list-item">
+              <strong>Jour {{ i + 1 }}</strong> :
+              {{ formatDateDisplay(schedule.get('dateJour')?.value) }} |
+              {{ schedule.get('startTime')?.value }}
+              - {{ schedule.get('endTime')?.value }}
+              <span *ngIf="schedule.get('address')?.value">
+                | 📍 {{ schedule.get('address')?.value }}
+              </span>
             </li>
           </ul>
         </div>
       </div>
 
-      <!-- PARTICIPANTS -->
+      <!-- Participants -->
       <div class="summary-section">
         <div class="summary-title">
           <i class="pi pi-users"></i>
           Participants
           <span class="summary-count-badge">{{ participants.length }}</span>
         </div>
-        
         <div *ngIf="participants.length === 0" class="summary-item">
           <span class="summary-label">Statut</span>
           <span class="summary-value empty">Aucun participant ajouté</span>
         </div>
-
         <div *ngIf="participants.length > 0">
           <div class="summary-item">
-            <span class="summary-label">Nombre de participants</span>
+            <span class="summary-label">Nombre</span>
             <span class="summary-value">
-              <strong style="color: var(--primary-color); font-size: 16px;">{{ participants.length }}</strong>
+              <strong style="color:var(--primary-color); font-size:16px;">
+                {{ participants.length }}
+              </strong>
               participant{{ participants.length > 1 ? 's' : '' }}
             </span>
           </div>
-          
           <div class="summary-subsection">
-            <div class="summary-subsection-title">Liste des participants :</div>
+            <div class="summary-subsection-title">Liste :</div>
             <ul class="summary-list">
-              <li *ngFor="let participant of participants.controls; let i = index" class="summary-list-item">
-                <strong>{{ participant.get('firstName')?.value }} {{ participant.get('lastName')?.value }}</strong>
-                <span class="participant-type-badge" [class.badge-existing]="isExistingParticipant(i)">
+              <li *ngFor="let participant of participants.controls; let i = index"
+                  class="summary-list-item">
+                <strong>
+                  {{ participant.get('firstName')?.value }}
+                  {{ participant.get('lastName')?.value }}
+                </strong>
+                <span class="participant-type-badge"
+                      [class.badge-existing]="isExistingParticipant(i)">
                   {{ isExistingParticipant(i) ? '📂 Existant' : '✨ Nouveau' }}
                 </span>
                 <br>
                 📧 {{ participant.get('email')?.value }}
-                <span *ngIf="participant.get('phoneNumber')?.value"> | 📞 {{ participant.get('phoneNumber')?.value }}</span>
-                <br>
-                <span *ngIf="participant.get('structure')?.value">🏢 {{ participant.get('structure')?.value }}</span>
-                <span *ngIf="participant.get('jobTitle')?.value"> - {{ participant.get('jobTitle')?.value }}</span>
-                <br>
-                <span style="color: var(--primary-color); font-weight: 600;">
-                  Type : {{ getParticipantTypeLabel(participant.get('participantType')?.value) }}
+                <span *ngIf="participant.get('structure')?.value">
+                  | 🏢 {{ participant.get('structure')?.value }}
                 </span>
               </li>
             </ul>
@@ -986,56 +959,33 @@
           Documents
           <span class="summary-count-badge">{{ uploadedFiles.length }}</span>
         </div>
-        
         <div *ngIf="uploadedFiles.length === 0" class="summary-item">
           <span class="summary-label">Statut</span>
           <span class="summary-value empty">Aucun document ajouté</span>
         </div>
-
         <div *ngIf="uploadedFiles.length > 0">
-          <div class="summary-item">
-            <span class="summary-label">Nombre de fichiers</span>
-            <span class="summary-value">
-              <strong style="color: var(--primary-color); font-size: 16px;">{{ uploadedFiles.length }}</strong>
-              fichier{{ uploadedFiles.length > 1 ? 's' : '' }} joint{{ uploadedFiles.length > 1 ? 's' : '' }}
-            </span>
-          </div>
-          
-          <div class="summary-subsection">
-            <div class="summary-subsection-title">Fichiers joints :</div>
-            <ul class="summary-list">
-              <li *ngFor="let file of uploadedFiles; let i = index" class="summary-list-item">
-                <i [ngClass]="getFileIcon(file.file)" style="color: var(--primary-color);"></i>
-                <strong>{{ file.file.name }}</strong>
-                <span style="color: #999;"> ({{ formatFileSize(file.file.size) }})</span>
-              </li>
-            </ul>
-          </div>
+          <ul class="summary-list">
+            <li *ngFor="let file of uploadedFiles" class="summary-list-item">
+              <i [ngClass]="getFileIcon(file.file)"
+                 style="color:var(--primary-color);"></i>
+              <strong>{{ file.file.name }}</strong>
+              <span style="color:#999;">
+                ({{ formatFileSize(file.file.size) }})
+              </span>
+            </li>
+          </ul>
         </div>
       </div>
 
-      <!-- Actions -->
       <div class="step-actions">
-        <p-button 
-          label="Précédent" 
-          icon="pi pi-arrow-left"
-          [outlined]="true"
-          severity="secondary"
-          size="large"
-          (onClick)="goToStep(4)">
-        </p-button>
-        <p-button 
-          label="Créer l'événement" 
-          icon="pi pi-check" 
-          iconPos="right"
-          severity="success"
-          [loading]="loading"
-          [disabled]="loading"
-          size="large"
-          (onClick)="onSubmit()">
-        </p-button>
+        <p-button label="Précédent" icon="pi pi-arrow-left"
+                  [outlined]="true" severity="secondary" size="large"
+                  (onClick)="goToStep(4)" />
+        <p-button label="Créer l'événement" icon="pi pi-check"
+                  iconPos="right" severity="success"
+                  [loading]="loading" [disabled]="loading"
+                  size="large" (onClick)="onSubmit()" />
       </div>
-
     </div>
 
   </div>
@@ -1044,28 +994,17 @@
   <div *ngIf="loading" class="professional-loader-overlay">
     <div class="professional-loader-content">
       <div class="loader-animation">
-        <p-progressSpinner 
-          styleClass="custom-spinner" 
-          strokeWidth="3"
-          animationDuration="1s">
+        <p-progressSpinner styleClass="custom-spinner"
+                           strokeWidth="3" animationDuration="1s">
         </p-progressSpinner>
       </div>
       <h2 class="loader-title">Création de l'événement en cours...</h2>
-      <div class="loader-steps">
-        <div class="loader-step">
-          <i class="pi pi-check-circle"></i>
-          <span>Enregistrement des données</span>
-        </div>
-        <div class="loader-step">
-          <i class="pi pi-spin pi-spinner"></i>
-          <span>Envoi des emails aux participants</span>
-        </div>
-        <div class="loader-step pending">
-          <i class="pi pi-circle"></i>
-          <span>Génération des invitations</span>
-        </div>
-      </div>
-      <p class="loader-wait">Veuillez patienter, cela peut prendre quelques instants...</p>
+      <p class="loader-wait">
+        Veuillez patienter, cela peut prendre quelques instants...
+      </p>
+      <p class="loader-wait" *ngIf="hasParticipants()">
+        Les invitations seront envoyées aux participants dans les prochaines minutes.
+      </p>
     </div>
   </div>
 

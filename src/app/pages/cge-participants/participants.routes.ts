@@ -7,6 +7,7 @@ export const PARTICIPANTS_ROUTES: Routes = [
     },
     {
         path: ':id',
-        loadComponent: () => import('./participant-detail').then(m => m.ParticipantDetailComponent)
+        loadComponent: () => import('./participant-detail').then(m => m.ParticipantDetailComponent),
+        data: { breadcrumb: 'Détail' }
     }
 ];

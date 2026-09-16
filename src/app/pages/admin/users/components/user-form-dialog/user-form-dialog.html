@@ -1,0 +1,127 @@
+<p-dialog [(visible)]="visible"
+          [modal]="true"
+          [header]="editMode ? 'Modifier l\'utilisateur' : 'Nouvel utilisateur'"
+          [style]="{ width: '720px' }"
+          [breakpoints]="{ '960px': '90vw' }"
+          [draggable]="false"
+          (onHide)="close()">
+
+    <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+
+        <div class="uf-section">
+            <p class="uf-eyebrow">Identité</p>
+            <div class="form-row-2">
+                <div class="form-field">
+                    <label class="field-label" for="uf-lastname">Nom <span class="text-red-500">*</span></label>
+                    <input pInputText id="uf-lastname" formControlName="lastName" class="w-full"
+                           [ngClass]="{'ng-invalid ng-dirty': form.get('lastName')?.invalid && form.get('lastName')?.touched}" />
+                    @if (form.get('lastName')?.invalid && form.get('lastName')?.touched) {
+                        <small class="field-error">Nom requis</small>
+                    }
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="uf-firstname">Prénom <span class="text-red-500">*</span></label>
+                    <input pInputText id="uf-firstname" formControlName="firstName" class="w-full" />
+                </div>
+            </div>
+
+            <div class="form-row-2">
+                <div class="form-field">
+                    <label class="field-label" for="uf-email">Email <span class="text-red-500">*</span></label>
+                    <input pInputText id="uf-email" type="email" formControlName="email" class="w-full" />
+                    @if (form.get('email')?.errors?.['email'] && form.get('email')?.touched) {
+                        <small class="field-error">Format email invalide</small>
+                    }
+                </div>
+                <div class="form-field">
+                    <label class="field-label" for="uf-role">Rôle <span class="text-red-500">*</span></label>
+                    <p-select id="uf-role" [options]="roleOptions" formControlName="role"
+                              placeholder="Sélectionner un rôle" class="w-full" appendTo="body">
+                    </p-select>
+                </div>
+            </div>
+        </div>
+
+        @if (!editMode) {
+            <div class="uf-section">
+                <p class="uf-eyebrow">Accès</p>
+                <div class="form-field">
+                    <label class="field-label" for="uf-username">Nom d'utilisateur <span class="text-red-500">*</span></label>
+                    <input pInputText id="uf-username" formControlName="username" class="w-full" />
+                </div>
+
+                <div class="form-row-2">
+                    <div class="form-field">
+                        <label class="field-label" for="uf-password">Mot de passe <span class="text-red-500">*</span></label>
+                        <div class="password-row">
+                            <input pInputText id="uf-password" [type]="showPassword ? 'text' : 'password'"
+                                   formControlName="password" class="w-full" autocomplete="new-password" />
+                            <p-button [icon]="showPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" [text]="true" size="small"
+                                      [pTooltip]="showPassword ? 'Masquer' : 'Afficher'"
+                                      (onClick)="showPassword = !showPassword"></p-button>
+                            <p-button label="Défaut" [text]="true" size="small"
+                                      pTooltip="Remplir avec le mot de passe par défaut (Asce@2026)"
+                                      (onClick)="useDefaultPassword()"></p-button>
+                        </div>
+                        @if (form.get('password')?.errors?.['pattern'] && form.get('password')?.touched) {
+                            <small class="field-error">Le mot de passe ne respecte pas la règle ci-dessous</small>
+                        }
+                    </div>
+
+                    <div class="form-field">
+                        <label class="field-label" for="uf-password-confirm">Confirmer le mot de passe <span class="text-red-500">*</span></label>
+                        <div class="password-row">
+                            <input pInputText id="uf-password-confirm" [type]="showConfirmPassword ? 'text' : 'password'"
+                                   formControlName="confirmPassword" class="w-full" autocomplete="new-password" />
+                            <p-button [icon]="showConfirmPassword ? 'pi pi-eye-slash' : 'pi pi-eye'" [text]="true" size="small"
+                                      [pTooltip]="showConfirmPassword ? 'Masquer' : 'Afficher'"
+                                      (onClick)="showConfirmPassword = !showConfirmPassword"></p-button>
+                        </div>
+                        @if (form.errors?.['passwordMismatch'] && form.get('confirmPassword')?.touched) {
+                            <small class="field-error">Les deux mots de passe ne correspondent pas</small>
+                        }
+                    </div>
+                </div>
+                <small class="field-hint"><i class="pi pi-info-circle" aria-hidden="true"></i> Minimum 8 caractères, avec au moins une majuscule, un chiffre et un caractère spécial (ex: @ # % !) — envoyé par email à l'utilisateur, à changer à la première connexion</small>
+            </div>
+        }
+
+        <div class="uf-section">
+            <p class="uf-eyebrow">Sécurité &amp; statut</p>
+
+            <div class="form-field">
+                <label class="field-label">Statut du compte</label>
+                <div class="uf-segmented" role="radiogroup" aria-label="Statut du compte">
+                    <button type="button" class="uf-segment" [class.active]="form.get('enabled')?.value === true"
+                            role="radio" [attr.aria-checked]="form.get('enabled')?.value === true"
+                            (click)="form.get('enabled')?.setValue(true)">
+                        <i class="pi pi-check-circle" aria-hidden="true"></i> Actif
+                    </button>
+                    <button type="button" class="uf-segment uf-segment--danger" [class.active]="form.get('enabled')?.value === false"
+                            role="radio" [attr.aria-checked]="form.get('enabled')?.value === false"
+                            (click)="form.get('enabled')?.setValue(false)">
+                        <i class="pi pi-times-circle" aria-hidden="true"></i> Inactif
+                    </button>
+                </div>
+            </div>
+
+            <div class="uf-toggle-card" [class.active]="form.get('requireMfa')?.value === true">
+                <div class="uf-toggle-icon"><i class="pi pi-shield" aria-hidden="true"></i></div>
+                <div class="uf-toggle-text">
+                    <div class="uf-toggle-title">Double authentification (TOTP) à la prochaine connexion</div>
+                    <div class="uf-toggle-desc">L'utilisateur devra installer une application d'authentification (Google Authenticator, etc.) avant de pouvoir se connecter.</div>
+                </div>
+                <p-checkbox formControlName="requireMfa" [binary]="true" inputId="uf-mfa"></p-checkbox>
+            </div>
+        </div>
+    </form>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Annuler" [text]="true" severity="secondary" (onClick)="close()"></p-button>
+        <p-button [label]="editMode ? 'Enregistrer' : 'Créer'"
+                  severity="success"
+                  [disabled]="form.invalid"
+                  (onClick)="submit()">
+        </p-button>
+    </ng-template>
+</p-dialog>

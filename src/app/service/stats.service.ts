@@ -4,6 +4,8 @@ import { Observable } from 'rxjs';
 import { environments } from '../../environments/environments';
 import { DashboardStats, MonthlyReport } from '../models';
 
+export type EventsByStatusAndMonth = Record<string, Record<string, number>>;
+
 @Injectable({
     providedIn: 'root'
 })
@@ -19,7 +21,8 @@ export class StatsService {
     getMonthlyReport(year: number, month: number): Observable<MonthlyReport> {
         return this.http.get<MonthlyReport>(`${this.apiUrl}/monthly/${year}/${month}`);
     }
-    getEventsByStatusAndMonth(year: number): Observable<any> {
-    return this.http.get(`${this.apiUrl}/events-by-status-and-month/${year}`);
-}
+
+    getEventsByStatusAndMonth(year: number): Observable<EventsByStatusAndMonth> {
+        return this.http.get<EventsByStatusAndMonth>(`${this.apiUrl}/events-by-status-and-month/${year}`);
+    }
 }

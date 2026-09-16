@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { HasUnsavedChanges } from '../../guards/unsaved-changes.guard';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
@@ -6,7 +7,7 @@ import {
     Validators, ReactiveFormsModule, FormsModule
 } from '@angular/forms';
 
-import { Country, City } from 'country-state-city';
+import { getAllCountries, getCitiesOfCountry } from '../../data/geo-data';
 
 import { ButtonModule }          from 'primeng/button';
 import { InputTextModule }       from 'primeng/inputtext';
@@ -17,21 +18,27 @@ import { RadioButtonModule }     from 'primeng/radiobutton';
 import { CardModule }            from 'primeng/card';
 import { DividerModule }         from 'primeng/divider';
 import { ToastModule }           from 'primeng/toast';
-import { MessageService }        from 'primeng/api';
+import { ConfirmDialogModule }   from 'primeng/confirmdialog';
+import { MessageService, ConfirmationService } from 'primeng/api';
 import { IconFieldModule }       from 'primeng/iconfield';
 import { InputIconModule }       from 'primeng/inputicon';
 import { TooltipModule }         from 'primeng/tooltip';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { SkeletonModule }        from 'primeng/skeleton';
+import { AutoCompleteModule }    from 'primeng/autocomplete';
 
 import { EventService }       from '../../service/event.service';
 import { FileService }        from '../../service/file.service';
 import { ParticipantService } from '../../service/participant.service';
+import { EspaceService, Espace } from '../../service/espace.service';
+import { EspaceContextService } from '../../service/espace-context.service';
 import {
     Event, Participant,
+    EventStatus,
     EVENT_TYPE_OPTIONS,
     EVENT_STATUS_OPTIONS,
-    PARTICIPANT_TYPE_OPTIONS
+    PARTICIPANT_TYPE_OPTIONS,
+    endDateAfterStart
 } from '../../models';
 
 interface UploadedFile {
@@ -46,24 +53,25 @@ interface UploadedFile {
         CommonModule, ReactiveFormsModule, FormsModule,
         ButtonModule, InputTextModule, TextareaModule,
         DatePickerModule, SelectModule, RadioButtonModule,
-        CardModule, DividerModule, ToastModule,
+        CardModule, DividerModule, ToastModule, ConfirmDialogModule,
         IconFieldModule, InputIconModule, TooltipModule,
-        ProgressSpinnerModule, SkeletonModule
+        ProgressSpinnerModule, SkeletonModule, AutoCompleteModule
     ],
-    providers: [MessageService],
+    providers: [MessageService, ConfirmationService],
     templateUrl: './event-create.html',
     styleUrl: './event-create.css'
 })
-export class EventCreateComponent implements OnInit {
+export class EventCreateComponent implements OnInit, HasUnsavedChanges {
 
     loading    = false;
+    private submitted = false;
     eventForm!: FormGroup;
     scheduleMode: 'global' | 'custom' = 'global';
     uploadedFiles: UploadedFile[] = [];
     currentStep = 0;
 
-    typeOptions        = EVENT_TYPE_OPTIONS;
-    statusOptions      = EVENT_STATUS_OPTIONS;
+    typeOptions            = EVENT_TYPE_OPTIONS;
+    statusOptions          = EVENT_STATUS_OPTIONS;
     participantTypeOptions = PARTICIPANT_TYPE_OPTIONS;
 
     today:      Date = new Date();
@@ -73,14 +81,25 @@ export class EventCreateComponent implements OnInit {
     cities:    any[] = [];
     selectedCountryCode = 'BF';
 
-    availableParticipants:      any[] = [];
-    selectedExistingParticipant: any  = null;
-    showCreateParticipantForm = false;
+    participantSuggestions:      any[] = [];
+    selectedExistingParticipant: any   = null;
+
+    sallesDisponibles = [
+        { label: 'Bureau CGE',                  value: 'Bureau CGE'                  },
+        { label: 'Bureau CGEA',                 value: 'Bureau CGEA'                 },
+        { label: 'Salle de Réunion RDC',        value: 'Salle de Réunion RDC'        },
+        { label: 'Salle de Réunion 1er Étage',  value: 'Salle de Réunion 1er Étage'  },
+        { label: 'Salle de Réunion 3ème Étage', value: 'Salle de Réunion 3ème Étage' },
+        { label: 'Salle de Réunion 4ème Étage', value: 'Salle de Réunion 4ème Étage' },
+        { label: 'Salle de Réunion 5ème Étage', value: 'Salle de Réunion 5ème Étage' },
+        { label: 'Salle de Conférence',         value: 'Salle de Conférence'         },
+        { label: 'Autre',                       value: 'Autre'                       }
+    ];
 
     steps = [
-        { number: 1, label: 'Informations générales', icon: 'pi-info-circle' },
-        { number: 2, label: 'Dates et Lieu',           icon: 'pi-calendar' },
-        { number: 3, label: 'Horaires',                icon: 'pi-clock' },
+        { number: 1, label: 'Informations générales', icon: 'pi-info-circle'  },
+        { number: 2, label: 'Dates et Lieu',           icon: 'pi-calendar'    },
+        { number: 3, label: 'Horaires',                icon: 'pi-clock'       },
         { number: 4, label: 'Participants',            icon: 'pi-users',       optional: true },
         { number: 5, label: 'Documents',               icon: 'pi-paperclip',   optional: true },
         { number: 6, label: 'Récapitulatif',           icon: 'pi-check-circle' }
@@ -92,55 +111,154 @@ export class EventCreateComponent implements OnInit {
         private fileService:        FileService,
         private participantService: ParticipantService,
         private router:             Router,
-        private messageService:     MessageService
+        private messageService:     MessageService,
+        private confirmationService: ConfirmationService,
+        private espaceService:      EspaceService,
+        private espaceContextService: EspaceContextService
     ) {}
+
+    espaces: Espace[] = [];
+    loadingEspaces = true;
+
+    hasUnsavedChanges(): boolean {
+        return (this.eventForm?.dirty ?? false) && !this.submitted;
+    }
 
     ngOnInit(): void {
         this.initForm();
         this.loadCountries();
         this.loadCities('BF');
-        this.loadAvailableParticipants();
+        this.loadMesEspaces();
     }
 
-    // ==========================================
-    // CHARGEMENT DES DONNÉES
-    // ==========================================
-    loadAvailableParticipants(): void {
-        this.participantService.getAllParticipants().subscribe({
-            next: (participants: Participant[]) => {
-                this.availableParticipants = participants.map(p => ({
-                    ...p,
-                    displayName: `${p.firstName} ${p.lastName} (${p.email})`
-                }));
-                console.log('✅ Participants chargés:', this.availableParticipants.length);
+    loadMesEspaces(): void {
+        this.loadingEspaces = true;
+        this.espaceService.mesEspaces().subscribe({
+            next: (espaces) => {
+                this.espaces = espaces;
+                const espaceActif = this.espaceContextService.espaceActif();
+                if (espaces.length === 1) {
+                    this.eventForm.get('espaceId')?.setValue(espaces[0].id);
+                } else if (espaceActif && espaces.some(e => e.id === espaceActif)) {
+                    this.eventForm.get('espaceId')?.setValue(espaceActif);
+                }
+                this.loadingEspaces = false;
             },
-            error: (err) => console.error('❌ Erreur chargement participants:', err)
+            error: () => { this.loadingEspaces = false; }
+        });
+    }
+
+    initForm(): void {
+        this.eventForm = this.fb.group({
+            title:           ['', [Validators.required, Validators.minLength(3)]],
+            description:     [''],
+            type:            ['', Validators.required],
+            typeAutreLabel:  [''],
+            startDate:       ['', Validators.required],
+            endDate:         ['', Validators.required],
+            pays:            ['Burkina Faso'],
+            ville:           ['Ouagadougou'],
+            meetingLink:     [''],
+            globalStartTime: ['09:00', Validators.required],
+            globalEndTime:   ['17:00', Validators.required],
+            schedules:       this.fb.array([]),
+            participants:    this.fb.array([]),
+            lieuType:        [''],
+            salle:           [''],
+            nomLieu:         [''],
+            espaceId:        ['', Validators.required]
+        }, { validators: endDateAfterStart });
+
+        this.eventForm.get('type')?.valueChanges.subscribe(val => {
+            const ctrl = this.eventForm.get('typeAutreLabel');
+            if (val === 'AUTRE') {
+                ctrl?.setValidators([Validators.required, Validators.minLength(2)]);
+            } else {
+                ctrl?.clearValidators();
+                ctrl?.setValue('', { emitEvent: false });
+            }
+            ctrl?.updateValueAndValidity();
+        });
+
+        this.eventForm.get('lieuType')?.valueChanges.subscribe(type => {
+            if (type === 'INTERNE') {
+                // Sur site : pays/ville du siège pré-remplis, non modifiables (champs masqués)
+                this.eventForm.patchValue({
+                    salle: '', nomLieu: '', meetingLink: '',
+                    pays: 'Burkina Faso', ville: 'Ouagadougou'
+                }, { emitEvent: false });
+            } else if (type === 'NATIONAL') {
+                // Délocalisé national : pays figé sur le Burkina Faso, ville à choisir, site optionnel
+                this.eventForm.patchValue({
+                    salle: '', nomLieu: '', meetingLink: '',
+                    pays: 'Burkina Faso', ville: ''
+                }, { emitEvent: false });
+                this.loadCities('BF');
+            } else {
+                // International : pays/ville libres, choisis via les listes déroulantes
+                // (le pays déclenche le chargement des villes via onCountryChange).
+                // Virtuel / non défini : rien de pertinent.
+                this.eventForm.patchValue({
+                    salle: '', ville: '', pays: '', nomLieu: '', meetingLink: ''
+                }, { emitEvent: false });
+                this.cities = [];
+            }
+        });
+    }
+
+    get currentLieuType(): string {
+        return this.eventForm.get('lieuType')?.value || '';
+    }
+
+    get isAutreSalle(): boolean {
+        return this.eventForm.get('salle')?.value === 'Autre';
+    }
+
+    get isAutreType(): boolean {
+        return this.eventForm.get('type')?.value === 'AUTRE';
+    }
+
+    get schedules(): FormArray {
+        return this.eventForm.get('schedules') as FormArray;
+    }
+
+    get participants(): FormArray {
+        return this.eventForm.get('participants') as FormArray;
+    }
+
+    onParticipantSearch(event: { query: string }): void {
+        const q = event.query?.trim();
+        if (!q) { this.participantSuggestions = []; return; }
+        const addedEmails = new Set(
+            (this.participants.controls as any[]).map(c => c.get('email')?.value)
+        );
+        this.participantService.autocompleteParticipants(q).subscribe({
+            next: (results: Participant[]) => {
+                this.participantSuggestions = results
+                    .filter(p => !addedEmails.has(p.email))
+                    .map(p => ({
+                        ...p,
+                        label: `${p.firstName ?? ''} ${p.lastName ?? ''} — ${p.email ?? ''}`.trim()
+                    }));
+            },
+            error: (err) => {
+                console.error('Autocomplete participant error:', err);
+                this.participantSuggestions = [];
+            }
         });
     }
 
     loadCountries(): void {
-        try {
-            this.countries = Country.getAllCountries()
-                .map(c => ({ label: c.name, value: c.name, code: c.isoCode }))
-                .sort((a, b) => a.label.localeCompare(b.label));
-            console.log('✅ Pays chargés:', this.countries.length);
-        } catch (err) {
-            console.error('❌ Erreur chargement pays:', err);
-        }
+        this.countries = getAllCountries();
     }
 
     loadCities(countryCode: string): void {
-        try {
-            const data = City.getCitiesOfCountry(countryCode);
-            this.cities = data && data.length > 0
-                ? data.map(c => ({ label: c.name, value: c.name }))
-                      .sort((a, b) => a.label.localeCompare(b.label))
-                : [];
-            console.log(`✅ Villes chargées pour ${countryCode}:`, this.cities.length);
-        } catch (err) {
-            console.error('❌ Erreur chargement villes:', err);
-            this.cities = [];
-        }
+        getCitiesOfCountry(countryCode)
+            .then(cities => this.cities = cities)
+            .catch(err => {
+                console.error('Erreur chargement des villes:', err);
+                this.cities = [];
+            });
     }
 
     onCountryChange(event: any): void {
@@ -156,9 +274,10 @@ export class EventCreateComponent implements OnInit {
 
     hasCities(): boolean { return this.cities.length > 0; }
 
-    // ==========================================
-    // GESTION DES DATES
-    // ==========================================
+    hasParticipants(): boolean {
+        return (this.eventForm.get('participants')?.value?.length ?? 0) > 0;
+    }
+
     onStartDateChange(): void {
         const startDate = this.eventForm.get('startDate')?.value;
         if (!startDate) return;
@@ -168,7 +287,7 @@ export class EventCreateComponent implements OnInit {
             this.eventForm.get('endDate')?.setValue(startDate);
             this.messageService.add({
                 severity: 'info',
-                summary: '📅 Date ajustée',
+                summary: 'Date ajustée',
                 detail: 'La date de fin a été ajustée automatiquement',
                 life: 3000
             });
@@ -181,22 +300,20 @@ export class EventCreateComponent implements OnInit {
         return !!(s && e && new Date(e) < new Date(s));
     }
 
-    // ==========================================
-    // PROGRESSION
-    // ==========================================
     get progressValue(): number {
         return ((this.currentStep + 1) / 6) * 100;
     }
 
     getStepClass(i: number): string {
-        if (i < this.currentStep) return 'step-completed';
+        if (i < this.currentStep)   return 'step-completed';
         if (i === this.currentStep) return 'step-active';
         return 'step-pending';
     }
 
     isStepClickable(i: number): boolean {
         return i < this.currentStep ||
-               (i === this.currentStep + 1 && this.canProceedFromStep(this.currentStep));
+               (i === this.currentStep + 1 &&
+                this.canProceedFromStep(this.currentStep));
     }
 
     onStepClick(i: number): void {
@@ -204,11 +321,12 @@ export class EventCreateComponent implements OnInit {
     }
 
     goToStep(step: number): void {
-        if (step > this.currentStep && !this.canProceedFromStep(this.currentStep)) {
+        if (step > this.currentStep &&
+            !this.canProceedFromStep(this.currentStep)) {
             this.markStepFieldsAsTouched(this.currentStep);
             this.messageService.add({
                 severity: 'warn',
-                summary: '⚠ Champs obligatoires manquants',
+                summary: 'Champs obligatoires manquants',
                 detail: 'Veuillez remplir tous les champs requis avant de continuer',
                 life: 4000
             });
@@ -218,18 +336,18 @@ export class EventCreateComponent implements OnInit {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // ==========================================
-    // VALIDATION DES ÉTAPES
-    // ==========================================
     canProceedFromStep(stepIndex: number): boolean {
         switch (stepIndex) {
             case 0:
                 return !!(this.eventForm.get('title')?.valid &&
-                          this.eventForm.get('type')?.valid);
+                          this.eventForm.get('type')?.valid &&
+                          this.eventForm.get('espaceId')?.valid &&
+                          (!this.isAutreType || this.eventForm.get('typeAutreLabel')?.valid));
             case 1: {
                 const s = this.eventForm.get('startDate')?.value;
                 const e = this.eventForm.get('endDate')?.value;
-                return !!(s && e && new Date(e) >= new Date(s));
+                const datesValid = !!(s && e && new Date(e) >= new Date(s));
+                return datesValid && this.isLieuValid();
             }
             case 2:
                 return this.scheduleMode === 'global'
@@ -243,15 +361,53 @@ export class EventCreateComponent implements OnInit {
         }
     }
 
+    isLieuValid(): boolean {
+        const lieuType = this.eventForm.get('lieuType')?.value;
+        switch (lieuType) {
+            case 'INTERNE': {
+                const salle = this.eventForm.get('salle')?.value;
+                return !!salle && (!this.isAutreSalle || !!this.eventForm.get('nomLieu')?.value);
+            }
+            case 'NATIONAL':
+                return !!this.eventForm.get('ville')?.value;
+            case 'INTERNATIONAL':
+                return !!this.eventForm.get('pays')?.value &&
+                       !!this.eventForm.get('ville')?.value;
+            case 'VIRTUEL':
+                return !!this.eventForm.get('meetingLink')?.value;
+            default:
+                return false;
+        }
+    }
+
     markStepFieldsAsTouched(stepIndex: number): void {
         switch (stepIndex) {
             case 0:
                 this.eventForm.get('title')?.markAsTouched();
                 this.eventForm.get('type')?.markAsTouched();
+                this.eventForm.get('espaceId')?.markAsTouched();
+                if (this.isAutreType) this.eventForm.get('typeAutreLabel')?.markAsTouched();
                 break;
             case 1:
                 this.eventForm.get('startDate')?.markAsTouched();
                 this.eventForm.get('endDate')?.markAsTouched();
+                this.eventForm.get('lieuType')?.markAsTouched();
+                switch (this.eventForm.get('lieuType')?.value) {
+                    case 'INTERNE':
+                        this.eventForm.get('salle')?.markAsTouched();
+                        if (this.isAutreSalle) this.eventForm.get('nomLieu')?.markAsTouched();
+                        break;
+                    case 'NATIONAL':
+                        this.eventForm.get('ville')?.markAsTouched();
+                        break;
+                    case 'INTERNATIONAL':
+                        this.eventForm.get('pays')?.markAsTouched();
+                        this.eventForm.get('ville')?.markAsTouched();
+                        break;
+                    case 'VIRTUEL':
+                        this.eventForm.get('meetingLink')?.markAsTouched();
+                        break;
+                }
                 break;
             case 2:
                 if (this.scheduleMode === 'global') {
@@ -259,46 +415,13 @@ export class EventCreateComponent implements OnInit {
                     this.eventForm.get('globalEndTime')?.markAsTouched();
                 } else {
                     this.schedules.controls.forEach(c =>
-                        Object.keys(c.value).forEach(k => c.get(k)?.markAsTouched())
-                    );
+                        Object.keys(c.value).forEach(k =>
+                            c.get(k)?.markAsTouched()));
                 }
                 break;
         }
     }
 
-    // ==========================================
-    // INITIALISATION DU FORMULAIRE
-    // ==========================================
-    initForm(): void {
-        this.eventForm = this.fb.group({
-            title:           ['', [Validators.required, Validators.minLength(3)]],
-            description:     [''],
-            type:            ['', Validators.required],
-            status:          ['PLANIFIE', Validators.required],
-            startDate:       ['', Validators.required],
-            endDate:         ['', Validators.required],
-            pays:            ['Burkina Faso'],
-            ville:           ['Ouagadougou'],
-            meetingLink:     [''],
-            globalStartTime: ['09:00', Validators.required],
-            globalEndTime:   ['17:00', Validators.required],
-            schedules:       this.fb.array([]),
-            participants:    this.fb.array([])
-        });
-        
-    }
-
-    get schedules(): FormArray {
-        return this.eventForm.get('schedules') as FormArray;
-    }
-
-    get participants(): FormArray {
-        return this.eventForm.get('participants') as FormArray;
-    }
-
-    // ==========================================
-    // GESTION DES HORAIRES
-    // ==========================================
     onScheduleModeChange(mode: string): void {
         this.scheduleMode = mode as 'global' | 'custom';
         if (this.scheduleMode === 'custom' && this.schedules.length === 0) {
@@ -318,28 +441,17 @@ export class EventCreateComponent implements OnInit {
     addSchedule(): void {
         this.addScheduleQuiet();
         this.messageService.add({
-            severity: 'success',
-            summary: '✅ Ajouté',
-            detail: 'Horaire ajouté avec succès',
-            life: 2000
+            severity: 'success', summary: 'Ajouté',
+            detail: 'Horaire ajouté avec succès', life: 2000
         });
     }
 
     removeSchedule(index: number): void {
         if (this.schedules.length > 1) {
             this.schedules.removeAt(index);
-            this.messageService.add({
-                severity: 'error',
-                summary: '🗑 Supprimé',
-                detail: 'Horaire supprimé',
-                life: 2000
-            });
         }
     }
 
-    // ==========================================
-    // GESTION DES PARTICIPANTS
-    // ==========================================
     addExistingParticipant(): void {
         if (!this.selectedExistingParticipant) return;
 
@@ -349,19 +461,17 @@ export class EventCreateComponent implements OnInit {
 
         if (alreadyExists) {
             this.messageService.add({
-                severity: 'warn',
-                summary: '⚠ Déjà ajouté',
-                detail: 'Ce participant est déjà dans la liste',
-                life: 3000
+                severity: 'warn', summary: 'Déjà ajouté',
+                detail: 'Ce participant est déjà dans la liste', life: 3000
             });
             return;
         }
 
         this.participants.push(this.fb.group({
             id:              [this.selectedExistingParticipant.id],
-            firstName:       [this.selectedExistingParticipant.firstName,       Validators.required],
-            lastName:        [this.selectedExistingParticipant.lastName,        Validators.required],
-            email:           [this.selectedExistingParticipant.email,           [Validators.required, Validators.email]],
+            firstName:       [this.selectedExistingParticipant.firstName, Validators.required],
+            lastName:        [this.selectedExistingParticipant.lastName,  Validators.required],
+            email:           [this.selectedExistingParticipant.email,     [Validators.required, Validators.email]],
             phoneNumber:     [this.selectedExistingParticipant.phoneNumber  || ''],
             structure:       [this.selectedExistingParticipant.structure    || ''],
             jobTitle:        [this.selectedExistingParticipant.jobTitle     || ''],
@@ -371,10 +481,8 @@ export class EventCreateComponent implements OnInit {
 
         this.selectedExistingParticipant = null;
         this.messageService.add({
-            severity: 'success',
-            summary: '✅ Participant ajouté',
-            detail: 'Participant existant ajouté à la liste',
-            life: 2000
+            severity: 'success', summary: 'Participant ajouté',
+            detail: 'Participant existant ajouté à la liste', life: 2000
         });
         this.scrollToLastParticipant();
     }
@@ -392,10 +500,8 @@ export class EventCreateComponent implements OnInit {
             isExisting:      [false]
         }));
         this.messageService.add({
-            severity: 'success',
-            summary: '✅ Formulaire ajouté',
-            detail: 'Remplissez les champs obligatoires (*)',
-            life: 4000
+            severity: 'success', summary: 'Formulaire ajouté',
+            detail: 'Remplissez les champs obligatoires (*)', life: 4000
         });
         this.scrollToLastParticipant();
     }
@@ -404,7 +510,9 @@ export class EventCreateComponent implements OnInit {
         setTimeout(() => {
             const cards = document.querySelectorAll('.participant-card');
             if (cards.length > 0) {
-                cards[cards.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                cards[cards.length - 1].scrollIntoView({
+                    behavior: 'smooth', block: 'center'
+                });
             }
         }, 100);
     }
@@ -413,10 +521,8 @@ export class EventCreateComponent implements OnInit {
         const name = this.participants.at(index).get('firstName')?.value || 'Participant';
         this.participants.removeAt(index);
         this.messageService.add({
-            severity: 'error',
-            summary: '🗑 Supprimé',
-            detail: `${name} supprimé de la liste`,
-            life: 2000
+            severity: 'error', summary: 'Supprimé',
+            detail: `${name} supprimé de la liste`, life: 2000
         });
     }
 
@@ -428,10 +534,8 @@ export class EventCreateComponent implements OnInit {
         });
         if (invalid > 0) {
             this.messageService.add({
-                severity: 'warn',
-                summary: '⚠ Formulaires incomplets',
-                detail: `${invalid} participant(s) avec des champs manquants`,
-                life: 6000
+                severity: 'warn', summary: 'Formulaires incomplets',
+                detail: `${invalid} participant(s) avec des champs manquants`, life: 6000
             });
             return false;
         }
@@ -442,10 +546,8 @@ export class EventCreateComponent implements OnInit {
         if (this.participants.length === 0 || this.validateParticipants()) {
             if (this.participants.length > 0) {
                 this.messageService.add({
-                    severity: 'success',
-                    summary: '✅ Participants validés',
-                    detail: `${this.participants.length} participant(s) ajouté(s)`,
-                    life: 3000
+                    severity: 'success', summary: 'Participants validés',
+                    detail: `${this.participants.length} participant(s) ajouté(s)`, life: 3000
                 });
             }
             this.goToStep(4);
@@ -456,12 +558,7 @@ export class EventCreateComponent implements OnInit {
         return this.participants.at(index)?.get('isExisting')?.value === true;
     }
 
-    // ==========================================
-    // GESTION DES FICHIERS
-    // ==========================================
-    onFileSelect(event: any): void {
-        this.handleFiles(event.target.files);
-    }
+    onFileSelect(event: any): void { this.handleFiles(event.target.files); }
 
     onDragOver(event: DragEvent): void {
         event.preventDefault();
@@ -479,10 +576,8 @@ export class EventCreateComponent implements OnInit {
         Array.from(files).forEach(file => {
             if (file.size > 10 * 1024 * 1024) {
                 this.messageService.add({
-                    severity: 'warn',
-                    summary: '⚠ Fichier trop volumineux',
-                    detail: `${file.name} dépasse 10 MB`,
-                    life: 4000
+                    severity: 'warn', summary: 'Fichier trop volumineux',
+                    detail: `${file.name} dépasse 10 MB`, life: 4000
                 });
                 return;
             }
@@ -497,10 +592,8 @@ export class EventCreateComponent implements OnInit {
         });
         if (added > 0) {
             this.messageService.add({
-                severity: 'success',
-                summary: '✅ Ajouté',
-                detail: `${added} fichier(s) ajouté(s)`,
-                life: 3000
+                severity: 'success', summary: 'Ajouté',
+                detail: `${added} fichier(s) ajouté(s)`, life: 3000
             });
         }
     }
@@ -509,20 +602,18 @@ export class EventCreateComponent implements OnInit {
         const name = this.uploadedFiles[index].file.name;
         this.uploadedFiles.splice(index, 1);
         this.messageService.add({
-            severity: 'error',
-            summary: '🗑 Supprimé',
-            detail: `${name} retiré`,
-            life: 2000
+            severity: 'error', summary: 'Supprimé',
+            detail: `${name} retiré`, life: 2000
         });
     }
 
     getFileIcon(file: File): string {
         const type = file.type.toLowerCase();
         const name = file.name.toLowerCase();
-        if (type.includes('pdf'))                                  return 'pi pi-file-pdf text-red-500';
-        if (type.includes('word') || name.match(/\.docx?$/))      return 'pi pi-file-word text-blue-500';
-        if (type.includes('excel') || name.match(/\.xlsx?$/))     return 'pi pi-file-excel text-green-500';
-        if (type.includes('image'))                                return 'pi pi-image text-purple-500';
+        if (type.includes('pdf'))                              return 'pi pi-file-pdf text-red-500';
+        if (type.includes('word') || name.match(/\.docx?$/))  return 'pi pi-file-word text-blue-500';
+        if (type.includes('excel') || name.match(/\.xlsx?$/)) return 'pi pi-file-excel text-green-500';
+        if (type.includes('image'))                            return 'pi pi-image text-purple-500';
         return 'pi pi-file text-gray-500';
     }
 
@@ -534,9 +625,6 @@ export class EventCreateComponent implements OnInit {
                ' ' + ['Bytes', 'KB', 'MB', 'GB'][i];
     }
 
-    // ==========================================
-    // VALIDATION
-    // ==========================================
     isFieldInvalid(fieldName: string): boolean {
         const f = this.eventForm.get(fieldName);
         return !!(f && f.invalid && f.touched);
@@ -550,9 +638,6 @@ export class EventCreateComponent implements OnInit {
         return '';
     }
 
-    // ==========================================
-    // HELPERS D'AFFICHAGE
-    // ==========================================
     getTypeLabel(v: string): string {
         return this.typeOptions.find(o => o.value === v)?.label ?? 'Non défini';
     }
@@ -581,9 +666,37 @@ export class EventCreateComponent implements OnInit {
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     }
 
-    // ==========================================
-    // SOUMISSION
-    // ==========================================
+    getLieuResume(): string {
+        const fv   = this.eventForm.value;
+        const type = fv.lieuType;
+        if (!type) {
+            if (fv.ville && fv.pays) return `${fv.ville}, ${fv.pays}`;
+            if (fv.ville) return fv.ville;
+            if (fv.pays)  return fv.pays;
+            return 'Non défini';
+        }
+        switch (type) {
+            case 'INTERNE': {
+                const salleName = fv.salle === 'Autre' ? fv.nomLieu : fv.salle;
+                return salleName ? `ASCELC — ${salleName}` : 'ASCELC';
+            }
+            case 'NATIONAL': {
+                const parts = [fv.nomLieu, fv.ville].filter(Boolean);
+                return parts.join(' — ') || 'Burkina Faso';
+            }
+            case 'INTERNATIONAL': {
+                const parts = [fv.nomLieu, fv.ville, fv.pays].filter(Boolean);
+                return parts.join(', ') || 'International';
+            }
+            case 'VIRTUEL':
+                return fv.meetingLink
+                    ? `Réunion en ligne — ${fv.meetingLink}`
+                    : 'Réunion en ligne';
+            default:
+                return 'Non défini';
+        }
+    }
+
     async onSubmit(): Promise<void> {
         if (!this.canProceedFromStep(0) ||
             !this.canProceedFromStep(1) ||
@@ -603,17 +716,27 @@ export class EventCreateComponent implements OnInit {
             const fv = this.eventForm.value;
 
             const eventData: any = {
-                title:       fv.title?.trim(),
-                description: fv.description?.trim() || null,
-                type:        fv.type,
-                status:      'PLANIFIE',
+                espaceId:       fv.espaceId,
+                title:          fv.title?.trim(),
+                description:    fv.description?.trim() || null,
+                status:         EventStatus.BROUILLON,
+                type:           fv.type,
+                typeAutreLabel: fv.type === 'AUTRE' ? (fv.typeAutreLabel?.trim() || null) : null,
                 startDate:   this.formatDate(fv.startDate),
                 endDate:     this.formatDate(fv.endDate),
                 pays:        fv.pays?.trim()        || null,
                 ville:       fv.ville?.trim()       || null,
                 meetingLink: fv.meetingLink?.trim() || null,
+                lieuType:    fv.lieuType            || null,
+                salle: fv.salle === 'Autre'
+                    ? (fv.nomLieu?.trim() || null)
+                    : (fv.salle?.trim()   || null),
+                nomLieu: fv.lieuType === 'INTERNE'
+                    ? null
+                    : (fv.nomLieu?.trim() || null),
             };
 
+            // Horaires
             if (this.scheduleMode === 'global') {
                 const st = fv.globalStartTime;
                 const et = fv.globalEndTime;
@@ -635,6 +758,7 @@ export class EventCreateComponent implements OnInit {
                     });
             }
 
+            // Participants
             if (fv.participants?.length > 0) {
                 eventData.participants = fv.participants.map((p: any) => ({
                     id:              p.id              || null,
@@ -648,35 +772,37 @@ export class EventCreateComponent implements OnInit {
                 }));
             }
 
-            console.log('📤 Payload envoyé:', JSON.stringify(eventData, null, 2));
-
             const createdEvent = await this.eventService
                 .createEvent(eventData).toPromise();
 
-            // ✅ Upload des fichiers APRÈS création
             if (createdEvent?.id && this.uploadedFiles.length > 0) {
                 await this.uploadFiles(createdEvent.id);
             }
 
             this.messageService.add({
                 severity: 'success',
-                summary: '🎉 Événement créé !',
+                summary: 'Événement créé',
                 detail: 'Redirection en cours...',
                 life: 3000
             });
 
+            this.submitted = true;
+            this.loading = false;
             setTimeout(() => {
                 this.router.navigate(['/events'], {
-                    queryParams: { created: createdEvent?.id, timestamp: Date.now() }
+                    queryParams: {
+                        created:   createdEvent?.id,
+                        timestamp: Date.now()
+                    }
                 });
             }, 1500);
 
         } catch (error: any) {
-            console.error('❌ Erreur création:', error);
+            console.error('Erreur création:', error);
             this.loading = false;
             this.messageService.add({
                 severity: 'error',
-                summary: '❌ Erreur',
+                summary: 'Erreur',
                 detail: error?.error?.message || error?.message || 'Erreur inconnue',
                 life: 8000
             });
@@ -694,8 +820,17 @@ export class EventCreateComponent implements OnInit {
     }
 
     cancel(): void {
-        if (confirm('Êtes-vous sûr de vouloir annuler ? Toutes les données seront perdues.')) {
-            this.router.navigate(['/events']);
-        }
+        this.confirmationService.confirm({
+            header:  'Confirmation',
+            message: 'Êtes-vous sûr de vouloir annuler ? Toutes les données seront perdues.',
+            icon:    'pi pi-exclamation-triangle',
+            acceptLabel: 'Oui, annuler',
+            rejectLabel: 'Continuer la saisie',
+            acceptButtonStyleClass: 'p-button-danger',
+            accept: () => {
+                this.submitted = true;
+                this.router.navigate(['/events']);
+            }
+        });
     }
 }
