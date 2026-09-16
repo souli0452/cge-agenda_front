@@ -29,11 +29,12 @@ export class UserTableComponent {
     @Input() rows          = 20;
     @Input() viewMode: 'list' | 'card' = 'list';
 
-    @Output() view        = new EventEmitter<any>();
-    @Output() edit         = new EventEmitter<any>();
-    @Output() delete       = new EventEmitter<any>();
-    @Output() roleEdit     = new EventEmitter<any>();
-    @Output() resetPwd     = new EventEmitter<any>();
+    @Output() view          = new EventEmitter<any>();
+    @Output() edit          = new EventEmitter<any>();
+    @Output() delete        = new EventEmitter<any>();
+    @Output() roleEdit      = new EventEmitter<any>();
+    @Output() resetPwd      = new EventEmitter<any>();
+    @Output() toggleStatus  = new EventEmitter<any>();
 
     search = '';
     mobileUserPage = 0;

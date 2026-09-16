@@ -61,6 +61,9 @@
                     <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Modifier" (onClick)="edit.emit(user)" />
                     <p-button icon="pi pi-id-card" [rounded]="true" [text]="true" severity="help" pTooltip="Rôles" (onClick)="roleEdit.emit(user)" />
                     <p-button icon="pi pi-key" [rounded]="true" [text]="true" severity="warn" pTooltip="Réinitialiser le mot de passe" (onClick)="resetPwd.emit(user)" />
+                    <p-button [icon]="user.enabled ? 'pi pi-ban' : 'pi pi-check-circle'" [rounded]="true" [text]="true"
+                              [severity]="user.enabled ? 'danger' : 'success'"
+                              [pTooltip]="user.enabled ? 'Désactiver' : 'Réactiver'" (onClick)="toggleStatus.emit(user)" />
                     <p-button icon="pi pi-trash" [rounded]="true" [text]="true" severity="danger" pTooltip="Supprimer" (onClick)="delete.emit(user)" />
                 </div>
             </div>
@@ -103,7 +106,7 @@
                 <th scope="col">Rôle principal</th>
                 <th scope="col">Statut</th>
                 <th scope="col">Créé le</th>
-                <th scope="col" style="width:160px; text-align:center">Actions</th>
+                <th scope="col" style="width:220px; text-align:center">Actions</th>
             </tr>
         </ng-template>
 
@@ -163,6 +166,12 @@
                                   [rounded]="true" [text]="true" severity="warn"
                                   pTooltip="Réinitialiser le mot de passe" tooltipPosition="top"
                                   (onClick)="resetPwd.emit(user)">
+                        </p-button>
+                        <p-button [icon]="user.enabled ? 'pi pi-ban' : 'pi pi-check-circle'"
+                                  [ariaLabel]="user.enabled ? 'Désactiver le compte' : 'Réactiver le compte'"
+                                  [rounded]="true" [text]="true" [severity]="user.enabled ? 'danger' : 'success'"
+                                  [pTooltip]="user.enabled ? 'Désactiver' : 'Réactiver'" tooltipPosition="top"
+                                  (onClick)="toggleStatus.emit(user)">
                         </p-button>
                         <p-button icon="pi pi-trash"
                                   ariaLabel="Supprimer l'utilisateur"

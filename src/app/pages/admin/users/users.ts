@@ -143,7 +143,8 @@ interface UserFormData {
             (edit)="openEditDialog($event)"
             (delete)="confirmDelete($event)"
             (roleEdit)="openRolesDialog($event)"
-            (resetPwd)="openResetPasswordDialog($event)">
+            (resetPwd)="openResetPasswordDialog($event)"
+            (toggleStatus)="confirmToggleStatus($event)">
         </app-user-table>
     </div>
 </div>
@@ -772,6 +773,21 @@ export class AdminUsersComponent implements OnInit {
                 });
                 this.actionLoading = false;
             }
+        });
+    }
+
+    confirmToggleStatus(user: KeycloakUser): void {
+        const willEnable = !user.enabled;
+        this.confirmationService.confirm({
+            message: willEnable
+                ? `Réactiver le compte de "${user.firstName} ${user.lastName}" ?`
+                : `Désactiver le compte de "${user.firstName} ${user.lastName}" ? La personne ne pourra plus se connecter tant que le compte n'est pas réactivé.`,
+            header:                 willEnable ? 'Réactiver le compte' : 'Désactiver le compte',
+            icon:                   'pi pi-exclamation-triangle',
+            acceptLabel:            willEnable ? 'Oui, réactiver' : 'Oui, désactiver',
+            rejectLabel:            'Annuler',
+            acceptButtonStyleClass: willEnable ? 'p-button-success' : 'p-button-danger',
+            accept: () => this.toggleUserStatus(user)
         });
     }
 
