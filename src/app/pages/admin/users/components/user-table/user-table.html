@@ -57,6 +57,7 @@
                     </div>
                 </div>
                 <div class="ut-card-footer">
+                    <p-button icon="pi pi-eye" [rounded]="true" [text]="true" severity="info" pTooltip="Voir le détail" (onClick)="view.emit(user)" />
                     <p-button icon="pi pi-pencil" [rounded]="true" [text]="true" severity="secondary" pTooltip="Modifier" (onClick)="edit.emit(user)" />
                     <p-button icon="pi pi-id-card" [rounded]="true" [text]="true" severity="help" pTooltip="Rôles" (onClick)="roleEdit.emit(user)" />
                     <p-button icon="pi pi-key" [rounded]="true" [text]="true" severity="warn" pTooltip="Réinitialiser le mot de passe" (onClick)="resetPwd.emit(user)" />
@@ -139,6 +140,12 @@
                 <td>{{ formatCreatedAt(user) }}</td>
                 <td>
                     <div class="action-buttons" [attr.aria-label]="'Actions pour ' + user.lastName">
+                        <p-button icon="pi pi-eye"
+                                  ariaLabel="Voir le détail de l'utilisateur"
+                                  [rounded]="true" [text]="true" severity="info"
+                                  pTooltip="Voir le détail" tooltipPosition="top"
+                                  (onClick)="view.emit(user)">
+                        </p-button>
                         <p-button icon="pi pi-pencil"
                                   ariaLabel="Modifier l'utilisateur"
                                   [rounded]="true" [text]="true" severity="secondary"

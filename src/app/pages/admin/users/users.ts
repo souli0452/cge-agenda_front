@@ -138,6 +138,7 @@ interface UserFormData {
             [totalRecords]="filteredUsers.length"
             [rows]="20"
             [viewMode]="userViewMode"
+            (view)="openViewDialog($event)"
             (edit)="openEditDialog($event)"
             (delete)="confirmDelete($event)"
             (roleEdit)="openRolesDialog($event)"
@@ -145,6 +146,66 @@ interface UserFormData {
         </app-user-table>
     </div>
 </div>
+
+<p-dialog
+    [(visible)]="viewDialogVisible"
+    [modal]="true"
+    [style]="{width: '480px'}"
+    header="Détail utilisateur"
+    [draggable]="false">
+
+    <div class="user-form" *ngIf="selectedUserForView as u">
+
+        <div class="user-info-banner">
+            <div class="user-avatar-sm" [style.background]="getAvatarColor(u)">
+                {{ getInitials(u) }}
+            </div>
+            <div>
+                <div class="font-semibold">{{ u.firstName }} {{ u.lastName }}</div>
+                <div class="text-sm text-muted-color">&#64;{{ u.username }}</div>
+            </div>
+        </div>
+
+        <div class="view-detail-grid">
+            <div class="view-detail-row">
+                <span class="view-detail-label">Email</span>
+                <span class="view-detail-value">{{ u.email }}</span>
+            </div>
+            <div class="view-detail-row">
+                <span class="view-detail-label">Rôle(s)</span>
+                <span class="view-detail-value">
+                    <span *ngFor="let r of viewableRoles(u)" class="role-badge" style="margin-right:6px"
+                          [style.color]="getRoleColor(r)" [style.background]="getRoleBg(r)">
+                        {{ getRoleLabel(r) }}
+                    </span>
+                    <span *ngIf="viewableRoles(u).length === 0">—</span>
+                </span>
+            </div>
+            <div class="view-detail-row">
+                <span class="view-detail-label">Statut</span>
+                <span class="view-detail-value">
+                    <span class="status-badge" [class.status-active]="u.enabled" [class.status-inactive]="!u.enabled">
+                        <span class="status-dot"></span>
+                        {{ u.enabled ? 'Actif' : 'Inactif' }}
+                    </span>
+                </span>
+            </div>
+            <div class="view-detail-row">
+                <span class="view-detail-label">Créé le</span>
+                <span class="view-detail-value">{{ formatCreatedAt(u) }}</span>
+            </div>
+            <div class="view-detail-row">
+                <span class="view-detail-label">Authentification à deux facteurs</span>
+                <span class="view-detail-value">{{ u.mfaRequired ? 'Activée' : 'Désactivée' }}</span>
+            </div>
+        </div>
+
+    </div>
+
+    <ng-template pTemplate="footer">
+        <p-button label="Fermer" [text]="true" severity="secondary" (onClick)="viewDialogVisible = false" />
+    </ng-template>
+</p-dialog>
 
 <app-user-form-dialog
     [(visible)]="userDialogVisible"
@@ -448,6 +509,9 @@ export class AdminUsersComponent implements OnInit {
     selectedUserForRoles: KeycloakUser|null = null;
     userCurrentRoles:     string[]          = [];
 
+    viewDialogVisible:    boolean           = false;
+    selectedUserForView:  KeycloakUser|null = null;
+
     /** Rôles actuels hors rôles internes Keycloak (non pertinents/non retirables pour un admin). */
     get displayableCurrentRoles(): string[] {
         return this.userCurrentRoles.filter(r => !isTechnicalRole(r));
@@ -619,6 +683,23 @@ export class AdminUsersComponent implements OnInit {
         this.selectedRoleFilter   = '';
         this.selectedStatusFilter = '';
         this.filteredUsers        = [...this.users];
+    }
+
+    openViewDialog(user: KeycloakUser): void {
+        this.selectedUserForView = user;
+        this.viewDialogVisible   = true;
+    }
+
+    viewableRoles(user: KeycloakUser): string[] {
+        return (user.realmRoles ?? []).filter(r => !isTechnicalRole(r));
+    }
+
+    formatCreatedAt(user: KeycloakUser): string {
+        if (!user.createdTimestamp) return '—';
+        return new Date(user.createdTimestamp).toLocaleString('fr-FR', {
+            day: '2-digit', month: '2-digit', year: 'numeric',
+            hour: '2-digit', minute: '2-digit'
+        });
     }
 
     openCreateDialog(): void {
@@ -979,6 +1060,10 @@ export class AdminUsersComponent implements OnInit {
             'USER':              'Utilisateur'
         };
         return map[role] || role;
+    }
+
+    getRoleBg(role: string): string {
+        return this.getRoleColor(role) + '20';
     }
 
     getRoleColor(role: string): string {
