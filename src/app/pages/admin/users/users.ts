@@ -677,6 +677,7 @@ export class AdminUsersComponent implements OnInit {
 
     openCreateDialog(): void {
         this.editMode          = false;
+        this.selectedUser      = null;
         this.userForm          = this.emptyForm();
         this.userDialogVisible = true;
     }
